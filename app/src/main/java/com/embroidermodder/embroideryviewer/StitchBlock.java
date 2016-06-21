@@ -38,3 +38,4 @@ public class StitchBlock extends PointList  {
         }
     }
 }
+
