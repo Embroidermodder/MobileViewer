@@ -34,9 +34,20 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
-        if (intent != null && intent.getAction() == "android.intent.action.VIEW") {
+        if ((Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)) && type != null) {
             try {
-                Pattern p = ReadFromUri(intent.getData());
+                Uri returnUri = intent.getData();
+                if (returnUri == null) {
+                    Object object = intent.getExtras().get(Intent.EXTRA_STREAM);
+                    if (object instanceof Uri) {
+                        returnUri = (Uri) object;
+                    }
+                }
+                if (returnUri == null) {
+                    //URL could not be fetched from either data or stream.
+                    return;
+                }
+                Pattern p = ReadFromUri(returnUri);
                 DrawView drawView = new DrawView(this, p);
                 RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mainContentArea);
                 relativeLayout.addView(drawView);
@@ -135,16 +146,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     private Pattern ReadFromUri(Uri uri) throws FileNotFoundException {
-        Cursor returnCursor =
-                getContentResolver().query(uri, null, null, null, null);
-        int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        returnCursor.moveToFirst();
-        String filename = returnCursor.getString(nameIndex);
-        IFormatReader formatReader = Pattern.getReaderByFilename(filename);
-        if (formatReader != null) {
-            InputStream is = getContentResolver().openInputStream(uri);
-            DataInputStream in = new DataInputStream(is);
+        IFormatReader formatReader = Pattern.getReaderByFilename(uri.getPath());
+        ParcelFileDescriptor mInputPFD;
+        mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
+        if (mInputPFD != null) {
+            FileDescriptor fd = mInputPFD.getFileDescriptor();
+            FileInputStream fis = new FileInputStream(fd);
+            DataInputStream in = new DataInputStream(fis);
             Pattern p = formatReader.read(in);
             return p;
         }
