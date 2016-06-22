@@ -1,10 +1,12 @@
 package com.embroidermodder.embroideryviewer;
 
 import android.graphics.Matrix;
+import android.graphics.RectF;
 
 import java.util.ArrayList;
 
 public class Pattern {
+    private static final double PIXELS_PER_MM = 10;
     private final ArrayList<StitchBlock> _stitchBlocks;
     private final ArrayList<EmbThread> _threadList;
     private String _filename;
@@ -98,90 +100,58 @@ public class Pattern {
         //this._currentColorIndex = index;
     }
 
-    // Flip will flip the entire pattern about the x-axis if horz is true,
-    // and/or about the y-axis if vert is true.
-    public Pattern getFlippedPattern(boolean horizontal, boolean vertical) {
-        double xMultiplier = horizontal ? -1.0 : 1.0;
-        double yMultiplier = vertical ? -1.0 : 1.0;
-        Pattern newPattern = new Pattern();
-        for (EmbThread thread : this._threadList) {
-            newPattern._threadList.add(new EmbThread(thread));
-        }
-
-        Matrix m = new Matrix();
-        m.postScale((float)xMultiplier,(float)yMultiplier);
-
-        for (StitchBlock sb : this.getStitchBlocks()) {
-            StitchBlock newStitchBlock = new StitchBlock(sb);
-            newStitchBlock.transform(m);
-
-            newPattern.getStitchBlocks().add(newStitchBlock);
-            int threadIndex = this._threadList.indexOf(sb.getThread());
-            newStitchBlock.setThread(newPattern._threadList.get(threadIndex));
-        }
-        return newPattern;
-    }
 
     public void addThread(EmbThread thread) {
         _threadList.add(thread);
     }
 
-    public EmbRect calculateBoundingBox() {
-        double top = Double.MAX_VALUE;
-        double left = Double.MAX_VALUE;
-        double bottom = Double.MIN_VALUE;
-        double right = Double.MIN_VALUE;
+    public RectF calculateBoundingBox() {
+        double top = Double.POSITIVE_INFINITY;
+        double left = Double.POSITIVE_INFINITY;
+        double bottom = Double.NEGATIVE_INFINITY;//Double.MIN_VALUE ~= 0;
+        double right = Double.NEGATIVE_INFINITY;
         for (StitchBlock sb : this.getStitchBlocks()) {
                 top = Math.min(top, sb.getMinY());
                 left = Math.min(left, sb.getMinX());
                 bottom = Math.max(bottom, sb.getMaxY());
                 right = Math.max(right, sb.getMaxX());
         }
-        return new EmbRect(top, left, bottom, right);
+        return new RectF((float)top, (float)left, (float)bottom, (float)right);
+    }
+
+    // Flip will flip the entire pattern about the x-axis if horz is true,
+    // and/or about the y-axis if vert is true.
+    public Pattern getFlippedPattern(boolean horizontal, boolean vertical) {
+        double xMultiplier = horizontal ? -1.0 : 1.0;
+        double yMultiplier = vertical ? -1.0 : 1.0;
+        Matrix m = new Matrix();
+        m.postScale((float)xMultiplier,(float)yMultiplier);
+        for (StitchBlock sb : this.getStitchBlocks()) {
+            sb.transform(m);
+        }
+        return this;
     }
 
     public Pattern getPositiveCoordinatePattern() {
-        int moveLeft, moveTop;
-        EmbRect boundingRect = this.calculateBoundingBox();
-        moveLeft = (int) boundingRect.left;
-        moveTop = (int) boundingRect.top;
-        Pattern newPattern = new Pattern();
-        for (EmbThread thread : this._threadList) {
-            newPattern._threadList.add(new EmbThread(thread));
-        }
+        RectF boundingRect = this.calculateBoundingBox();
         Matrix m = new Matrix();
-        m.setTranslate(moveLeft,moveTop);
+        m.setTranslate(-boundingRect.left,-boundingRect.top);
         for (StitchBlock sb : this.getStitchBlocks()) {
-            StitchBlock newStitchBlock = new StitchBlock(sb);
-            newStitchBlock.transform(m);
-
-            newPattern.getStitchBlocks().add(newStitchBlock);
-            int threadIndex = this._threadList.indexOf(sb.getThread());
-            newStitchBlock.setThread(newPattern._threadList.get(threadIndex));
+            sb.transform(m);
         }
-        return newPattern;
+        return this;
     }
 
     public Pattern getCenteredPattern() {
-        int moveLeft, moveTop;
-        EmbRect boundingRect = this.calculateBoundingBox();
-        moveLeft = (int) (boundingRect.left - (boundingRect.getWidth() / 2.0));
-        moveTop = (int) (boundingRect.top - (boundingRect.getHeight() / 2.0));
-        Pattern newPattern = new Pattern();
-        for (EmbThread thread : this._threadList) {
-            newPattern._threadList.add(new EmbThread(thread));
-        }
+        RectF boundingRect = this.calculateBoundingBox();
+        float cx = boundingRect.centerX();
+        float cy = boundingRect.centerY();
         Matrix m = new Matrix();
-        m.setTranslate(moveLeft,moveTop);
+        m.setTranslate(cx,cy);
         for (StitchBlock sb : this.getStitchBlocks()) {
-            StitchBlock newStitchBlock = new StitchBlock(sb);
-            newStitchBlock.transform(m);
-
-            newPattern.getStitchBlocks().add(newStitchBlock);
-            int threadIndex = this._threadList.indexOf(sb.getThread());
-            newStitchBlock.setThread(newPattern._threadList.get(threadIndex));
+            sb.transform(m);
         }
-        return newPattern;
+        return this;
     }
 
     public static IFormatReader getReaderByFilename(String filename) {
@@ -200,5 +170,113 @@ public class Pattern {
             return new FormatPes();
         }
         return null;
+    }
+
+    public double pixelstocm(double v) {
+        return (Math.rint(10*v)/10) / PIXELS_PER_MM;
+    }
+    public double convert(double v) {
+        return pixelstocm(v);
+    }
+
+    public String getStatistics() {
+        for (StitchBlock s : _stitchBlocks) {
+            s.snap();
+        }
+        RectF bounds = calculateBoundingBox();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Design name: ").append(this._filename).append('\n');
+        int totalsize = getTotalSize();
+        int jumpcount = getJumpCount();
+        int colorcount = getColorCount();
+        sb.append("Number of stitch entries: ").append(totalsize+jumpcount+colorcount).append('\n');
+        sb.append(" Real stitches: ").append(totalsize).append('\n');
+        sb.append(" Jumps: ").append(jumpcount).append('\n'); //I don't actually have jump stitches, just the number of jumps.
+        sb.append(" Colors: ").append(colorcount).append('\n');
+        sb.append("Design width x height = ").append(convert(bounds.width())).append(" x ").append(convert(bounds.height())).append('\n');
+        sb.append("Center of design = ").append(convert(bounds.centerX())).append(" x ").append(convert(bounds.centerY())).append('\n');
+        double totallength = getTotalLength();
+        sb.append("Total length of stitches: ").append(convert(totallength)).append('\n');
+        double min = getMinStitch();
+        double max = getMaxStitch();
+        sb.append("Maximum stitch length: ").append(convert(max)).append(" [").append(getCountRange(max,max)).append(" at this length]").append('\n');
+        sb.append("Minimum stitch length: ").append(convert(min)).append(" [").append(getCountRange(min,min)).append(" at this length]").append('\n');
+        sb.append("Average length of stitches: ").append(convert(totallength / (double)totalsize)).append('\n');
+        sb.append("Stitch length distribution:").append('\n');
+        double start = min;
+        double step = (max-min)/10d;
+        for (int i = 0; i < 10; i++) {
+            double tmin = (i * step) + start;
+            double tmax = ((i+1) * step) + start;
+            sb.append(" ").append(convert(tmin)).append("- ").append(convert(tmax)).append(" == ").append(getCountRange(tmin,tmax)).append('\n');
+        }
+        return sb.toString();
+    }
+
+    private int getTotalSize() {
+        int count = 0;
+        for (StitchBlock sb : _stitchBlocks) {
+            count += sb.size();
+        }
+        return count;
+    }
+    private double getTotalLength() {
+        double count = 0;
+        for (StitchBlock sb : _stitchBlocks) {
+            for (int i = 0, s = sb.size()-1; i < s; i++) {
+                count += sb.distanceSegment(i);
+            }
+        }
+        return count;
+    }
+
+    private int getJumpCount() {
+        return _stitchBlocks.size();
+    }
+
+    private int getColorCount() {
+        return this._threadList.size();
+    }
+
+    private double getMaxStitch() {
+        double count = Double.NEGATIVE_INFINITY;
+        double current;
+        for (StitchBlock sb : _stitchBlocks) {
+            for (int i = 0, s = sb.size()-1; i < s; i++) {
+                current = sb.distanceSegment(i);
+                if (current > count) {
+                    count = current;
+                }
+            }
+        }
+        return count;
+    }
+
+    private double getMinStitch() {
+        double count = Double.POSITIVE_INFINITY;
+        double current;
+        for (StitchBlock sb : _stitchBlocks) {
+            for (int i = 0, s = sb.size()-1; i < s; i++) {
+                current = sb.distanceSegment(i);
+                if (current < count) {
+                    count = current;
+                }
+            }
+        }
+        return count;
+    }
+
+    private int getCountRange(double min, double max) {
+        int count = 0;
+        double current;
+        for (StitchBlock sb : _stitchBlocks) {
+            for (int i = 0, s = sb.size()-1; i < s; i++) {
+                current = sb.distanceSegment(i);
+                if ((current >= min) && (current <= max)) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 }

@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -16,13 +18,14 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import java.io.DataInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
-
     private int SELECT_FILE = 1;
     private Intent _intent;
+    private DrawView drawView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,11 +33,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        Pattern p = new Pattern();
         Intent intent = getIntent();
         String action = intent.getAction();
-        String type = intent.getType();
-        if ((Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)) && type != null) {
+        if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)
+                || Intent.ACTION_EDIT.equals(action)) {
             try {
                 Uri returnUri = intent.getData();
                 if (returnUri == null) {
@@ -47,14 +50,20 @@ public class MainActivity extends AppCompatActivity {
                     //URL could not be fetched from either data or stream.
                     return;
                 }
-                Pattern p = ReadFromUri(returnUri);
-                DrawView drawView = new DrawView(this, p);
-                RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mainContentArea);
-                relativeLayout.addView(drawView);
+                p = ReadFromUri(returnUri);
 
             } catch (FileNotFoundException ex) {
 
             }
+        }
+        if (drawView == null) {
+            drawView = new DrawView(this, p);
+            RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mainContentArea);
+            relativeLayout.addView(drawView);
+        }
+        else {
+            drawView.setPattern(p);
+            drawView.invalidate();
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -101,11 +110,28 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_open_file) {
-            return true;
+        switch (id) {
+            case R.id.action_open_file:
+                return true;
+            case R.id.action_draw_mode:
+                drawView.setTool(new ToolDraw());
+                return true;
+            case R.id.action_pan_mode:
+                drawView.setTool(new ToolPan());
+                return true;
+            case R.id.action_show_statistics:
+                showStatistics();
+                return true;
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showStatistics() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(drawView.getStatistics());
+        builder.show();
     }
 
     //    @Override
@@ -132,23 +158,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onSelectFileResult(Intent data) {
-
             try {
                 this._intent = data;
                 Uri uri = data.getData();
                 Pattern p = ReadFromUri(uri);
-                DrawView drawView = new DrawView(this, p);
-                RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mainContentArea);
-                relativeLayout.addView(drawView);
-
+                drawView.setPattern(p);
+                drawView.invalidate();
         } catch (FileNotFoundException ex) {
-
         }
     }
 
-
     private Pattern ReadFromUri(Uri uri) throws FileNotFoundException {
+
         IFormatReader formatReader = Pattern.getReaderByFilename(uri.getPath());
+        if (formatReader == null) {
+            Cursor returnCursor =
+                    getContentResolver().query(uri, null, null, null, null);
+            int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+            returnCursor.moveToFirst();
+            String filename = returnCursor.getString(nameIndex);
+            formatReader = Pattern.getReaderByFilename(filename);
+        }
+        if (formatReader == null) {
+            return new Pattern();
+        }
         ParcelFileDescriptor mInputPFD;
         mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
         if (mInputPFD != null) {

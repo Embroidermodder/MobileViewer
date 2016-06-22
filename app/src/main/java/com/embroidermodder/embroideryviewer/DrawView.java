@@ -4,82 +4,106 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
 public class DrawView extends View {
+    Tool tool = new ToolPan();
+
     private final int _height;
     private final int _width;
 
     Paint _paint = new Paint();
     Pattern pattern;
 
+    private RectF viewPort;
+
     Matrix viewMatrix;
     Matrix invertMatrix;
 
     public DrawView(Context context, Pattern pattern) {
         super(context);
-        this.pattern = pattern.getPositiveCoordinatePattern();
+
         DisplayMetrics metrics = new DisplayMetrics();
         WindowManager windowManager = (WindowManager) context
                 .getSystemService(Context.WINDOW_SERVICE);
         windowManager.getDefaultDisplay().getMetrics(metrics);
         _height = metrics.heightPixels;
         _width = metrics.widthPixels;
+
+        setPattern(pattern);
+    }
+
+    public void setPattern(Pattern pattern) {
+        this.pattern = pattern;
+        this.pattern = pattern.getPositiveCoordinatePattern();
+        if (pattern.getStitchBlocks().isEmpty()) {
+            viewPort = new RectF(0,0,_width,_height);
+        }
+        else {
+            viewPort = pattern.calculateBoundingBox();
+        }
+        setPaintScale();
+        calculateViewMatrix();
+    }
+
+    public void pan(float dx, float dy) {
+        float scale = getScale();
+        viewPort.offset(dx/scale,dy/scale);
+        calculateViewMatrix();
+    }
+
+    private float getScale() {
+        return Math.min(_height/viewPort.height(), _width/viewPort.width());
+
+    }
+    public void setPaintScale() {
+        float scale = getScale();
+        _paint.setStrokeWidth(scale/9.0f);
     }
 
     public void calculateViewMatrix() {
-        EmbRect embRect = pattern.calculateBoundingBox();
-        float scale = (float)Math.min(_height/embRect.getHeight(), _width/embRect.getWidth());
+        float scale = Math.min(_height/viewPort.height(), _width/viewPort.width());
         viewMatrix = new Matrix();
         if (scale != 0) {
-            viewMatrix.postTranslate((float) -embRect.left, (float) -embRect.top);
+            viewMatrix.postTranslate(-viewPort.left, -viewPort.top);
             viewMatrix.postScale(scale, scale);
-            _paint.setStrokeWidth(scale/9.0f);
         }
         invertMatrix = new Matrix(viewMatrix);
         invertMatrix.invert(invertMatrix);
     }
 
+    public Tool getTool() {
+        return tool;
+    }
+
+    public void setTool(Tool tool) {
+        this.tool = tool;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //anything happening with event here is the X Y of the raw screen event.
+        if (tool.rawTouch(this,event)) return true;
         if (invertMatrix != null) event.transform(invertMatrix);
         //anything happening with event now deals with the screen space.
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_MOVE:
-                this.pattern.addStitchAbs(event.getX(),event.getY(),StitchType.NORMAL,false);
-                this.invalidate(); //in larger operations, you would invalidate *only* the sections that could have changed.
-                invalidate();
-                break;
-            case MotionEvent.ACTION_DOWN:
-                this.pattern.addStitchAbs(event.getX(),event.getY(),StitchType.STOP,false);
-                break;
-            case MotionEvent.ACTION_UP:
-                this.pattern.addStitchAbs(event.getX(),event.getY(),StitchType.STOP,false);
-                break;
-        }
-
-        return true;
+        return tool.touch(this,event);
     }
 
     @Override
     public void onDraw(Canvas canvas) {
-        //_paint.setColor(Color.WHITE);
-        //_paint.setStyle(Paint.Style.FILL);
-        //canvas.drawRect(new Rect(0, 0, _width, _height), _paint);
-        //This is unneeded as Android will automatically blank, any invalidated region.
-        //_paint.setStyle(Paint.Style.STROKE); Unneeded for the segments.
-
-        if (viewMatrix == null) calculateViewMatrix();
-
         canvas.save();
         if (viewMatrix != null) canvas.setMatrix(viewMatrix);
         for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
             stitchBlock.draw(canvas,_paint);
         }
         canvas.restore();
+    }
+
+    public String getStatistics() {
+        return pattern.getStatistics();
     }
 }
