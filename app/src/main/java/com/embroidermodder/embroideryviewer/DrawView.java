@@ -48,31 +48,18 @@ public class DrawView extends View {
             viewPort = pattern.calculateBoundingBox();
         }
         calculateViewMatrixFromPort();
-        setPaintScale();
+        _paint.setStrokeWidth(0.1f);
     }
 
 
     public void scale(double deltascale, float x, float y) {
         viewMatrix.postScale((float)deltascale,(float)deltascale,x,y);
         calculateViewPortFromMatrix();
-
-        setPaintScale();
     }
 
     public void pan(float dx, float dy) {
         viewMatrix.postTranslate(dx,dy);
         calculateViewPortFromMatrix();
-    }
-
-    private float getScale() {
-        return Math.min(_height/viewPort.height(), _width/viewPort.width());
-
-    }
-
-    public void setPaintScale() {
-        float scale = getScale();
-        _paint.setStrokeWidth(scale/100.0f);
-        //This will scale with the scale automatically at 1.
     }
 
     public void calculateViewMatrixFromPort() {
