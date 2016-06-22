@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Embroidery Viewer</string>
     <string name="action_open_file">Open File</string>
+    <string name="title_activity_fab">FAB</string>
+    <string name="action_tool_pan">Pan</string>
+    <string name="action_tool_draw">Draw</string>
+    <string name="action_show_statistics">Statistics</string>
 </resources>
