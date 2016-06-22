@@ -71,7 +71,7 @@ public class DrawView extends View {
 
     public void setPaintScale() {
         float scale = getScale();
-        _paint.setStrokeWidth(scale/9.0f);
+        _paint.setStrokeWidth(scale/100.0f);
         //This will scale with the scale automatically at 1.
     }
 
