@@ -33,45 +33,69 @@ public class DrawView extends View {
         windowManager.getDefaultDisplay().getMetrics(metrics);
         _height = metrics.heightPixels;
         _width = metrics.widthPixels;
-
         setPattern(pattern);
     }
 
     public void setPattern(Pattern pattern) {
         this.pattern = pattern;
+
         this.pattern = pattern.getPositiveCoordinatePattern();
+
         if (pattern.getStitchBlocks().isEmpty()) {
             viewPort = new RectF(0,0,_width,_height);
         }
         else {
             viewPort = pattern.calculateBoundingBox();
         }
+        calculateViewMatrixFromPort();
         setPaintScale();
-        calculateViewMatrix();
+    }
+
+
+    public void scale(double deltascale, float x, float y) {
+        viewMatrix.postScale((float)deltascale,(float)deltascale,x,y);
+        calculateViewPortFromMatrix();
+
+        setPaintScale();
     }
 
     public void pan(float dx, float dy) {
-        float scale = getScale();
-        viewPort.offset(dx/scale,dy/scale);
-        calculateViewMatrix();
+        viewMatrix.postTranslate(dx,dy);
+        calculateViewPortFromMatrix();
     }
 
     private float getScale() {
         return Math.min(_height/viewPort.height(), _width/viewPort.width());
 
     }
+
     public void setPaintScale() {
         float scale = getScale();
         _paint.setStrokeWidth(scale/9.0f);
+        //This will scale with the scale automatically at 1.
     }
 
-    public void calculateViewMatrix() {
+    public void calculateViewMatrixFromPort() {
         float scale = Math.min(_height/viewPort.height(), _width/viewPort.width());
         viewMatrix = new Matrix();
         if (scale != 0) {
             viewMatrix.postTranslate(-viewPort.left, -viewPort.top);
             viewMatrix.postScale(scale, scale);
         }
+        calculateInvertMatrix();
+    }
+
+    public void calculateViewPortFromMatrix() {
+        float[] positions = new float[] {
+                0,0,
+                _width,_height
+        };
+        calculateInvertMatrix();
+        invertMatrix.mapPoints(positions);
+        viewPort.set(positions[0],positions[1],positions[2],positions[3]);
+    }
+
+    public void calculateInvertMatrix() {
         invertMatrix = new Matrix(viewMatrix);
         invertMatrix.invert(invertMatrix);
     }
@@ -106,4 +130,5 @@ public class DrawView extends View {
     public String getStatistics() {
         return pattern.getStatistics();
     }
+
 }
