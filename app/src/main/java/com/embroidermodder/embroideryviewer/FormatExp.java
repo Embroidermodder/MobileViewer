@@ -65,7 +65,7 @@ public class FormatExp implements IFormatReader {
                         flags = StitchType.TRIM;
                     }
                 }
-                p.addStitchRel((float) b0 / 10.0, (float) b1 / 10.0, flags, true);
+                p.addStitchRel((float) b0, (float) b1, flags, true);
             }
         } catch (IOException ex) {
         }

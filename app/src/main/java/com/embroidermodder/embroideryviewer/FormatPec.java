@@ -80,7 +80,7 @@ public class FormatPec implements IFormatReader {
                 } else if (val2 >= 0x40) {
                     val2 -= 0x80;
                 }
-                pattern.addStitchRel(val1 / 10.0, val2 / 10.0, stitchType, true);
+                pattern.addStitchRel(val1, val2, stitchType, true);
 
             }
         } catch (IOException ex) {

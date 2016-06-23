@@ -25,7 +25,9 @@ public class Pattern {
         return _stitchBlocks;
     }
 
-    public ArrayList<EmbThread> getThreadList(){ return _threadList; }
+    public ArrayList<EmbThread> getThreadList() {
+        return _threadList;
+    }
 
     public String getFilename() {
         return _filename;
@@ -80,9 +82,22 @@ public class Pattern {
             this.getStitchBlocks().add(sb);
             return;
         }
+        if ((flags & StitchType.TRIM) > 0) {
+            _previousX = x;
+            _previousY = y;
+            if ((this._currentStitchBlock.isEmpty())) {
+                return;
+            }
+            int currIndex = this._threadList.indexOf(this._currentStitchBlock.getThread());
+            StitchBlock sb = new StitchBlock();
+            this._currentStitchBlock = sb;
+            sb.setThread(this._threadList.get(currIndex));
+            this.getStitchBlocks().add(sb);
+            return;
+        }
         _previousX = x;
         _previousY = y;
-        this._currentStitchBlock.add((float)x,(float)y);
+        this._currentStitchBlock.add((float) x, (float) y);
     }
 
     // AddStitchRel adds a stitch to the pattern at the relative position (dx, dy)
@@ -111,21 +126,21 @@ public class Pattern {
         double bottom = Double.NEGATIVE_INFINITY;//Double.MIN_VALUE ~= 0;
         double right = Double.NEGATIVE_INFINITY;
         for (StitchBlock sb : this.getStitchBlocks()) {
-                top = Math.min(top, sb.getMinY());
-                left = Math.min(left, sb.getMinX());
-                bottom = Math.max(bottom, sb.getMaxY());
-                right = Math.max(right, sb.getMaxX());
+            top = Math.min(top, sb.getMinY());
+            left = Math.min(left, sb.getMinX());
+            bottom = Math.max(bottom, sb.getMaxY());
+            right = Math.max(right, sb.getMaxX());
         }
-        return new RectF((float)top, (float)left, (float)bottom, (float)right);
+        return new RectF((float) top, (float) left, (float) bottom, (float) right);
     }
 
     // Flip will flip the entire pattern about the x-axis if horz is true,
-    // and/or about the y-axis if vert is true.
+    // and/or about the y-axis if vertical is true.
     public Pattern getFlippedPattern(boolean horizontal, boolean vertical) {
-        double xMultiplier = horizontal ? -1.0 : 1.0;
-        double yMultiplier = vertical ? -1.0 : 1.0;
+        float xMultiplier = horizontal ? -1.0f : 1.0f;
+        float yMultiplier = vertical ? -1.0f : 1.0f;
         Matrix m = new Matrix();
-        m.postScale((float)xMultiplier,(float)yMultiplier);
+        m.postScale(xMultiplier, yMultiplier);
         for (StitchBlock sb : this.getStitchBlocks()) {
             sb.transform(m);
         }
@@ -135,7 +150,7 @@ public class Pattern {
     public Pattern getPositiveCoordinatePattern() {
         RectF boundingRect = this.calculateBoundingBox();
         Matrix m = new Matrix();
-        m.setTranslate(-boundingRect.left,-boundingRect.top);
+        m.setTranslate(-boundingRect.left, -boundingRect.top);
         for (StitchBlock sb : this.getStitchBlocks()) {
             sb.transform(m);
         }
@@ -147,7 +162,7 @@ public class Pattern {
         float cx = boundingRect.centerX();
         float cy = boundingRect.centerY();
         Matrix m = new Matrix();
-        m.setTranslate(cx,cy);
+        m.setTranslate(cx, cy);
         for (StitchBlock sb : this.getStitchBlocks()) {
             sb.transform(m);
         }
@@ -162,19 +177,24 @@ public class Pattern {
             return new FormatExp();
         } else if (filename.endsWith(".dst")) {
             return new FormatDst();
+        } else if (filename.endsWith(".jef")) {
+            return new FormatJef();
         } else if (filename.endsWith(".pcs")) {
             return new FormatPcs();
         } else if (filename.endsWith(".pec")) {
             return new FormatPec();
         } else if (filename.endsWith(".pes")) {
             return new FormatPes();
+        } else if (filename.endsWith(".sew")) {
+            return new FormatSew();
         }
         return null;
     }
 
     public double pixelstocm(double v) {
-        return (Math.rint(10*v)/10) / PIXELS_PER_MM;
+        return (Math.rint(10 * v) / 10) / PIXELS_PER_MM;
     }
+
     public double convert(double v) {
         return pixelstocm(v);
     }
@@ -189,7 +209,7 @@ public class Pattern {
         int totalsize = getTotalSize();
         int jumpcount = getJumpCount();
         int colorcount = getColorCount();
-        sb.append("Number of stitch entries: ").append(totalsize+jumpcount+colorcount).append('\n');
+        sb.append("Number of stitch entries: ").append(totalsize + jumpcount + colorcount).append('\n');
         sb.append(" Real stitches: ").append(totalsize).append('\n');
         sb.append(" Jumps: ").append(jumpcount).append('\n'); //I don't actually have jump stitches, just the number of jumps.
         sb.append(" Colors: ").append(colorcount).append('\n');
@@ -199,16 +219,16 @@ public class Pattern {
         sb.append("Total length of stitches: ").append(convert(totallength)).append('\n');
         double min = getMinStitch();
         double max = getMaxStitch();
-        sb.append("Maximum stitch length: ").append(convert(max)).append(" [").append(getCountRange(max,max)).append(" at this length]").append('\n');
-        sb.append("Minimum stitch length: ").append(convert(min)).append(" [").append(getCountRange(min,min)).append(" at this length]").append('\n');
-        sb.append("Average length of stitches: ").append(convert(totallength / (double)totalsize)).append('\n');
+        sb.append("Maximum stitch length: ").append(convert(max)).append(" [").append(getCountRange(max, max)).append(" at this length]").append('\n');
+        sb.append("Minimum stitch length: ").append(convert(min)).append(" [").append(getCountRange(min, min)).append(" at this length]").append('\n');
+        sb.append("Average length of stitches: ").append(convert(totallength / (double) totalsize)).append('\n');
         sb.append("Stitch length distribution:").append('\n');
         double start = min;
-        double step = (max-min)/10d;
+        double step = (max - min) / 10d;
         for (int i = 0; i < 10; i++) {
             double tmin = (i * step) + start;
-            double tmax = ((i+1) * step) + start;
-            sb.append(" ").append(convert(tmin)).append("- ").append(convert(tmax)).append(" == ").append(getCountRange(tmin,tmax)).append('\n');
+            double tmax = ((i + 1) * step) + start;
+            sb.append(" ").append(convert(tmin)).append("- ").append(convert(tmax)).append(" == ").append(getCountRange(tmin, tmax)).append('\n');
         }
         return sb.toString();
     }
@@ -220,10 +240,11 @@ public class Pattern {
         }
         return count;
     }
+
     private double getTotalLength() {
         double count = 0;
         for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size()-1; i < s; i++) {
+            for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 count += sb.distanceSegment(i);
             }
         }
@@ -242,7 +263,7 @@ public class Pattern {
         double count = Double.NEGATIVE_INFINITY;
         double current;
         for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size()-1; i < s; i++) {
+            for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 current = sb.distanceSegment(i);
                 if (current > count) {
                     count = current;
@@ -256,7 +277,7 @@ public class Pattern {
         double count = Double.POSITIVE_INFINITY;
         double current;
         for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size()-1; i < s; i++) {
+            for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 current = sb.distanceSegment(i);
                 if (current < count) {
                     count = current;
@@ -270,7 +291,7 @@ public class Pattern {
         int count = 0;
         double current;
         for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size()-1; i < s; i++) {
+            for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 current = sb.distanceSegment(i);
                 if ((current >= min) && (current <= max)) {
                     count++;

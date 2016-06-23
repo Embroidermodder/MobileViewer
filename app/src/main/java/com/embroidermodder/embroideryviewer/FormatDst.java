@@ -100,7 +100,7 @@ public class FormatDst implements IFormatReader {
                 if (flags == StitchType.END) {
                     break;
                 }
-                p.addStitchRel(x / 10.0, y / 10.0, flags, true);
+                p.addStitchRel(x, y, flags, true);
             }
         } catch (IOException ex) {
 

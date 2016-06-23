@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -33,6 +34,7 @@ public class DrawView extends View {
         windowManager.getDefaultDisplay().getMetrics(metrics);
         _height = metrics.heightPixels;
         _width = metrics.widthPixels;
+        this.setBackgroundColor(0xFFBBDDEE);
         setPattern(pattern);
     }
 
@@ -48,7 +50,7 @@ public class DrawView extends View {
             viewPort = pattern.calculateBoundingBox();
         }
         calculateViewMatrixFromPort();
-        _paint.setStrokeWidth(0.1f);
+        _paint.setStrokeWidth(1);
     }
 
 
@@ -63,7 +65,8 @@ public class DrawView extends View {
     }
 
     public void calculateViewMatrixFromPort() {
-        float scale = Math.min(_height/viewPort.height(), _width/viewPort.width());
+        float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
+        RectF r = this.pattern.calculateBoundingBox();
         viewMatrix = new Matrix();
         if (scale != 0) {
             viewMatrix.postTranslate(-viewPort.left, -viewPort.top);

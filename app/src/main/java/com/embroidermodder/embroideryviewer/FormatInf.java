@@ -17,7 +17,7 @@ public class FormatInf implements IFormatReader {
         Pattern p = new Pattern();
         try {
             stream.skip(12);
-            int numberOfColors = BinaryReader.readInt32BE(stream);
+            int numberOfColors = stream.readInt();
             for (int x = 0; x < numberOfColors; x++) {
                 stream.skip(4);
                 EmbThread t = new EmbThread();

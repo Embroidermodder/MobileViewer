@@ -24,10 +24,10 @@ public class FormatPcs implements IFormatReader {
     public Pattern read(DataInputStream stream) {
         Pattern p = new Pattern();
         char allZeroColor = 1;
-        int i = 0;
+        int i;
         byte[] b = new byte[9];
-        double dx = 0, dy = 0;
-        int flags = 0, st = 0;
+        double dx, dy;
+        int flags, st;
         byte version, hoopSize;
         int colorCount;
         try {
@@ -37,16 +37,16 @@ public class FormatPcs implements IFormatReader {
 
 //    switch (hoopSize) {
 //        case 2:
-//            pattern -> hoop.width = 80.0;
-//            pattern -> hoop.height = 80.0;
+//            p.hoop.width = 80.0;
+//            p.hoop.height = 80.0;
 //            break;
 //        case 3:
-//            pattern -> hoop.width = 115;
-//            pattern -> hoop.height = 120.0;
+//            p.hoop.width = 115;
+//            p.hoop.height = 120.0;
 //            break;
 //    }
 
-            colorCount = BinaryReader.readInt16BE(stream);
+            colorCount = BinaryReader.readInt16LE(stream);
 
             for (i = 0; i < colorCount; i++) {
 
@@ -61,7 +61,7 @@ public class FormatPcs implements IFormatReader {
                 p.addThread(t);
                 stream.readByte();
             }
-            st = BinaryReader.readInt16BE(stream);
+            st = BinaryReader.readInt16LE(stream);
             for (i = 0; i < st; i++) {
                 flags = StitchType.NORMAL;
                 if (stream.read(b) != 9) {
