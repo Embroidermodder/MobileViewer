@@ -8,13 +8,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.RelativeLayout;
 
 import java.io.BufferedInputStream;
@@ -67,37 +65,23 @@ public class MainActivity extends AppCompatActivity {
             drawView = new DrawView(this, p);
             RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mainContentArea);
             relativeLayout.addView(drawView);
-        }
-        else {
+        } else {
             drawView.setPattern(p);
             drawView.invalidate();
-        }
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        if (fab != null) {
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    Uri uri = Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString());
-                    intent.setDataAndType(uri, "*/*");
-                    startActivityForResult(Intent.createChooser(intent, "Open folder"), SELECT_FILE);
-                }
-            });
         }
     }
 
     @Override
-    public void onSaveInstanceState (Bundle outState) {
-        if(null != this._intent) {
+    public void onSaveInstanceState(Bundle outState) {
+        if (null != this._intent) {
             outState.putParcelable("intent", this._intent);
         }
     }
 
     @Override
-    public void onRestoreInstanceState (Bundle savedInstanceState) {
-        if(null != savedInstanceState && savedInstanceState.containsKey("intent")) {
-            Intent intent = (Intent)savedInstanceState.getParcelable("intent");
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        if (null != savedInstanceState && savedInstanceState.containsKey("intent")) {
+            Intent intent = (Intent) savedInstanceState.getParcelable("intent");
             onSelectFileResult(intent);
         }
     }
@@ -119,6 +103,10 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_open_file:
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Uri uri = Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString());
+                intent.setDataAndType(uri, "*/*");
+                startActivityForResult(Intent.createChooser(intent, "Open folder"), SELECT_FILE);
                 return true;
             case R.id.action_draw_mode:
                 drawView.setTool(new ToolDraw());
@@ -141,19 +129,20 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    //    @Override
+//    @Override
 //    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 //        switch (requestCode) {
-//            case Utility.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
+//            case "ReadDownloadsFolder":
 //                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    if(userChoosenTask.equals("Open folder"))
-//                        cameraIntent();
+//                    //code for granted
 //                } else {
-//                    //code for deny
+//                    //code for denied
 //                }
-//                break;
+//                return;
 //        }
 //    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -165,12 +154,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onSelectFileResult(Intent data) {
-            try {
-                this._intent = data;
-                Uri uri = data.getData();
-                Pattern p = ReadFromUri(uri);
-                drawView.setPattern(p);
-                drawView.invalidate();
+        try {
+            this._intent = data;
+            Uri uri = data.getData();
+            Pattern p = ReadFromUri(uri);
+            drawView.setPattern(p);
+            drawView.invalidate();
         } catch (FileNotFoundException ex) {
         }
     }
@@ -201,20 +190,17 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    private boolean unpackZip(String path, String zipname)
-    {
+    private boolean unpackZip(String path, String zipname) {
         InputStream is;
         ZipInputStream zis;
-        try
-        {
+        try {
             String filename;
             is = new FileInputStream(path + zipname);
             zis = new ZipInputStream(new BufferedInputStream(is));
             ZipEntry ze;
             byte[] buffer = new byte[1024];
             int count;
-            while ((ze = zis.getNextEntry()) != null)
-            {
+            while ((ze = zis.getNextEntry()) != null) {
                 filename = ze.getName();
                 // Need to create directories if not exists, or
                 // it will generate an Exception...
@@ -224,17 +210,14 @@ public class MainActivity extends AppCompatActivity {
                     continue;
                 }
                 FileOutputStream fout = new FileOutputStream(path + filename);
-                while ((count = zis.read(buffer)) != -1)
-                {
+                while ((count = zis.read(buffer)) != -1) {
                     fout.write(buffer, 0, count);
                 }
                 fout.close();
                 zis.closeEntry();
             }
             zis.close();
-        }
-        catch(IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }

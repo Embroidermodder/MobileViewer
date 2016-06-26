@@ -25,18 +25,22 @@
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.EDIT" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.DST"/>
                 <data android:mimeType="*/*" android:pathPattern=".*\\.dst" />
+                <data android:mimeType="*/*" android:pathPattern=".*\\.DST"/>
                 <data android:mimeType="*/*" android:pathPattern=".*\\.col" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.COL" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.exp" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.EXP" />
+                <data android:mimeType="*/*" android:pathPattern=".*\\.jef" />
+                <data android:mimeType="*/*" android:pathPattern=".*\\.JEF" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.pcs" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.PCS" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.pec" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.PEC" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.pes" />
                 <data android:mimeType="*/*" android:pathPattern=".*\\.PES" />
+                <data android:mimeType="*/*" android:pathPattern=".*\\.sew" />
+                <data android:mimeType="*/*" android:pathPattern=".*\\.SEW" />
             </intent-filter>
         </activity>
 

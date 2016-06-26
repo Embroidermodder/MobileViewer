@@ -4,9 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.Point;
 import android.graphics.RectF;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -18,7 +17,7 @@ public class DrawView extends View {
     private final int _width;
 
     Paint _paint = new Paint();
-    Pattern pattern;
+    Pattern pattern = null;
 
     private RectF viewPort;
 
@@ -28,21 +27,18 @@ public class DrawView extends View {
     public DrawView(Context context, Pattern pattern) {
         super(context);
 
-        DisplayMetrics metrics = new DisplayMetrics();
         WindowManager windowManager = (WindowManager) context
                 .getSystemService(Context.WINDOW_SERVICE);
-        windowManager.getDefaultDisplay().getMetrics(metrics);
-        _height = metrics.heightPixels;
-        _width = metrics.widthPixels;
+        Point size = new Point();
+        windowManager.getDefaultDisplay().getSize(size);
+        _height = (int) ((float)size.y * 0.9f);
+        _width = (int) ((float)size.x * 0.9f);
         this.setBackgroundColor(0xFFBBDDEE);
-        setPattern(pattern);
+        //this.pattern = pattern;
     }
 
     public void setPattern(Pattern pattern) {
         this.pattern = pattern;
-
-        this.pattern = pattern.getPositiveCoordinatePattern();
-
         if (pattern.getStitchBlocks().isEmpty()) {
             viewPort = new RectF(0,0,_width,_height);
         }
@@ -66,7 +62,6 @@ public class DrawView extends View {
 
     public void calculateViewMatrixFromPort() {
         float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
-        RectF r = this.pattern.calculateBoundingBox();
         viewMatrix = new Matrix();
         if (scale != 0) {
             viewMatrix.postTranslate(-viewPort.left, -viewPort.top);
@@ -109,12 +104,14 @@ public class DrawView extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
-        canvas.save();
-        if (viewMatrix != null) canvas.setMatrix(viewMatrix);
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
-            stitchBlock.draw(canvas,_paint);
+        if(pattern != null) {
+            canvas.save();
+            if (viewMatrix != null) canvas.setMatrix(viewMatrix);
+            for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
+                stitchBlock.draw(canvas, _paint);
+            }
+            canvas.restore();
         }
-        canvas.restore();
     }
 
     public String getStatistics() {
