@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class Pattern {
     private static final double PIXELS_PER_MM = 10;
+    private ArrayList<Pattern.Listener> _listeners;
     private final ArrayList<StitchBlock> _stitchBlocks;
     private final ArrayList<EmbThread> _threadList;
     private String _filename;
@@ -15,7 +16,10 @@ public class Pattern {
     private double _previousX = 0;
     private double _previousY = 0;
 
+
+
     public Pattern() {
+        _listeners = new ArrayList<>();
         _stitchBlocks = new ArrayList<>();
         _threadList = new ArrayList<>();
         _currentStitchBlock = null;
@@ -121,17 +125,17 @@ public class Pattern {
     }
 
     public RectF calculateBoundingBox() {
-        double top = Double.POSITIVE_INFINITY;
         double left = Double.POSITIVE_INFINITY;
-        double bottom = Double.NEGATIVE_INFINITY;//Double.MIN_VALUE ~= 0;
+        double top = Double.POSITIVE_INFINITY;
         double right = Double.NEGATIVE_INFINITY;
+        double bottom = Double.NEGATIVE_INFINITY;//Double.MIN_VALUE ~= 0;
         for (StitchBlock sb : this.getStitchBlocks()) {
-            top = Math.min(top, sb.getMinY());
             left = Math.min(left, sb.getMinX());
-            bottom = Math.max(bottom, sb.getMaxY());
+            top = Math.min(top, sb.getMinY());
             right = Math.max(right, sb.getMaxX());
+            bottom = Math.max(bottom, sb.getMaxY());
         }
-        return new RectF((float) top, (float) left, (float) bottom, (float) right);
+        return new RectF((float) left, (float) top, (float) right, (float) bottom);
     }
 
     // Flip will flip the entire pattern about the x-axis if horz is true,
@@ -299,5 +303,31 @@ public class Pattern {
             }
         }
         return count;
+    }
+
+    public void notifyChange(int v) {
+        for (Listener listener : _listeners) {
+            listener.update(v);
+        }
+    }
+
+    public void addListener(Listener listener) {
+        if (!_listeners.contains(listener)) {
+            _listeners.add(listener);
+        }
+    }
+
+    public void removeListener(Object listener) {
+        if (listener instanceof Listener) {
+            _listeners.remove(listener);
+        }
+    }
+
+    public interface Provider {
+        Pattern getPattern();
+    }
+
+    public interface Listener {
+        void update(int v);
     }
 }

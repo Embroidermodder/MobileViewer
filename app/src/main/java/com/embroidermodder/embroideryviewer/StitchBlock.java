@@ -3,8 +3,10 @@ package com.embroidermodder.embroideryviewer;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
+
 public class StitchBlock extends PointList  {
     private EmbThread _thread;
+
 
     public StitchBlock() {
     }
@@ -27,6 +29,7 @@ public class StitchBlock extends PointList  {
 
     public void draw(Canvas canvas, Paint paint) {
         paint.setColor(_thread.getColor().getAndroidColor());
+
         if (count >= 4) {
             if ((count & 2) != 0) {
                 canvas.drawLines(pointlist, 0, count - 2, paint);

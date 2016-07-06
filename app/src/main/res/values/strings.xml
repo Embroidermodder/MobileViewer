@@ -5,4 +5,8 @@
     <string name="action_tool_pan">Pan</string>
     <string name="action_tool_draw">Draw</string>
     <string name="action_show_statistics">Statistics</string>
+    <string name="stitchblock_stitches">"Stitches: %d"</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -11,7 +11,7 @@ public class ToolDraw implements Tool {
 
     @Override
     public boolean touch(DrawView drawView, MotionEvent event) {
-        Pattern pattern = drawView.pattern;
+        Pattern pattern = drawView.getPattern();
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 pattern.addStitchAbs(event.getX(),event.getY(),StitchType.NORMAL,false);
@@ -21,6 +21,7 @@ public class ToolDraw implements Tool {
                 break;
             case MotionEvent.ACTION_UP:
                 pattern.addStitchAbs(event.getX(),event.getY(),StitchType.STOP,false);
+                pattern.notifyChange(0);
                 break;
         }
         return true;
