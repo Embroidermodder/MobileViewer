@@ -8,12 +8,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.RelativeLayout;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -27,7 +29,7 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Pattern.Provider {
     private int SELECT_FILE = 1;
     private Intent _intent;
     private DrawView drawView;
@@ -61,14 +63,15 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-        if (drawView == null) {
-            drawView = new DrawView(this, p);
-            RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mainContentArea);
-            relativeLayout.addView(drawView);
-        } else {
-            drawView.setPattern(p);
-            drawView.invalidate();
-        }
+        drawView = (DrawView) findViewById(R.id.drawview);
+        drawView.initWindowSize();
+        setPattern(p);
+    }
+
+    public void setPattern(Pattern pattern) {
+        drawView.setPattern(pattern);
+        drawView.invalidate();
+        openColorFragment();
     }
 
     @Override
@@ -123,11 +126,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void showStatistics() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(drawView.getStatistics());
-        builder.show();
-    }
 
 //    @Override
 //    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -158,10 +156,44 @@ public class MainActivity extends AppCompatActivity {
             this._intent = data;
             Uri uri = data.getData();
             Pattern p = ReadFromUri(uri);
-            drawView.setPattern(p);
-            drawView.invalidate();
+            setPattern(p);
         } catch (FileNotFoundException ex) {
         }
+    }
+
+
+    public void openColorFragment() {
+        tryCloseFragment(ColorStitchBlockFragment.TAG);
+        FragmentManager fragmentManager = this.getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        ColorStitchBlockFragment fragment = new ColorStitchBlockFragment();
+        transaction.add(R.id.mainActivity, fragment, ColorStitchBlockFragment.TAG);
+        transaction.commit();
+        drawView.getPattern().addListener(fragment);
+    }
+
+    public boolean tryCloseFragment(String tag) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragmentByTag;
+        fragmentByTag = fragmentManager.findFragmentByTag(tag);
+
+        if (fragmentByTag == null) return false;
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.remove(fragmentByTag);
+        transaction.commit();
+        drawView.getPattern().removeListener(fragmentByTag);
+        return true;
+    }
+
+    @Override
+    public Pattern getPattern() {
+        return drawView.getPattern();
+    }
+
+    public void showStatistics() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(drawView.getStatistics());
+        builder.show();
     }
 
     private Pattern ReadFromUri(Uri uri) throws FileNotFoundException {
@@ -223,4 +255,5 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
 }

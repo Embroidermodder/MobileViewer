@@ -2,51 +2,78 @@ package com.embroidermodder.embroideryviewer;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-public class DrawView extends View {
+public class DrawView extends View implements Pattern.Provider, Pattern.Listener {
+    private static final float MARGIN = 0.05f;
+
     Tool tool = new ToolPan();
 
-    private final int _height;
-    private final int _width;
+    private int _height;
+    private int _width;
 
     Paint _paint = new Paint();
-    Pattern pattern = null;
+    private Pattern pattern = null;
 
     private RectF viewPort;
 
     Matrix viewMatrix;
     Matrix invertMatrix;
 
-    public DrawView(Context context, Pattern pattern) {
-        super(context);
+    public DrawView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init();
 
-        WindowManager windowManager = (WindowManager) context
-                .getSystemService(Context.WINDOW_SERVICE);
+    }
+
+    public DrawView(Context context) {
+
+        super(context);
+        init();
+    }
+
+    public DrawView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    public void init() {
+
+    }
+
+    public void initWindowSize() {
+        WindowManager windowManager = (WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE);
         Point size = new Point();
         windowManager.getDefaultDisplay().getSize(size);
-        _height = (int) ((float)size.y * 0.9f);
-        _width = (int) ((float)size.x * 0.9f);
-        this.setBackgroundColor(0xFFBBDDEE);
-        //this.pattern = pattern;
+        _width = size.x;
+        _height = size.y;
     }
 
     public void setPattern(Pattern pattern) {
+        if (this.pattern != null) this.pattern.removeListener(this);
         this.pattern = pattern;
         if (pattern.getStitchBlocks().isEmpty()) {
             viewPort = new RectF(0,0,_width,_height);
         }
         else {
             viewPort = pattern.calculateBoundingBox();
+            float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
+            float extrawidth =  _width - (viewPort.width() * scale);
+            float extraheight = _height - (viewPort.height() * scale);
+            viewPort.offset(-extrawidth/2,-extraheight/2);
+            viewPort.inset(-viewPort.width()*MARGIN,-viewPort.height()*MARGIN);
         }
         calculateViewMatrixFromPort();
         _paint.setStrokeWidth(1);
+        this.pattern.addListener(this);
     }
 
 
@@ -66,6 +93,7 @@ public class DrawView extends View {
         if (scale != 0) {
             viewMatrix.postTranslate(-viewPort.left, -viewPort.top);
             viewMatrix.postScale(scale, scale);
+
         }
         calculateInvertMatrix();
     }
@@ -96,9 +124,11 @@ public class DrawView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //anything happening with event here is the X Y of the raw screen event.
+        event.offsetLocation(event.getRawX()-event.getX(),event.getRawY()-event.getY()); //converts the event.getX() to event.getRaw() so the title bar doesn't fubar.
+        //anything happening with event here is the X Y of the raw screen event, relative to the view.
         if (tool.rawTouch(this,event)) return true;
         if (invertMatrix != null) event.transform(invertMatrix);
-        //anything happening with event now deals with the screen space.
+        //anything happening with event now deals with the scene space.
         return tool.touch(this,event);
     }
 
@@ -116,6 +146,15 @@ public class DrawView extends View {
 
     public String getStatistics() {
         return pattern.getStatistics();
+    }
+
+    public void update(int v) {
+        invalidate();
+    }
+
+    @Override
+    public Pattern getPattern() {
+        return pattern;
     }
 
 }
