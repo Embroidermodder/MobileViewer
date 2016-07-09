@@ -4,7 +4,6 @@ import android.graphics.Matrix;
 import android.graphics.RectF;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class Pattern {
     private static final double PIXELS_PER_MM = 10;
@@ -196,12 +195,12 @@ public class Pattern {
         return null;
     }
 
-    public double pixelstocm(double v) {
+    public double pixelstomm(double v) {
         return v / PIXELS_PER_MM;
     }
 
     public String convert(double v) {
-        return String.format("%.3f",pixelstocm(v));
+        return String.format("%.3f",pixelstomm(v));
     }
 
     public String getStatistics() {
