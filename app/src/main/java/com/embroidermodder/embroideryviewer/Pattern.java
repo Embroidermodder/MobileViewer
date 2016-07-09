@@ -195,12 +195,12 @@ public class Pattern {
         return null;
     }
 
-    public double pixelstocm(double v) {
-        return (Math.rint(10 * v) / 10) / PIXELS_PER_MM;
+    public double pixelstomm(double v) {
+        return v / PIXELS_PER_MM;
     }
 
-    public double convert(double v) {
-        return pixelstocm(v);
+    public String convert(double v) {
+        return String.format("%.3f",pixelstomm(v));
     }
 
     public String getStatistics() {
