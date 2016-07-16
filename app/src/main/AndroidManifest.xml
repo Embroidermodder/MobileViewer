@@ -24,24 +24,146 @@
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.EDIT" />
+
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.dst" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.DST"/>
-                <data android:mimeType="*/*" android:pathPattern=".*\\.col" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.COL" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.exp" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.EXP" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.jef" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.JEF" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.pcs" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.PCS" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.pec" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.PEC" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.pes" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.PES" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.sew" />
-                <data android:mimeType="*/*" android:pathPattern=".*\\.SEW" />
+
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.dst" />
+                <data android:pathPattern=".*\\.DST" />
+                <data android:pathPattern=".*\\.col" />
+                <data android:pathPattern=".*\\.COL" />
+                <data android:pathPattern=".*\\.exp" />
+                <data android:pathPattern=".*\\.EXP" />
+                <data android:pathPattern=".*\\.jef" />
+                <data android:pathPattern=".*\\.JEF" />
+                <data android:pathPattern=".*\\.pcs" />
+                <data android:pathPattern=".*\\.PCS" />
+                <data android:pathPattern=".*\\.pec" />
+                <data android:pathPattern=".*\\.PEC" />
+                <data android:pathPattern=".*\\.pes" />
+                <data android:pathPattern=".*\\.PES" />
+                <data android:pathPattern=".*\\.sew" />
+                <data android:pathPattern=".*\\.SEW" />
+                <data android:pathPattern=".*\\.XXX" />
+                <data android:pathPattern=".*\\.xxx" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.dst" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.DST" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.col" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.COL" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.exp" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.EXP" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.jef" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.JEF" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.pcs" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.PCS" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.pec" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.PEC" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.pes" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.PES" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.sew" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.SEW" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.XXX" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.xxx" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:pathPattern=".*\\.dst" />
+                <data android:pathPattern=".*\\.DST" />
+                <data android:pathPattern=".*\\.col" />
+                <data android:pathPattern=".*\\.COL" />
+                <data android:pathPattern=".*\\.exp" />
+                <data android:pathPattern=".*\\.EXP" />
+                <data android:pathPattern=".*\\.jef" />
+                <data android:pathPattern=".*\\.JEF" />
+                <data android:pathPattern=".*\\.pcs" />
+                <data android:pathPattern=".*\\.PCS" />
+                <data android:pathPattern=".*\\.pec" />
+                <data android:pathPattern=".*\\.PEC" />
+                <data android:pathPattern=".*\\.pes" />
+                <data android:pathPattern=".*\\.PES" />
+                <data android:pathPattern=".*\\.sew" />
+                <data android:pathPattern=".*\\.SEW" />
+                <data android:pathPattern=".*\\.XXX" />
+                <data android:pathPattern=".*\\.xxx" />
+            </intent-filter>
+
+            <!--
+            Would require downloading the file selection from the app.
+<intent-filter>
+    <action android:name="android.intent.action.SEND" />
+    <action android:name="android.intent.action.VIEW" />
+    <action android:name="android.intent.action.EDIT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <data android:scheme="http" />
+    <data android:scheme="https" />
+    <data android:host="*" />
+    <data android:pathPattern=".*\\.dst" />
+    <data android:pathPattern=".*\\.DST"/>
+    <data android:pathPattern=".*\\.col" />
+    <data android:pathPattern=".*\\.COL" />
+    <data android:pathPattern=".*\\.exp" />
+    <data android:pathPattern=".*\\.EXP" />
+    <data android:pathPattern=".*\\.jef" />
+    <data android:pathPattern=".*\\.JEF" />
+    <data android:pathPattern=".*\\.pcs" />
+    <data android:pathPattern=".*\\.PCS" />
+    <data android:pathPattern=".*\\.pec" />
+    <data android:pathPattern=".*\\.PEC" />
+    <data android:pathPattern=".*\\.pes" />
+    <data android:pathPattern=".*\\.PES" />
+    <data android:pathPattern=".*\\.sew" />
+    <data android:pathPattern=".*\\.SEW" />
+    <data android:pathPattern=".*\\.XXX" />
+    <data android:pathPattern=".*\\.xxx" />
+</intent-filter>
+-->
+
         </activity>
 
     </application>
