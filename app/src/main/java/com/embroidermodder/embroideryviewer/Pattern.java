@@ -191,6 +191,8 @@ public class Pattern {
             return new FormatPes();
         } else if (filename.endsWith(".sew")) {
             return new FormatSew();
+        } else if (filename.endsWith(".xxx")) {
+            return new FormatXxx();
         }
         return null;
     }
