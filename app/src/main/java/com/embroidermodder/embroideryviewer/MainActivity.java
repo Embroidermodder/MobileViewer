@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         drawView.initWindowSize();
         setPattern(p);
     }
-    
+
     @Override
     public void onBackPressed() {
         if (tryCloseFragment(ColorStitchBlockFragment.TAG)) {
@@ -170,7 +170,10 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
             this._intent = data;
             Uri uri = data.getData();
             Pattern p = ReadFromUri(uri);
-            if (p == null) p = new Pattern(); //read failed.
+            if (p == null) {
+                Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
+                p = new Pattern(); //read failed.
+            }
             setPattern(p);
         } catch (FileNotFoundException ex) {
         }
