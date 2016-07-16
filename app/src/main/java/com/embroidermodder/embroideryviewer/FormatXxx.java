@@ -4,7 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class FormatXxx implements IFormatReader {
+public class FormatXxx implements IFormat.Reader {
 
     public boolean hasColor() {
         return false;
@@ -34,9 +34,9 @@ public class FormatXxx implements IFormatReader {
                 b1 = stream.readByte();
                 s++;
                 b2 = stream.readByte();
-                stitch_type = StitchType.NORMAL;
+                stitch_type = IFormat.NORMAL;
                 if (is_jump_stitch) {
-                    stitch_type = StitchType.TRIM;
+                    stitch_type = IFormat.TRIM;
                 }
                 is_jump_stitch = false;
                 if (b1 == 0x7E || b1 == 0x7D) {
@@ -45,19 +45,19 @@ public class FormatXxx implements IFormatReader {
                     s++;
                     dy = (short)BinaryReader.readInt16LE(stream);
                     s++;
-                    stitch_type = StitchType.TRIM;
+                    stitch_type = IFormat.TRIM;
                 } else if (b1 == 0x7F) {
                     if (b2 != 0x17 && b2 != 0x46 && b2 >= 8) {
                         b1 = 0;
                         b2 = 0;
                         is_jump_stitch = true;
-                        stitch_type = StitchType.STOP;
+                        stitch_type = IFormat.STOP;
                     } else if (b2 == 1) {
                         s++;
                         b1 = stream.readByte();
                         s++;
                         b2 = stream.readByte();
-                        stitch_type = StitchType.TRIM;
+                        stitch_type = IFormat.TRIM;
                     } else {
                         continue;
                     }

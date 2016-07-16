@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Pattern p = new Pattern();
+        Pattern p = null;
         Intent intent = getIntent();
         String action = intent.getAction();
         if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)
@@ -54,18 +55,31 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
                     }
                 }
                 if (returnUri == null) {
-                    //URL could not be fetched from either data or stream.
-                    return;
+                    Toast.makeText(this,R.string.error_uri_not_retrieved,Toast.LENGTH_LONG).show();
                 }
-                p = ReadFromUri(returnUri);
-
+                else {
+                    p = ReadFromUri(returnUri);
+                    if (p == null) {
+                        Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
+                    }
+                }
             } catch (FileNotFoundException ex) {
-
+                Toast.makeText(this,R.string.error_file_not_found,Toast.LENGTH_LONG).show();
             }
         }
+
+        if (p == null) p = new Pattern();
         drawView = (DrawView) findViewById(R.id.drawview);
         drawView.initWindowSize();
         setPattern(p);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (tryCloseFragment(ColorStitchBlockFragment.TAG)) {
+            return;
+        }
+        super.onBackPressed();
     }
 
     public void setPattern(Pattern pattern) {
@@ -156,6 +170,10 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
             this._intent = data;
             Uri uri = data.getData();
             Pattern p = ReadFromUri(uri);
+            if (p == null) {
+                Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
+                p = new Pattern(); //read failed.
+            }
             setPattern(p);
         } catch (FileNotFoundException ex) {
         }
@@ -197,18 +215,19 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
     }
 
     private Pattern ReadFromUri(Uri uri) throws FileNotFoundException {
-
-        IFormatReader formatReader = Pattern.getReaderByFilename(uri.getPath());
+        IFormat.Reader formatReader = IFormat.getReaderByFilename(uri.getPath());
         if (formatReader == null) {
             Cursor returnCursor =
                     getContentResolver().query(uri, null, null, null, null);
-            int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            returnCursor.moveToFirst();
-            String filename = returnCursor.getString(nameIndex);
-            formatReader = Pattern.getReaderByFilename(filename);
+            if (returnCursor != null) {
+                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                returnCursor.moveToFirst();
+                String filename = returnCursor.getString(nameIndex);
+                formatReader = IFormat.getReaderByFilename(filename);
+            }
         }
         if (formatReader == null) {
-            return new Pattern();
+            return null;
         }
         ParcelFileDescriptor mInputPFD;
         mInputPFD = getContentResolver().openFileDescriptor(uri, "r");

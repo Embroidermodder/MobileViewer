@@ -3,7 +3,7 @@ package com.embroidermodder.embroideryviewer;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class FormatPec implements IFormatReader {
+public class FormatPec implements IFormat.Reader {
 
     public boolean hasColor() {
         return true;
@@ -36,23 +36,23 @@ public class FormatPec implements IFormatReader {
                 int val1 = (stream.readByte() & 0xFF);
                 int val2 = (stream.readByte() & 0xFF);
 
-                int stitchType = StitchType.NORMAL;
+                int stitchType = IFormat.NORMAL;
                 if (val1 == 0xFF && val2 == 0x00) {
-                    pattern.addStitchRel(0.0, 0.0, StitchType.END, true);
+                    pattern.addStitchRel(0.0, 0.0, IFormat.END, true);
                     break;
                 }
                 if (val1 == 0xFE && val2 == 0xB0) {
                     stream.readByte();
-                    pattern.addStitchRel(0.0, 0.0, StitchType.STOP, true);
+                    pattern.addStitchRel(0.0, 0.0, IFormat.STOP, true);
                     continue;
                 }
                 /* High bit set means 12-bit offset, otherwise 7-bit signed delta */
                 if ((val1 & 0x80) > 0) {
                     if ((val1 & 0x20) > 0) {
-                        stitchType = StitchType.TRIM;
+                        stitchType = IFormat.TRIM;
                     }
                     if ((val1 & 0x10) > 0) {
-                        stitchType = StitchType.JUMP;
+                        stitchType = IFormat.JUMP;
                     }
                     val1 = ((val1 & 0x0F) << 8) + val2;
 
@@ -66,10 +66,10 @@ public class FormatPec implements IFormatReader {
                 }
                 if ((val2 & 0x80) > 0) {
                     if ((val2 & 0x20) > 0) {
-                        stitchType = StitchType.TRIM;
+                        stitchType = IFormat.TRIM;
                     }
                     if ((val2 & 0x10) > 0) {
-                        stitchType = StitchType.JUMP;
+                        stitchType = IFormat.JUMP;
                     }
                     val2 = ((val2 & 0x0F) << 8) + (stream.readByte() & 0xFF);
 

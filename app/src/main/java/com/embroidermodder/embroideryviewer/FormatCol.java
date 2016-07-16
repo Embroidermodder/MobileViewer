@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 
-public class FormatCol implements IFormatReader {
+public class FormatCol implements IFormat.Reader {
 
     public boolean hasColor() {
         return true;

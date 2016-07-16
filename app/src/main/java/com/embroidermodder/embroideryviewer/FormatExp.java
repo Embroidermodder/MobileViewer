@@ -1,9 +1,10 @@
 package com.embroidermodder.embroideryviewer;
 
+
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class FormatExp implements IFormatReader {
+public class FormatExp implements IFormat.Reader {
 
     public boolean hasColor() {
         return false;
@@ -18,7 +19,7 @@ public class FormatExp implements IFormatReader {
         byte b0, b1;
         try {
             for (int i = 0; stream.available() > 0; i++) {
-                int flags = StitchType.NORMAL;
+                int flags = IFormat.NORMAL;
                 b0 = stream.readByte();
                 if (stream.available() <= 0) {
                     break;
@@ -37,11 +38,11 @@ public class FormatExp implements IFormatReader {
                         if (stream.available() <= 0) {
                             break;
                         }
-                        flags = StitchType.STOP;
+                        flags = IFormat.STOP;
                     } else if ((b1 == 2) || (b1 == 4) || b1 == 6) {
-                        flags = StitchType.TRIM;
+                        flags = IFormat.TRIM;
                         if (b1 == 2) {
-                            flags = StitchType.NORMAL;
+                            flags = IFormat.NORMAL;
                         }
                         b0 = stream.readByte();
                         if (stream.available() <= 0) {
@@ -62,7 +63,7 @@ public class FormatExp implements IFormatReader {
                         }
                         b0 = 0;
                         b1 = 0;
-                        flags = StitchType.TRIM;
+                        flags = IFormat.TRIM;
                     }
                 }
                 p.addStitchRel((float) b0, (float) b1, flags, true);

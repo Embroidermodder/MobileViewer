@@ -59,14 +59,14 @@ public class Pattern {
                 this._currentStitchBlock = this._stitchBlocks.get(0);
             }
         }
-        if ((flags & StitchType.END) != 0) {
+        if ((flags & IFormat.END) != 0) {
             if (this._currentStitchBlock.isEmpty()) {
                 return;
             }
             //pattern.FixColorCount();
         }
 
-        if ((flags & StitchType.STOP) > 0) {
+        if ((flags & IFormat.STOP) > 0) {
             if ((this._currentStitchBlock.isEmpty())) {
                 return;
             }
@@ -86,7 +86,7 @@ public class Pattern {
             this.getStitchBlocks().add(sb);
             return;
         }
-        if ((flags & StitchType.TRIM) > 0) {
+        if ((flags & IFormat.TRIM) > 0) {
             _previousX = x;
             _previousY = y;
             if ((this._currentStitchBlock.isEmpty())) {
@@ -171,30 +171,6 @@ public class Pattern {
             sb.transform(m);
         }
         return this;
-    }
-
-    public static IFormatReader getReaderByFilename(String filename) {
-        filename = filename.toLowerCase();
-        if (filename.endsWith(".col")) {
-            return new FormatCol();
-        } else if (filename.endsWith(".exp")) {
-            return new FormatExp();
-        } else if (filename.endsWith(".dst")) {
-            return new FormatDst();
-        } else if (filename.endsWith(".jef")) {
-            return new FormatJef();
-        } else if (filename.endsWith(".pcs")) {
-            return new FormatPcs();
-        } else if (filename.endsWith(".pec")) {
-            return new FormatPec();
-        } else if (filename.endsWith(".pes")) {
-            return new FormatPes();
-        } else if (filename.endsWith(".sew")) {
-            return new FormatSew();
-        } else if (filename.endsWith(".xxx")) {
-            return new FormatXxx();
-        }
-        return null;
     }
 
     public double pixelstomm(double v) {

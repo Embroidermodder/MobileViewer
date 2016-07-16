@@ -1,6 +1,7 @@
 package com.embroidermodder.embroideryviewer;
 
 import android.graphics.Matrix;
+import android.graphics.RectF;
 
 import java.util.Arrays;
 
@@ -130,8 +131,17 @@ public class PointList {
 
     public final void remove(int index) {
         index <<= 1;
+        float px = getX(index);
+        float py = getY(index);
         System.arraycopy(pointlist, index + 2, pointlist, index, count - index - 2);
         count -= 2;
+        if (isBoundEdge(px,py)) excessbounds = true;
+    }
+
+
+    public final void truncate(int index) {
+        index <<= 1;
+        count = index;
         excessbounds = true;
     }
 
@@ -139,25 +149,32 @@ public class PointList {
         index <<= 1;
         pointlist[index] = px;
         pointlist[index + 1] = py;
+        if (isBoundEdge(px,py)) excessbounds = true;
         checkBounds(px, py);
-        excessbounds = true;
     }
 
     public final void translateLocation(int index, float dx, float dy) {
         index <<= 1;
-        pointlist[index] += dx;
-        pointlist[index + 1] += dy;
-        checkBounds(pointlist[index], pointlist[index + 1]);
+        float px = getX(index);
+        float py = getY(index);
+        if (isBoundEdge(px,py)) excessbounds = true;
+        px += dx;
+        py += dy;
+        pointlist[index] = px;
+        pointlist[index + 1] = py;
+        checkBounds(px,py);
     }
 
     public void setNan(int index) {
         index <<= 1;
+        float px = getX(index);
+        float py = getY(index);
+        if (isBoundEdge(px,py)) excessbounds = true;
         pointlist[index] = Float.NaN;
         pointlist[index + 1] = Float.NaN;
-        excessbounds = true;
     }
 
-    public final void clear() {
+    public void clear() {
         count = 0;
         resetBounds();
     }
@@ -209,6 +226,10 @@ public class PointList {
         return returnIndex;
     }
 
+    public void swap(int j, int k) {
+        swap(pointlist,j<<1,k<<1);
+    }
+
     public static void swap(float[] plist, int i0, int i1) {
         float tx, ty;
         tx = plist[i0];
@@ -217,6 +238,10 @@ public class PointList {
         plist[i0 + 1] = plist[i1 + 1];
         plist[i1] = tx;
         plist[i1 + 1] = ty;
+    }
+
+    public static void reverse(float[] plist) {
+        reverse(plist, plist.length);
     }
 
     public static void reverse(float[] plist, int count) {
@@ -235,6 +260,10 @@ public class PointList {
         dirtybounds = true;
     }
 
+    public void centerize(float x, float y) {
+        translate(x - getCenterX(), y - getCenterY());
+    }
+
     public void translate(float dx, float dy) {
         for (int i = 0, s = count - 1; i < s; i += 2) {
             pointlist[i] += dx;
@@ -244,6 +273,10 @@ public class PointList {
         minX += dx;
         maxY += dy;
         minY += dy;
+    }
+
+    public void translate(double dx, double dy) {
+        translate((float) dx, (float) dy);
     }
 
     public int getIndexOfClosestPoint(float x, float y, double distancelimit) {
@@ -259,6 +292,54 @@ public class PointList {
             }
         }
         return index;
+    }
+
+    public int getIndexOfClosestPoint(float x, float y) {
+        return getIndexOfClosestPoint(x, y, Float.POSITIVE_INFINITY);
+    }
+
+    public int getIndexOfClosestPoint(float x, float y, int excludeStart, int excludeEnd) {
+        int index = INVALID_POINT;
+        float min = Float.POSITIVE_INFINITY, current;
+        excludeStart <<= 1;
+        excludeEnd <<= 1;
+        for (int i = 0; i < count; i += 2) {
+            if ((i >= excludeStart) && (i <= excludeEnd)) continue;
+            float px = pointlist[i];
+            float py = pointlist[i + 1];
+            current = distanceSq(px, py, x, y);
+            if (current <= min) {
+                min = current;
+                index = (i >> 1);
+            }
+        }
+        return index;
+    }
+
+    public int getIndexOfClosestEndpoint(float x, float y, double rangeLimit) {
+        if (count == 0) return INVALID_POINT;
+
+        int index = INVALID_POINT;
+        double min = rangeLimit * rangeLimit, current;
+
+        float px = pointlist[0];
+        float py = pointlist[1];
+
+        current = distanceSq(px, py, x, y);
+        if (current <= min) {
+            min = current;
+            index = 0;
+        }
+        px = pointlist[count - 2];
+        py = pointlist[count - 1];
+
+        current = distanceSq(px, py, x, y);
+        if (current <= min) {
+            //min = current;
+            index = (count / 2) - 1;
+        }
+        return index;
+
     }
 
     public float getMinX() {
@@ -301,6 +382,26 @@ public class PointList {
         return (minY + maxY) / 2;
     }
 
+    public void union(RectF bounds) {
+        computeBounds(true);
+        bounds.union(minX,minY,maxX,maxY);
+    }
+
+    public void getBounds(RectF bounds) {
+        computeBounds(true);
+        bounds.set(minX, minY, maxX, maxY);
+    }
+
+    /**
+     * Sets the bounds to the intersection, even if they do not intersect.
+     *
+     * @param bounds rectangle that the pointlist's bounds should be intersected with.
+     */
+    public void intersect(RectF bounds) {
+        computeBounds(true);
+        bounds.set(Math.max(bounds.left, minX), Math.max(bounds.top, minY), Math.min(bounds.right, maxX), Math.min(bounds.bottom, maxY));
+    }
+
     private void computeBounds(boolean exact) {
         if ((dirtybounds) || (excessbounds & exact)) {
             resetBounds();
@@ -312,11 +413,30 @@ public class PointList {
         }
     }
 
-    private void checkBounds(float px, float py) {
-        if (px < minX) minX = px;
-        if (px > maxX) maxX = px;
-        if (py < minY) minY = py;
-        if (py > maxY) maxY = py;
+
+    private boolean isBoundEdge(float px, float py) {
+        return (px == minX) || (px == maxX) || (py == minY) || (py == maxY);
+    }
+
+    private boolean checkBounds(float px, float py) {
+        boolean boundChanged = false;
+        if (px < minX) {
+            minX = px;
+            boundChanged = true;
+        }
+        if (px > maxX) {
+            maxX = px;
+            boundChanged = true;
+        }
+        if (py < minY) {
+            minY = py;
+            boundChanged = true;
+        }
+        if (py > maxY) {
+            maxY = py;
+            boundChanged = true;
+        }
+        return boundChanged;
     }
 
     private void resetBounds() {
@@ -354,30 +474,30 @@ public class PointList {
         return Arrays.copyOf(pointlist, count);
     }
 
-    public boolean isLoop() {
-        if (isEmpty()) return false;
-        return ((getX(0) == getX(size() - 1)) && (getY(0) == getY(size() - 1)));
-    }
-
-    public void loopTo(int index) {
-        if (isLoop()) {
-            index <<= 1;
-            remove(size() - 1);
-            float[] temp = new float[pointlist.length];
-            int enddex = count - index;
-            System.arraycopy(pointlist, index, temp, 0, enddex);
-            System.arraycopy(pointlist, 0, temp, enddex, index);
-            pointlist = temp;
-            add(getX(0), getY(0));
+    public double distanceQuickFail(float x, float y) {
+        computeBounds(true);
+        int index = ((maxX >= x) ? 0 : 8) + ((maxY >= y) ? 0 : 4) + ((minX <= x) ? 0 : 2) + ((minY <= y) ? 0 : 1);
+        switch (index) {
+            case 0:
+                return 0;
+            case 1:
+                return minY - y;
+            case 2:
+                return minX - x;
+            case 3:
+                return minY - y + minX - x;
+            case 4:
+                return y - maxY;
+            case 6:
+                return minX - x + y - maxY;
+            case 8:
+                return x - maxX;
+            case 9:
+                return x - maxX + minY - y;
+            case 12:
+                return x - maxX + y - maxY;
         }
-    }
-
-    public double distanceSegment(int i) {
-        return Math.sqrt(distanceSqSegment(i));
-    }
-
-    public double distanceSqSegment(int i) {
-        return distanceSqBetweenIndex(i, i + 1);
+        return Double.POSITIVE_INFINITY;
     }
 
     public double distanceBetweenIndex(int p0, int p1) {
@@ -402,6 +522,7 @@ public class PointList {
         return distanceSq(x0, y0, x1, y1);
     }
 
+
     public static float distanceSq(float x0, float y0, float x1, float y1) {
         float dx = x1 - x0;
         float dy = y1 - y0;
@@ -413,5 +534,8 @@ public class PointList {
     public static double distance(float x0, float y0, float x1, float y1) {
         return Math.sqrt(distanceSq(x0, y0, x1, y1));
     }
+
 }
+
+
 

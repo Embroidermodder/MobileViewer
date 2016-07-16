@@ -9,4 +9,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="error_file_not_found">Error: File not found.</string>
+    <string name="error_uri_not_retrieved">Error: URI not retrieved</string>
+    <string name="error_file_read_failed">Error: File read failed.</string>
 </resources>
