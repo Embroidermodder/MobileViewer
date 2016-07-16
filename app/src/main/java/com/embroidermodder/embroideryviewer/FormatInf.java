@@ -3,7 +3,7 @@ package com.embroidermodder.embroideryviewer;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class FormatInf implements IFormatReader {
+public class FormatInf implements IFormat.Reader {
 
     public boolean hasColor() {
         return true;

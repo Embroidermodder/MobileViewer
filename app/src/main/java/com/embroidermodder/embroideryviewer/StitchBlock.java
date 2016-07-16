@@ -7,7 +7,6 @@ import android.graphics.Paint;
 public class StitchBlock extends PointList  {
     private EmbThread _thread;
 
-
     public StitchBlock() {
     }
 
@@ -40,5 +39,14 @@ public class StitchBlock extends PointList  {
             }
         }
     }
+
+    public double distanceSegment(int i) {
+        return Math.sqrt(distanceSqSegment(i));
+    }
+
+    public double distanceSqSegment(int i) {
+        return distanceSqBetweenIndex(i, i + 1);
+    }
+
 }
 

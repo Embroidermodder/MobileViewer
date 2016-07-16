@@ -3,7 +3,7 @@ package com.embroidermodder.embroideryviewer;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class FormatJef implements IFormatReader {
+public class FormatJef implements IFormat.Reader {
 
     public boolean hasColor() {
         return true;
@@ -30,7 +30,7 @@ public class FormatJef implements IFormatReader {
             }
             stream.skip(stitchOffset - 116 - (numberOfColors * 4));
             for (int i = 0; i < numberOfStitches + 100; i++) {
-                flags = StitchType.NORMAL;
+                flags = IFormat.NORMAL;
                 if (stream.read(b) != 2) {
                     break;
                 }
@@ -39,14 +39,14 @@ public class FormatJef implements IFormatReader {
                         if (stream.read(b) != 2) {
                             break;
                         }
-                        flags = StitchType.STOP;
+                        flags = IFormat.STOP;
                     } else if ((b[1] == 0x04) || (b[1] == 0x02)) {
                         if (stream.read(b) != 2) {
                             break;
                         }
-                        flags = StitchType.TRIM;
+                        flags = IFormat.TRIM;
                     } else if (b[1] == 0x10) {
-                        p.addStitchRel(0.0, 0.0, StitchType.END, true);
+                        p.addStitchRel(0.0, 0.0, IFormat.END, true);
                         break;
                     }
                 }

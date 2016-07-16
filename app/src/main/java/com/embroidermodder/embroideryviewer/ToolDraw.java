@@ -14,13 +14,13 @@ public class ToolDraw implements Tool {
         Pattern pattern = drawView.getPattern();
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
-                pattern.addStitchAbs(event.getX(),event.getY(),StitchType.NORMAL,false);
+                pattern.addStitchAbs(event.getX(),event.getY(), IFormat.NORMAL,false);
                 drawView.invalidate(); //in larger operations, you would invalidate *only* the sections that could have changed.
                 break;
             case MotionEvent.ACTION_DOWN:
                 break;
             case MotionEvent.ACTION_UP:
-                pattern.addStitchAbs(event.getX(),event.getY(),StitchType.STOP,false);
+                pattern.addStitchAbs(event.getX(),event.getY(), IFormat.STOP,false);
                 pattern.notifyChange(0);
                 break;
         }
