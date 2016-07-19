@@ -39,6 +39,9 @@
                 <data android:pathPattern=".*\\.exp" />
                 <data android:pathPattern=".*\\.EXP" />
                 <data android:mimeType="application/x-exp" />
+                <data android:pathPattern=".*\\.inf" />
+                <data android:pathPattern=".*\\.INF" />
+                <data android:mimeType="application/x-inf" />
                 <data android:pathPattern=".*\\.jef" />
                 <data android:pathPattern=".*\\.JEF" />
                 <data android:mimeType="application/x-jef" />
@@ -75,6 +78,12 @@
                 <data
                     android:mimeType="*/*"
                     android:pathPattern=".*\\.EXP" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.inf" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.INF" />
                 <data
                     android:mimeType="*/*"
                     android:pathPattern=".*\\.jef" />

@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Bordado Visualizador</string>
+    <string name="action_open_file">Abrir arquivo</string>
+    <string name="action_tool_pan">Panela</string>
+    <string name="action_tool_draw">Desenhar</string>
+    <string name="action_show_statistics">Estatisticas</string>
+    <string name="stitchblock_stitches">"%d Pontos"</string>
+    <string name="error_file_not_found">Erro: Arquivo não encontrado.</string>
+    <string name="error_uri_not_retrieved">Erro: URI não recuperados.</string>
+    <string name="error_file_read_failed">Erro: Erro na abertura do arquivo.</string>
+    <!-- Statistics section -->
+    <string name="number_of_stitches">Total de pontos: </string>
+    <string name="normal_stitches">  Normal: </string>
+    <string name="jumps">  Saltos: </string>
+    <string name="colors">  As alterações de cor: </string>
+    <string name="size">Tamanho: </string>
+    <string name="total_length">Comprimento total: </string>
+</resources>

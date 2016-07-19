@@ -1,20 +1,21 @@
 package com.embroidermodder.embroideryviewer;
 
+import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 
 import java.util.ArrayList;
 
 public class Pattern {
-    private static final double PIXELS_PER_MM = 10;
+    private static final float PIXELS_PER_MM = 10;
     private ArrayList<Pattern.Listener> _listeners;
     private final ArrayList<StitchBlock> _stitchBlocks;
     private final ArrayList<EmbThread> _threadList;
     private String _filename;
     private StitchBlock _currentStitchBlock;
 
-    private double _previousX = 0;
-    private double _previousY = 0;
+    private float _previousX = 0;
+    private float _previousY = 0;
 
 
 
@@ -41,7 +42,7 @@ public class Pattern {
         _filename = value;
     }
 
-    public void addStitchAbs(double x, double y, int flags, boolean isAutoColorIndex) {
+    public void addStitchAbs(float x, float y, int flags, boolean isAutoColorIndex) {
         if (this._currentStitchBlock == null) {
             if (_stitchBlocks.size() == 0) {
                 this._currentStitchBlock = new StitchBlock();
@@ -101,15 +102,15 @@ public class Pattern {
         }
         _previousX = x;
         _previousY = y;
-        this._currentStitchBlock.add((float) x, (float) y);
+        this._currentStitchBlock.add(x, y);
     }
 
     // AddStitchRel adds a stitch to the pattern at the relative position (dx, dy)
     // to the previous stitch. Positive y is up. Units are in millimeters.
-    public void addStitchRel(double dx, double dy, int flags, boolean isAutoColorIndex) {
+    public void addStitchRel(float dx, float dy, int flags, boolean isAutoColorIndex) {
 
-        double x = _previousX + dx;
-        double y = _previousY + dy;
+        float x = _previousX + dx;
+        float y = _previousY + dy;
 
         this.addStitchAbs(x, y, flags, isAutoColorIndex);
     }
@@ -125,17 +126,17 @@ public class Pattern {
     }
 
     public RectF calculateBoundingBox() {
-        double left = Double.POSITIVE_INFINITY;
-        double top = Double.POSITIVE_INFINITY;
-        double right = Double.NEGATIVE_INFINITY;
-        double bottom = Double.NEGATIVE_INFINITY;//Double.MIN_VALUE ~= 0;
+        float left = Float.POSITIVE_INFINITY;
+        float top = Float.POSITIVE_INFINITY;
+        float right = Float.NEGATIVE_INFINITY;
+        float bottom = Float.NEGATIVE_INFINITY;
         for (StitchBlock sb : this.getStitchBlocks()) {
             left = Math.min(left, sb.getMinX());
             top = Math.min(top, sb.getMinY());
             right = Math.max(right, sb.getMaxX());
             bottom = Math.max(bottom, sb.getMaxY());
         }
-        return new RectF((float) left, (float) top, (float) right, (float) bottom);
+        return new RectF(left, top, right, bottom);
     }
 
     // Flip will flip the entire pattern about the x-axis if horz is true,
@@ -173,44 +174,44 @@ public class Pattern {
         return this;
     }
 
-    public double pixelstomm(double v) {
+    public float pixelstomm(float v) {
         return v / PIXELS_PER_MM;
     }
 
-    public String convert(double v) {
+    public String convert(float v) {
         return String.format("%.3f",pixelstomm(v));
     }
 
-    public String getStatistics() {
+    public String getStatistics(Context context) {
         for (StitchBlock s : _stitchBlocks) {
             s.snap();
         }
         RectF bounds = calculateBoundingBox();
         StringBuilder sb = new StringBuilder();
-        sb.append("Design name: ").append(this._filename).append('\n');
+        //sb.append("Design name: ").append(this._filename).append('\n');
         int totalsize = getTotalSize();
         int jumpcount = getJumpCount();
         int colorcount = getColorCount();
-        sb.append("Number of stitch entries: ").append(totalsize + jumpcount + colorcount).append('\n');
-        sb.append(" Real stitches: ").append(totalsize).append('\n');
-        sb.append(" Jumps: ").append(jumpcount).append('\n'); //I don't actually have jump stitches, just the number of jumps.
-        sb.append(" Colors: ").append(colorcount).append('\n');
-        sb.append("Design width x height = ").append(convert(bounds.width())).append(" x ").append(convert(bounds.height())).append('\n');
-        sb.append("Center of design = ").append(convert(bounds.centerX())).append(" x ").append(convert(bounds.centerY())).append('\n');
-        double totallength = getTotalLength();
-        sb.append("Total length of stitches: ").append(convert(totallength)).append('\n');
-        double min = getMinStitch();
-        double max = getMaxStitch();
-        sb.append("Maximum stitch length: ").append(convert(max)).append(" [").append(getCountRange(max, max)).append(" at this length]").append('\n');
-        sb.append("Minimum stitch length: ").append(convert(min)).append(" [").append(getCountRange(min, min)).append(" at this length]").append('\n');
-        sb.append("Average length of stitches: ").append(convert(totallength / (double) totalsize)).append('\n');
-        sb.append("Stitch length distribution:").append('\n');
-        double start = min;
-        double step = (max - min) / 10d;
+        sb.append(context.getString(R.string.number_of_stitches)).append(totalsize + jumpcount + colorcount).append('\n');
+        sb.append(context.getString(R.string.normal_stitches)).append(totalsize).append('\n');
+        sb.append(context.getString(R.string.jumps)).append(jumpcount).append('\n');
+        sb.append(context.getString(R.string.colors)).append(colorcount).append('\n');
+        sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
+        //sb.append("Center of design = ").append(convert(bounds.centerX())).append(" x ").append(convert(bounds.centerY())).append('\n');
+        float totallength = getTotalLength();
+        sb.append(context.getString(R.string.total_length)).append(convert(totallength)).append(" mm\n");
+        float min = getMinStitch();
+        float max = getMaxStitch();
+        //sb.append("Maximum stitch length: ").append(convert(max)).append(" [").append(getCountRange(max, max)).append(" at this length]").append('\n');
+        //sb.append("Minimum stitch length: ").append(convert(min)).append(" [").append(getCountRange(min, min)).append(" at this length]").append('\n');
+        //sb.append("Average length of stitches: ").append(convert(totallength / (double) totalsize)).append('\n');
+        //sb.append("Stitch length distribution:").append('\n');
+        float start = min;
+        float step = (max - min) / 10.0f;
         for (int i = 0; i < 10; i++) {
-            double tmin = (i * step) + start;
-            double tmax = ((i + 1) * step) + start;
-            sb.append(" ").append(convert(tmin)).append("- ").append(convert(tmax)).append(" == ").append(getCountRange(tmin, tmax)).append('\n');
+            float tmin = (i * step) + start;
+            float tmax = ((i + 1) * step) + start;
+            //sb.append(" ").append(convert(tmin)).append("- ").append(convert(tmax)).append(" == ").append(getCountRange(tmin, tmax)).append('\n');
         }
         return sb.toString();
     }
@@ -223,8 +224,8 @@ public class Pattern {
         return count;
     }
 
-    private double getTotalLength() {
-        double count = 0;
+    private float getTotalLength() {
+        float count = 0;
         for (StitchBlock sb : _stitchBlocks) {
             for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 count += sb.distanceSegment(i);
@@ -241,9 +242,9 @@ public class Pattern {
         return this._threadList.size();
     }
 
-    private double getMaxStitch() {
-        double count = Double.NEGATIVE_INFINITY;
-        double current;
+    private float getMaxStitch() {
+        float count = Float.NEGATIVE_INFINITY;
+        float current;
         for (StitchBlock sb : _stitchBlocks) {
             for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 current = sb.distanceSegment(i);
@@ -255,9 +256,9 @@ public class Pattern {
         return count;
     }
 
-    private double getMinStitch() {
-        double count = Double.POSITIVE_INFINITY;
-        double current;
+    private float getMinStitch() {
+        float count = Float.POSITIVE_INFINITY;
+        float current;
         for (StitchBlock sb : _stitchBlocks) {
             for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 current = sb.distanceSegment(i);
@@ -269,9 +270,9 @@ public class Pattern {
         return count;
     }
 
-    private int getCountRange(double min, double max) {
+    private int getCountRange(float min, float max) {
         int count = 0;
-        double current;
+        float current;
         for (StitchBlock sb : _stitchBlocks) {
             for (int i = 0, s = sb.size() - 1; i < s; i++) {
                 current = sb.distanceSegment(i);

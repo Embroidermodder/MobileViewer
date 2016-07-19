@@ -58,8 +58,8 @@ public class ToolPan implements Tool {
         return false;
     }
 
-    public static double distance(float x0, float y0, float x1, float y1) {
-        return Math.sqrt(distanceSq(x0, y0, x1, y1));
+    public static float distance(float x0, float y0, float x1, float y1) {
+        return (float)Math.sqrt(distanceSq(x0, y0, x1, y1));
     }
     public static float distanceSq(float x0, float y0, float x1, float y1) {
         float dx = x1 - x0;

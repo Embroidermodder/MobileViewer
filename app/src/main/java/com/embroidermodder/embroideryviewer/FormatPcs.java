@@ -13,7 +13,7 @@ public class FormatPcs implements IFormat.Reader {
         return true;
     }
 
-    static double pcsDecode(int a1, int a2, int a3) {
+    static float pcsDecode(int a1, int a2, int a3) {
         int res = (a1 & 0xFF) + ((a2 & 0xFF) << 8) + ((a3 & 0xFF) << 16);
         if (res > 0x7FFFFF) {
             return (-((~(res) & 0x7FFFFF) - 1));
@@ -26,7 +26,7 @@ public class FormatPcs implements IFormat.Reader {
         char allZeroColor = 1;
         int i;
         byte[] b = new byte[9];
-        double dx, dy;
+        float dx, dy;
         int flags, st;
         byte version, hoopSize;
         int colorCount;
@@ -76,7 +76,7 @@ public class FormatPcs implements IFormat.Reader {
                 dy = pcsDecode(b[5], b[6], b[7]);
                 p.addStitchAbs(dx, dy, flags, true);
             }
-            p.addStitchRel(0.0, 0.0, IFormat.END, true);
+            p.addStitchRel(0.0f, 0.0f, IFormat.END, true);
         } catch (IOException ex) {
 
         }

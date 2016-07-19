@@ -38,12 +38,12 @@ public class FormatPec implements IFormat.Reader {
 
                 int stitchType = IFormat.NORMAL;
                 if (val1 == 0xFF && val2 == 0x00) {
-                    pattern.addStitchRel(0.0, 0.0, IFormat.END, true);
+                    pattern.addStitchRel(0.0f, 0.0f, IFormat.END, true);
                     break;
                 }
                 if (val1 == 0xFE && val2 == 0xB0) {
                     stream.readByte();
-                    pattern.addStitchRel(0.0, 0.0, IFormat.STOP, true);
+                    pattern.addStitchRel(0.0f, 0.0f, IFormat.STOP, true);
                     continue;
                 }
                 /* High bit set means 12-bit offset, otherwise 7-bit signed delta */

@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Embroidery Viewer</string>
+    <string name="action_open_file">Öffne Datei</string>
+    <string name="action_tool_pan">Schwenken</string>
+    <string name="action_tool_draw">Zeichnen</string>
+    <string name="action_show_statistics">Statistiken</string>
+    <string name="stitchblock_stitches">"%d Naht"</string>
+    <string name="error_file_not_found">Fehler: Datei nicht gefunden.</string>
+    <string name="error_uri_not_retrieved">Fehler: URI nicht abgerufen.</string>
+    <string name="error_file_read_failed">Fehler: Datei lesen fehlgeschlagen.</string>
+    <!-- Statistics section -->
+    <string name="number_of_stitches">Insgesamt Stiche:</string>
+    <string name="normal_stitches">  Normal:        </string>
+    <string name="jumps">  Sprünge:         </string>
+    <string name="colors">  Farbwechsel: </string>
+    <string name="size">Größe: </string>
+    <string name="total_length">Gesamtlänge: </string>
+</resources>

@@ -7,29 +7,31 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="4dp"
         >
     <TextView
         android:id="@+id/stitchblock_index"
-        android:layout_width="13dp"
+        android:layout_width="25dp"
         android:layout_height="wrap_content"
         android:layout_gravity="start"/>
 
     <ImageButton
         android:id="@+id/stitchblock_color"
-        android:layout_width="100dp"
+        android:layout_width="50dp"
         android:layout_height="match_parent"
         />
 
     <TextView
         android:id="@+id/stitchblock_name"
-        android:layout_width="164dp"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
         />
 
         <TextView
             android:id="@+id/stitchblock_stitches"
-            android:layout_width="match_parent"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:gravity="end"/>

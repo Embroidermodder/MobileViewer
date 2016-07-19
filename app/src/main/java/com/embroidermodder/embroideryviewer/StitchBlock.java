@@ -40,11 +40,11 @@ public class StitchBlock extends PointList  {
         }
     }
 
-    public double distanceSegment(int i) {
-        return Math.sqrt(distanceSqSegment(i));
+    public float distanceSegment(int i) {
+        return (float)Math.sqrt(distanceSqSegment(i));
     }
 
-    public double distanceSqSegment(int i) {
+    public float distanceSqSegment(int i) {
         return distanceSqBetweenIndex(i, i + 1);
     }
 

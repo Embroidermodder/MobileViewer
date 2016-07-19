@@ -46,11 +46,11 @@ public class FormatJef implements IFormat.Reader {
                         }
                         flags = IFormat.TRIM;
                     } else if (b[1] == 0x10) {
-                        p.addStitchRel(0.0, 0.0, IFormat.END, true);
+                        p.addStitchRel(0.0f, 0.0f, IFormat.END, true);
                         break;
                     }
                 }
-                p.addStitchRel((double) b[0], (double) b[1], flags, true);
+                p.addStitchRel((float) b[0], (float) b[1], flags, true);
             }
         } catch (IOException ex) {
 

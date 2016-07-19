@@ -1,15 +1,18 @@
 <resources>
     <string name="app_name">Embroidery Viewer</string>
     <string name="action_open_file">Open File</string>
-    <string name="title_activity_fab">FAB</string>
     <string name="action_tool_pan">Pan</string>
     <string name="action_tool_draw">Draw</string>
     <string name="action_show_statistics">Statistics</string>
-    <string name="stitchblock_stitches">"Stitches: %d"</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="stitchblock_stitches">"%d Stitches"</string>
     <string name="error_file_not_found">Error: File not found.</string>
-    <string name="error_uri_not_retrieved">Error: URI not retrieved</string>
+    <string name="error_uri_not_retrieved">Error: URI not retrieved.</string>
     <string name="error_file_read_failed">Error: File read failed.</string>
+    <!-- Statistics section -->
+    <string name="number_of_stitches">Number of stitch entries:</string>
+    <string name="normal_stitches">  Normal:        </string>
+    <string name="jumps">  Jumps:         </string>
+    <string name="colors">  Color changes: </string>
+    <string name="size">Size: </string>
+    <string name="total_length">Total length: </string>
 </resources>

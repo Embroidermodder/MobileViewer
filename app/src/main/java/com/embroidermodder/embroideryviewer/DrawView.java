@@ -2,7 +2,6 @@ package com.embroidermodder.embroideryviewer;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
@@ -46,7 +45,8 @@ public class DrawView extends View implements Pattern.Provider, Pattern.Listener
     }
 
     public void init() {
-
+        _paint.setStrokeWidth(1);
+        _paint.setFlags(Paint.ANTI_ALIAS_FLAG);
     }
 
     public void initWindowSize() {
@@ -72,13 +72,12 @@ public class DrawView extends View implements Pattern.Provider, Pattern.Listener
             viewPort.inset(-viewPort.width()*MARGIN,-viewPort.height()*MARGIN);
         }
         calculateViewMatrixFromPort();
-        _paint.setStrokeWidth(1);
         this.pattern.addListener(this);
     }
 
 
-    public void scale(double deltascale, float x, float y) {
-        viewMatrix.postScale((float)deltascale,(float)deltascale,x,y);
+    public void scale(float deltascale, float x, float y) {
+        viewMatrix.postScale(deltascale,deltascale,x,y);
         calculateViewPortFromMatrix();
     }
 
@@ -145,7 +144,7 @@ public class DrawView extends View implements Pattern.Provider, Pattern.Listener
     }
 
     public String getStatistics() {
-        return pattern.getStatistics();
+        return pattern.getStatistics(getContext());
     }
 
     public void update(int v) {

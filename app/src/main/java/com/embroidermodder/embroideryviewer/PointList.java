@@ -275,13 +275,9 @@ public class PointList {
         minY += dy;
     }
 
-    public void translate(double dx, double dy) {
-        translate((float) dx, (float) dy);
-    }
-
-    public int getIndexOfClosestPoint(float x, float y, double distancelimit) {
+    public int getIndexOfClosestPoint(float x, float y, float distancelimit) {
         int index = INVALID_POINT;
-        double min = distancelimit * distancelimit, current;
+        float min = distancelimit * distancelimit, current;
         for (int i = 0; i < count; i += 2) {
             float px = pointlist[i];
             float py = pointlist[i + 1];
@@ -316,11 +312,11 @@ public class PointList {
         return index;
     }
 
-    public int getIndexOfClosestEndpoint(float x, float y, double rangeLimit) {
+    public int getIndexOfClosestEndpoint(float x, float y, float rangeLimit) {
         if (count == 0) return INVALID_POINT;
 
         int index = INVALID_POINT;
-        double min = rangeLimit * rangeLimit, current;
+        float min = rangeLimit * rangeLimit, current;
 
         float px = pointlist[0];
         float py = pointlist[1];
@@ -474,7 +470,7 @@ public class PointList {
         return Arrays.copyOf(pointlist, count);
     }
 
-    public double distanceQuickFail(float x, float y) {
+    public float distanceQuickFail(float x, float y) {
         computeBounds(true);
         int index = ((maxX >= x) ? 0 : 8) + ((maxY >= y) ? 0 : 4) + ((minX <= x) ? 0 : 2) + ((minY <= y) ? 0 : 1);
         switch (index) {
@@ -497,20 +493,20 @@ public class PointList {
             case 12:
                 return x - maxX + y - maxY;
         }
-        return Double.POSITIVE_INFINITY;
+        return Float.POSITIVE_INFINITY;
     }
 
-    public double distanceBetweenIndex(int p0, int p1) {
-        return Math.sqrt(distanceSqBetweenIndex(p0, p1));
+    public float distanceBetweenIndex(int p0, int p1) {
+        return (float)Math.sqrt(distanceSqBetweenIndex(p0, p1));
     }
 
-    public double distanceBetweenIndex(int p0, float x, float y) {
+    public float distanceBetweenIndex(int p0, float x, float y) {
         float x0 = getX(p0);
         float y0 = getY(p0);
         return distance(x0, y0, x, y);
     }
 
-    public double distanceSqBetweenIndex(int p0, int p1) {
+    public float distanceSqBetweenIndex(int p0, int p1) {
         if (p0 == p1) return 0;
 
         float x0 = getX(p0);
@@ -531,8 +527,8 @@ public class PointList {
         return dx + dy;
     }
 
-    public static double distance(float x0, float y0, float x1, float y1) {
-        return Math.sqrt(distanceSq(x0, y0, x1, y1));
+    public static float distance(float x0, float y0, float x1, float y1) {
+        return (float)Math.sqrt(distanceSq(x0, y0, x1, y1));
     }
 
 }
