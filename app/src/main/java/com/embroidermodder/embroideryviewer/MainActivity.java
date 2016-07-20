@@ -8,14 +8,19 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -34,6 +39,9 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
     private int SELECT_FILE = 1;
     private Intent _intent;
     private DrawView drawView;
+    private DrawerLayout mainActivity;
+
+    String fragmentTag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,25 +75,33 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
                 Toast.makeText(this,R.string.error_file_not_found,Toast.LENGTH_LONG).show();
             }
         }
-
         if (p == null) p = new Pattern();
+
+        mainActivity = (DrawerLayout)findViewById(R.id.mainActivity);
         drawView = (DrawView) findViewById(R.id.drawview);
         drawView.initWindowSize();
+
         setPattern(p);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, mainActivity, toolbar, R.string.app_name, R.string.app_name);
+        mainActivity.addDrawerListener(toggle);
+        toggle.syncState();
     }
 
     @Override
     public void onBackPressed() {
-        if (tryCloseFragment(ColorStitchBlockFragment.TAG)) {
-            return;
+        if (mainActivity.isDrawerOpen(GravityCompat.START)) {
+            mainActivity.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
-        super.onBackPressed();
     }
 
     public void setPattern(Pattern pattern) {
         drawView.setPattern(pattern);
         drawView.invalidate();
-        openColorFragment();
+        useColorFragment();
     }
 
     @Override
@@ -180,12 +196,15 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
     }
 
 
-    public void openColorFragment() {
-        tryCloseFragment(ColorStitchBlockFragment.TAG);
+    public void useColorFragment() {
+        if (fragmentTag != null) {
+            tryCloseFragment(fragmentTag);
+        }
         FragmentManager fragmentManager = this.getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         ColorStitchBlockFragment fragment = new ColorStitchBlockFragment();
-        transaction.add(R.id.mainActivity, fragment, ColorStitchBlockFragment.TAG);
+        fragmentTag = ColorStitchBlockFragment.TAG;
+        transaction.add(R.id.drawerContent, fragment, ColorStitchBlockFragment.TAG);
         transaction.commit();
         drawView.getPattern().addListener(fragment);
     }
@@ -194,7 +213,6 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragmentByTag;
         fragmentByTag = fragmentManager.findFragmentByTag(tag);
-
         if (fragmentByTag == null) return false;
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.remove(fragmentByTag);
@@ -203,8 +221,10 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         return true;
     }
 
+
     @Override
     public Pattern getPattern() {
+        if (drawView == null) return null;
         return drawView.getPattern();
     }
 
