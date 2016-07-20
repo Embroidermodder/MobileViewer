@@ -20,16 +20,16 @@ public class BinaryReader {
     public static String readString(DataInputStream stream, int maxLength) throws IOException {
         ArrayList<Byte> charList = new ArrayList<Byte>();
         int i = 0;
-        while(i < maxLength) {
+        while (i < maxLength) {
             byte value = stream.readByte();
-            if(value == '\0') {
+            if (value == '\0') {
                 break;
             }
             charList.add(value);
             i++;
         }
         byte[] result = new byte[charList.size()];
-        for(i = 0; i < charList.size(); i++) {
+        for (i = 0; i < charList.size(); i++) {
             result[i] = charList.get(i).byteValue();
         }
         return new String(result, "UTF-8");

@@ -9,38 +9,36 @@ import java.util.Arrays;
  * Created by Tat on 8/2/2015.
  * Derived from proprietary code, 6/21/2016.
  * Released under EmbroiderModder/MobileView licensing. 6/21/2016.
- *
+ * <p/>
  * The core importance of such a class is to allow for speed with regard to Android.
  * The canvas can very quickly render segments and with the system setup as such,
  * A pointlist can be rendered in two canvas calls, and the underlying memory is
  * maximally compact.
- *
- *         if (count >= 4) {
- *                  if ((count & 2) != 0) {
- *                          canvas.drawLines(pointlist, 0, count - 2, paint);
- *                          canvas.drawLines(pointlist, 2, count - 2, paint);
- *                  } else {
- *                          canvas.drawLines(pointlist, 0, count, paint);
- *                          canvas.drawLines(pointlist, 2, count - 4, paint);
- *                  }
- *         }
- *
+ * <p/>
+ * if (count >= 4) {
+ * if ((count & 2) != 0) {
+ * canvas.drawLines(pointlist, 0, count - 2, paint);
+ * canvas.drawLines(pointlist, 2, count - 2, paint);
+ * } else {
+ * canvas.drawLines(pointlist, 0, count, paint);
+ * canvas.drawLines(pointlist, 2, count - 4, paint);
+ * }
+ * }
+ * <p/>
  * This class can easily allow for 50,000+ stitch projects to be run with proper speed on an android device.
  */
 
 public class PointList {
     public static final int INVALID_POINT = -1;
+    private static final int MIN_CAPACITY_INCREMENT = 12;
     protected float[] pointlist;
     protected int count;
-
+    protected boolean dirtybounds;
+    protected boolean excessbounds;
     private float minX;
     private float minY;
     private float maxX;
     private float maxY;
-    protected boolean dirtybounds;
-    protected boolean excessbounds;
-
-    private static final int MIN_CAPACITY_INCREMENT = 12;
 
     public PointList() {
         pointlist = new float[MIN_CAPACITY_INCREMENT * 2];
@@ -63,6 +61,39 @@ public class PointList {
         int increment = (currentCapacity < (MIN_CAPACITY_INCREMENT / 2) ?
                 MIN_CAPACITY_INCREMENT : currentCapacity >> 1);
         return currentCapacity + (increment << 1);
+    }
+
+    public static void swap(float[] plist, int i0, int i1) {
+        float tx, ty;
+        tx = plist[i0];
+        ty = plist[i0 + 1];
+        plist[i0] = plist[i1];
+        plist[i0 + 1] = plist[i1 + 1];
+        plist[i1] = tx;
+        plist[i1 + 1] = ty;
+    }
+
+    public static void reverse(float[] plist) {
+        reverse(plist, plist.length);
+    }
+
+    public static void reverse(float[] plist, int count) {
+        int m = count / 2;
+        for (int i = 0, s = count - 2; i < m; i += 2, s -= 2) {
+            swap(plist, i, s);
+        }
+    }
+
+    public static float distanceSq(float x0, float y0, float x1, float y1) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        dx *= dx;
+        dy *= dy;
+        return dx + dy;
+    }
+
+    public static float distance(float x0, float y0, float x1, float y1) {
+        return (float) Math.sqrt(distanceSq(x0, y0, x1, y1));
     }
 
     public void ensureCapacity(int capacity) {
@@ -135,9 +166,8 @@ public class PointList {
         float py = getY(index);
         System.arraycopy(pointlist, index + 2, pointlist, index, count - index - 2);
         count -= 2;
-        if (isBoundEdge(px,py)) excessbounds = true;
+        if (isBoundEdge(px, py)) excessbounds = true;
     }
-
 
     public final void truncate(int index) {
         index <<= 1;
@@ -149,7 +179,7 @@ public class PointList {
         index <<= 1;
         pointlist[index] = px;
         pointlist[index + 1] = py;
-        if (isBoundEdge(px,py)) excessbounds = true;
+        if (isBoundEdge(px, py)) excessbounds = true;
         checkBounds(px, py);
     }
 
@@ -157,19 +187,19 @@ public class PointList {
         index <<= 1;
         float px = getX(index);
         float py = getY(index);
-        if (isBoundEdge(px,py)) excessbounds = true;
+        if (isBoundEdge(px, py)) excessbounds = true;
         px += dx;
         py += dy;
         pointlist[index] = px;
         pointlist[index + 1] = py;
-        checkBounds(px,py);
+        checkBounds(px, py);
     }
 
     public void setNan(int index) {
         index <<= 1;
         float px = getX(index);
         float py = getY(index);
-        if (isBoundEdge(px,py)) excessbounds = true;
+        if (isBoundEdge(px, py)) excessbounds = true;
         pointlist[index] = Float.NaN;
         pointlist[index + 1] = Float.NaN;
     }
@@ -227,28 +257,7 @@ public class PointList {
     }
 
     public void swap(int j, int k) {
-        swap(pointlist,j<<1,k<<1);
-    }
-
-    public static void swap(float[] plist, int i0, int i1) {
-        float tx, ty;
-        tx = plist[i0];
-        ty = plist[i0 + 1];
-        plist[i0] = plist[i1];
-        plist[i0 + 1] = plist[i1 + 1];
-        plist[i1] = tx;
-        plist[i1 + 1] = ty;
-    }
-
-    public static void reverse(float[] plist) {
-        reverse(plist, plist.length);
-    }
-
-    public static void reverse(float[] plist, int count) {
-        int m = count / 2;
-        for (int i = 0, s = count - 2; i < m; i += 2, s -= 2) {
-            swap(plist, i, s);
-        }
+        swap(pointlist, j << 1, k << 1);
     }
 
     public void reverse() {
@@ -380,7 +389,7 @@ public class PointList {
 
     public void union(RectF bounds) {
         computeBounds(true);
-        bounds.union(minX,minY,maxX,maxY);
+        bounds.union(minX, minY, maxX, maxY);
     }
 
     public void getBounds(RectF bounds) {
@@ -408,7 +417,6 @@ public class PointList {
             }
         }
     }
-
 
     private boolean isBoundEdge(float px, float py) {
         return (px == minX) || (px == maxX) || (py == minY) || (py == maxY);
@@ -465,7 +473,6 @@ public class PointList {
         return pointlist[index];
     }
 
-
     public float[] pack() {
         return Arrays.copyOf(pointlist, count);
     }
@@ -497,7 +504,7 @@ public class PointList {
     }
 
     public float distanceBetweenIndex(int p0, int p1) {
-        return (float)Math.sqrt(distanceSqBetweenIndex(p0, p1));
+        return (float) Math.sqrt(distanceSqBetweenIndex(p0, p1));
     }
 
     public float distanceBetweenIndex(int p0, float x, float y) {
@@ -516,19 +523,6 @@ public class PointList {
         float y1 = getY(p1);
 
         return distanceSq(x0, y0, x1, y1);
-    }
-
-
-    public static float distanceSq(float x0, float y0, float x1, float y1) {
-        float dx = x1 - x0;
-        float dy = y1 - y0;
-        dx *= dx;
-        dy *= dy;
-        return dx + dy;
-    }
-
-    public static float distance(float x0, float y0, float x1, float y1) {
-        return (float)Math.sqrt(distanceSq(x0, y0, x1, y1));
     }
 
 }

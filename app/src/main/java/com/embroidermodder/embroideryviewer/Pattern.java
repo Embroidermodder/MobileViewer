@@ -8,16 +8,14 @@ import java.util.ArrayList;
 
 public class Pattern {
     private static final float PIXELS_PER_MM = 10;
-    private ArrayList<Pattern.Listener> _listeners;
     private final ArrayList<StitchBlock> _stitchBlocks;
     private final ArrayList<EmbThread> _threadList;
+    private ArrayList<Pattern.Listener> _listeners;
     private String _filename;
     private StitchBlock _currentStitchBlock;
 
     private float _previousX = 0;
     private float _previousY = 0;
-
-
 
     public Pattern() {
         _listeners = new ArrayList<>();
@@ -179,7 +177,7 @@ public class Pattern {
     }
 
     public String convert(float v) {
-        return String.format("%.3f",pixelstomm(v));
+        return String.format("%.1f", pixelstomm(v));
     }
 
     public String getStatistics(Context context) {

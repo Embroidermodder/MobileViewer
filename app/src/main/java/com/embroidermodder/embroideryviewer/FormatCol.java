@@ -26,7 +26,7 @@ public class FormatCol implements IFormat.Reader {
             for (int i = 0; i < numberOfColors; i++) {
                 int num, blue, green, red;
                 String line = d.readLine();
-                if(line == null || line.isEmpty()) {
+                if (line == null || line.isEmpty()) {
                     i--;
                     continue;
                 }

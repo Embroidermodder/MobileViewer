@@ -12,7 +12,7 @@ public class IFormat {
 
     public static IFormat.Reader getReaderByFilename(String filename) {
         filename = filename.toLowerCase();
-        switch (filename.substring(filename.length()-4)) {
+        switch (filename.substring(filename.length() - 4)) {
             case ".col":
                 return new FormatCol();
             case ".exp":
@@ -38,7 +38,9 @@ public class IFormat {
 
     public interface Reader {
         boolean hasColor();
+
         boolean hasStitches();
+
         Pattern read(DataInputStream stream);
     }
 }

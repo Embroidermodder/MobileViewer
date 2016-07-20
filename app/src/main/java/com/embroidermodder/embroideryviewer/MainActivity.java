@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
-import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,7 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -36,12 +34,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class MainActivity extends AppCompatActivity implements Pattern.Provider {
+    String fragmentTag;
     private int SELECT_FILE = 1;
     private Intent _intent;
     private DrawView drawView;
     private DrawerLayout mainActivity;
-
-    String fragmentTag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,21 +60,20 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
                     }
                 }
                 if (returnUri == null) {
-                    Toast.makeText(this,R.string.error_uri_not_retrieved,Toast.LENGTH_LONG).show();
-                }
-                else {
+                    Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
+                } else {
                     p = ReadFromUri(returnUri);
                     if (p == null) {
                         Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
                     }
                 }
             } catch (FileNotFoundException ex) {
-                Toast.makeText(this,R.string.error_file_not_found,Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.error_file_not_found, Toast.LENGTH_LONG).show();
             }
         }
         if (p == null) p = new Pattern();
 
-        mainActivity = (DrawerLayout)findViewById(R.id.mainActivity);
+        mainActivity = (DrawerLayout) findViewById(R.id.mainActivity);
         drawView = (DrawView) findViewById(R.id.drawview);
         drawView.initWindowSize();
 
@@ -98,12 +94,6 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         }
     }
 
-    public void setPattern(Pattern pattern) {
-        drawView.setPattern(pattern);
-        drawView.invalidate();
-        useColorFragment();
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (null != this._intent) {
@@ -114,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         if (null != savedInstanceState && savedInstanceState.containsKey("intent")) {
-            Intent intent = (Intent) savedInstanceState.getParcelable("intent");
+            Intent intent = savedInstanceState.getParcelable("intent");
             onSelectFileResult(intent);
         }
     }
@@ -156,6 +146,16 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == SELECT_FILE) {
+                onSelectFileResult(data);
+            }
+        }
+    }
+
 
 //    @Override
 //    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -171,16 +171,6 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
 //        }
 //    }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == SELECT_FILE) {
-                onSelectFileResult(data);
-            }
-        }
-    }
-
     private void onSelectFileResult(Intent data) {
         try {
             this._intent = data;
@@ -194,7 +184,6 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         } catch (FileNotFoundException ex) {
         }
     }
-
 
     public void useColorFragment() {
         if (fragmentTag != null) {
@@ -221,11 +210,16 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         return true;
     }
 
-
     @Override
     public Pattern getPattern() {
         if (drawView == null) return null;
         return drawView.getPattern();
+    }
+
+    public void setPattern(Pattern pattern) {
+        drawView.setPattern(pattern);
+        drawView.invalidate();
+        useColorFragment();
     }
 
     public void showStatistics() {

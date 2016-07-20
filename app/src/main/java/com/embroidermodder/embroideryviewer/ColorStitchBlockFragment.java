@@ -1,25 +1,13 @@
 package com.embroidermodder.embroideryviewer;
 
-import android.app.Activity;
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.BottomSheetBehavior;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 
 
 public class ColorStitchBlockFragment extends Fragment implements Pattern.Listener {
@@ -56,7 +44,7 @@ public class ColorStitchBlockFragment extends Fragment implements Pattern.Listen
         super.onViewCreated(view, savedInstanceState);
         colorListView = (ListView) view.findViewById(R.id.colorListView);
         if (getActivity() instanceof Pattern.Provider) {
-            setPattern(((Pattern.Provider)getActivity()).getPattern());
+            setPattern(((Pattern.Provider) getActivity()).getPattern());
         }
     }
 

@@ -5,40 +5,42 @@ public class EmbThread {
     private String _description;
     private String _catalogNumber;
 
-    public EmbThread(){
+    public EmbThread() {
     }
 
-    public EmbThread(int red, int green, int blue, String description, String catalogNumber){
+    public EmbThread(int red, int green, int blue, String description, String catalogNumber) {
         _color = new EmbColor(red, green, blue);
         _description = description;
         _catalogNumber = catalogNumber;
     }
 
-    public EmbThread(EmbThread toCopy){
+    public EmbThread(EmbThread toCopy) {
         this.setColor(toCopy.getColor());
         this.setDescription(toCopy.getDescription());
         this.setCatalogNumber(toCopy.getCatalogNumber());
     }
 
-    public void setColor(EmbColor value){
-        _color = value;
-    }
-
-    public EmbColor getColor(){
+    public EmbColor getColor() {
         return _color;
     }
 
-    public void setDescription(String value){
+    public void setColor(EmbColor value) {
+        _color = value;
+    }
+
+    public String getDescription() {
+        return _description;
+    }
+
+    public void setDescription(String value) {
         _description = value;
     }
 
-    public String getDescription(){ return _description; }
-
-    public void setCatalogNumber(String value){
-        _catalogNumber = value;
+    public String getCatalogNumber() {
+        return _catalogNumber;
     }
 
-    public String getCatalogNumber(){
-        return _catalogNumber;
+    public void setCatalogNumber(String value) {
+        _catalogNumber = value;
     }
 }

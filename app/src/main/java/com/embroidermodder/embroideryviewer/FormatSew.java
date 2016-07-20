@@ -5,55 +5,6 @@ import java.io.IOException;
 
 public class FormatSew implements IFormat.Reader {
 
-    public boolean hasColor() {
-        return true;
-    }
-
-    public boolean hasStitches() {
-        return true;
-    }
-
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
-        byte[] b = new byte[2];
-        int flags;
-        int numberOfColors;
-        try {
-            numberOfColors = BinaryReader.readInt16LE(stream);
-            for (int i = 0; i < numberOfColors; i++) {
-                int index = BinaryReader.readInt16LE(stream);
-                p.addThread(getThreadByIndex(index % 79));
-            }
-            stream.skip(0x1D78 - numberOfColors * 2 - 2);
-            while(true) {
-                flags = IFormat.NORMAL;
-                if (stream.read(b) != 2) {
-                    break;
-                }
-                if (((b[0] & 0xFF) == 0x80)) {
-                    if ((b[1] & 0x01) != 0) {
-                        if (stream.read(b) != 2) {
-                            break;
-                        }
-                        flags = IFormat.STOP;
-                    } else if ((b[1] == 0x04) || (b[1] == 0x02)) {
-                        if (stream.read(b) != 2) {
-                            break;
-                        }
-                        flags = IFormat.TRIM;
-                    } else if (b[1] == 0x10) {
-                        p.addStitchRel(0.0f, 0.0f, IFormat.END, true);
-                        break;
-                    }
-                }
-                p.addStitchRel((float) b[0], (float) b[1], flags, true);
-            }
-        } catch (IOException ex) {
-
-        }
-        return p.getFlippedPattern(false, true);
-    }
-
     public static EmbThread getThreadByIndex(int index) {
         switch (index) {
             case 0:
@@ -216,5 +167,54 @@ public class FormatSew implements IFormat.Reader {
                 return new EmbThread(227, 190, 129, "Bamboo", "");
         }
         return null;
+    }
+
+    public boolean hasColor() {
+        return true;
+    }
+
+    public boolean hasStitches() {
+        return true;
+    }
+
+    public Pattern read(DataInputStream stream) {
+        Pattern p = new Pattern();
+        byte[] b = new byte[2];
+        int flags;
+        int numberOfColors;
+        try {
+            numberOfColors = BinaryReader.readInt16LE(stream);
+            for (int i = 0; i < numberOfColors; i++) {
+                int index = BinaryReader.readInt16LE(stream);
+                p.addThread(getThreadByIndex(index % 79));
+            }
+            stream.skip(0x1D78 - numberOfColors * 2 - 2);
+            while (true) {
+                flags = IFormat.NORMAL;
+                if (stream.read(b) != 2) {
+                    break;
+                }
+                if (((b[0] & 0xFF) == 0x80)) {
+                    if ((b[1] & 0x01) != 0) {
+                        if (stream.read(b) != 2) {
+                            break;
+                        }
+                        flags = IFormat.STOP;
+                    } else if ((b[1] == 0x04) || (b[1] == 0x02)) {
+                        if (stream.read(b) != 2) {
+                            break;
+                        }
+                        flags = IFormat.TRIM;
+                    } else if (b[1] == 0x10) {
+                        p.addStitchRel(0.0f, 0.0f, IFormat.END, true);
+                        break;
+                    }
+                }
+                p.addStitchRel((float) b[0], (float) b[1], flags, true);
+            }
+        } catch (IOException ex) {
+
+        }
+        return p.getFlippedPattern(false, true);
     }
 }

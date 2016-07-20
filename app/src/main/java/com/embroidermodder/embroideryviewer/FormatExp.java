@@ -52,7 +52,7 @@ public class FormatExp implements IFormat.Reader {
                         if (stream.available() <= 0) {
                             break;
                         }
-                    } else if ((b1 & 0xFF)== 0x80) {
+                    } else if ((b1 & 0xFF) == 0x80) {
                         b0 = stream.readByte();
                         if (stream.available() <= 0) {
                             break;

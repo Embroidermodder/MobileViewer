@@ -21,7 +21,7 @@ public class FormatInf implements IFormat.Reader {
             for (int x = 0; x < numberOfColors; x++) {
                 stream.skip(4);
                 EmbThread t = new EmbThread();
-                int red =  stream.readByte();
+                int red = stream.readByte();
                 int green = stream.readByte();
                 int blue = stream.readByte();
                 t.setColor(new EmbColor(red, green, blue));

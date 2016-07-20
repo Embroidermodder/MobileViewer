@@ -11,6 +11,18 @@ public class ToolPan implements Tool {
     float dcx;
     float dcy;
 
+    public static float distance(float x0, float y0, float x1, float y1) {
+        return (float) Math.sqrt(distanceSq(x0, y0, x1, y1));
+    }
+
+    public static float distanceSq(float x0, float y0, float x1, float y1) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        dx *= dx;
+        dy *= dy;
+        return dx + dy;
+    }
+
     @Override
     public boolean rawTouch(DrawView drawView, MotionEvent event) {
         float cx1 = event.getX();
@@ -28,9 +40,9 @@ public class ToolPan implements Tool {
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
-                float deltascale = (float) (distance(cx1,cy1,cx2,cy2) / distance(dx1,dy1,dx2,dy2));
-                float dpx = px-dcx;
-                float dpy = py-dcy;
+                float deltascale = distance(cx1, cy1, cx2, cy2) / distance(dx1, dy1, dx2, dy2);
+                float dpx = px - dcx;
+                float dpy = py - dcy;
                 if (!Float.isNaN(dpx)) drawView.pan(dpx, dpy);
                 if (!Float.isNaN(deltascale)) drawView.scale(deltascale, px, py);
                 drawView.invalidate();
@@ -56,16 +68,5 @@ public class ToolPan implements Tool {
     @Override
     public boolean touch(DrawView drawView, MotionEvent event) {
         return false;
-    }
-
-    public static float distance(float x0, float y0, float x1, float y1) {
-        return (float)Math.sqrt(distanceSq(x0, y0, x1, y1));
-    }
-    public static float distanceSq(float x0, float y0, float x1, float y1) {
-        float dx = x1 - x0;
-        float dy = y1 - y0;
-        dx *= dx;
-        dy *= dy;
-        return dx + dy;
     }
 }

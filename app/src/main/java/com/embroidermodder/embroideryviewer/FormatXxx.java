@@ -43,7 +43,7 @@ public class FormatXxx implements IFormat.Reader {
                     s++;
                     dx = (short) ((b2 & 0xFF) + (stream.readByte() << 8));
                     s++;
-                    dy = (short)BinaryReader.readInt16LE(stream);
+                    dy = (short) BinaryReader.readInt16LE(stream);
                     s++;
                     stitch_type = IFormat.TRIM;
                 } else if (b1 == 0x7F) {

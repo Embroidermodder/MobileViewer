@@ -5,31 +5,6 @@ import java.io.IOException;
 
 public class FormatPec implements IFormat.Reader {
 
-    public boolean hasColor() {
-        return true;
-    }
-
-    public boolean hasStitches() {
-        return true;
-    }
-
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
-        try{
-            stream.skip(0x38);
-            int colorChanges = stream.readByte();
-            for(int i = 0; i <= colorChanges; i++) {
-                int index = stream.readByte();
-                p.addThread(getThreadByIndex(index % 65));
-            }
-            stream.skip(0x221 - (0x38 + 1 + colorChanges));
-            readPecStitches(p, stream);
-        }
-        catch (IOException ex) {
-        }
-        return p;
-    }
-
     public static void readPecStitches(Pattern pattern, DataInputStream stream) {
         try {
             while (stream.available() > 0) {
@@ -223,5 +198,29 @@ public class FormatPec implements IFormat.Reader {
 
         }
         return null;
+    }
+
+    public boolean hasColor() {
+        return true;
+    }
+
+    public boolean hasStitches() {
+        return true;
+    }
+
+    public Pattern read(DataInputStream stream) {
+        Pattern p = new Pattern();
+        try {
+            stream.skip(0x38);
+            int colorChanges = stream.readByte();
+            for (int i = 0; i <= colorChanges; i++) {
+                int index = stream.readByte();
+                p.addThread(getThreadByIndex(index % 65));
+            }
+            stream.skip(0x221 - (0x38 + 1 + colorChanges));
+            readPecStitches(p, stream);
+        } catch (IOException ex) {
+        }
+        return p;
     }
 }

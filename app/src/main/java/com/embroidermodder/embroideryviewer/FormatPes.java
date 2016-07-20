@@ -9,7 +9,9 @@ public class FormatPes implements IFormat.Reader {
         return true;
     }
 
-    public boolean hasStitches() { return true; }
+    public boolean hasStitches() {
+        return true;
+    }
 
     public Pattern read(DataInputStream stream) {
         Pattern p = new Pattern();

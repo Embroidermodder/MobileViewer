@@ -16,13 +16,6 @@ public class StitchBlockView extends RelativeLayout {
     public TextView name;
     public TextView stitches;
 
-    public static StitchBlockView inflate(ViewGroup parent, int i, Pattern pattern, StitchBlock stitchBlock) {
-        StitchBlockView itemView = (StitchBlockView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.stitchblock_item, parent, false);
-        itemView.setStitchBlock(i,pattern,stitchBlock);
-        return itemView;
-    }
-
     public StitchBlockView(Context context) {
         super(context);
         init(context);
@@ -36,6 +29,13 @@ public class StitchBlockView extends RelativeLayout {
     public StitchBlockView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context);
+    }
+
+    public static StitchBlockView inflate(ViewGroup parent, int i, Pattern pattern, StitchBlock stitchBlock) {
+        StitchBlockView itemView = (StitchBlockView) LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.stitchblock_item, parent, false);
+        itemView.setStitchBlock(i, pattern, stitchBlock);
+        return itemView;
     }
 
     private void init(Context context) {
@@ -57,7 +57,7 @@ public class StitchBlockView extends RelativeLayout {
             }
         });
         index.setText(Integer.toString(i));
-        String namevalue =stitchBlock.getThread().getCatalogNumber();
+        String namevalue = stitchBlock.getThread().getCatalogNumber();
         if ((namevalue == null) || ("".equals(namevalue))) {
             namevalue = asHexColor(colorvalue);
         }
