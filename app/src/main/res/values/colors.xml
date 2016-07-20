@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="white">#FFF</color>
     <color name="drawAreaColor">#BDE</color>
+    <color name="semitransparentwhite">#8FFF</color>
 </resources>

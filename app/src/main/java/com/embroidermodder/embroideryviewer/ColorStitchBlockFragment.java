@@ -54,13 +54,6 @@ public class ColorStitchBlockFragment extends Fragment implements Pattern.Listen
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        ViewGroup.LayoutParams p = view.getLayoutParams();
-        if (p instanceof CoordinatorLayout.LayoutParams) {
-            CoordinatorLayout.LayoutParams params = ((CoordinatorLayout.LayoutParams)p);
-            params.gravity = Gravity.END | Gravity.BOTTOM;
-            view.setLayoutParams(params);
-        }
         colorListView = (ListView) view.findViewById(R.id.colorListView);
         if (getActivity() instanceof Pattern.Provider) {
             setPattern(((Pattern.Provider)getActivity()).getPattern());
