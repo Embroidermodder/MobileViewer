@@ -2,9 +2,10 @@ package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
-public class BinaryReader {
+public class BinaryHelper {
     public static int readInt32LE(DataInputStream stream) throws IOException {
         byte fullInt[] = new byte[4];
         stream.read(fullInt);
@@ -18,7 +19,7 @@ public class BinaryReader {
     }
 
     public static String readString(DataInputStream stream, int maxLength) throws IOException {
-        ArrayList<Byte> charList = new ArrayList<Byte>();
+        ArrayList<Byte> charList = new ArrayList<>();
         int i = 0;
         while (i < maxLength) {
             byte value = stream.readByte();
@@ -30,8 +31,25 @@ public class BinaryReader {
         }
         byte[] result = new byte[charList.size()];
         for (i = 0; i < charList.size(); i++) {
-            result[i] = charList.get(i).byteValue();
+            result[i] = charList.get(i);
         }
         return new String(result, "UTF-8");
+    }
+
+    public static void writeShort(OutputStream stream, int value) throws IOException {
+        stream.write(value & 0xFF);
+        stream.write((value >> 8) & 0xFF);
+    }
+
+    public static void writeInt32(OutputStream stream, int value) throws IOException {
+        stream.write(value & 0xFF);
+        stream.write((value >> 8) & 0xFF);
+        stream.write((value >> 16) & 0xFF);
+        stream.write((value >> 24) & 0xFF);
+    }
+
+    public static void writeShortBE(OutputStream stream, int value) throws IOException {
+        stream.write((value >> 8) & 0xFF);
+        stream.write(value & 0xFF);
     }
 }

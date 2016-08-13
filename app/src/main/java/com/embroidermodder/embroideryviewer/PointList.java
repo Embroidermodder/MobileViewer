@@ -12,7 +12,7 @@ import java.util.Arrays;
  * <p/>
  * The core importance of such a class is to allow for speed with regard to Android.
  * The canvas can very quickly render segments and with the system setup as such,
- * A pointlist can be rendered in two canvas calls, and the underlying memory is
+ * A point list can be rendered in two canvas calls, and the underlying memory is
  * maximally compact.
  * <p/>
  * if (count >= 4) {
@@ -124,9 +124,9 @@ public class PointList {
 
     private void add(int arrayindex, float[] vars, int arraylength) {
         ensureCapacity(count + arraylength);
-
-        if (arrayindex != count)
+        if (arrayindex != count) {
             System.arraycopy(pointlist, arrayindex, pointlist, arrayindex + arraylength, count - arrayindex);
+        }
         System.arraycopy(vars, 0, pointlist, arrayindex, arraylength);
         count += arraylength;
         dirtybounds = true;
@@ -400,7 +400,7 @@ public class PointList {
     /**
      * Sets the bounds to the intersection, even if they do not intersect.
      *
-     * @param bounds rectangle that the pointlist's bounds should be intersected with.
+     * @param bounds rectangle that the point list's bounds should be intersected with.
      */
     public void intersect(RectF bounds) {
         computeBounds(true);

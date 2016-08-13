@@ -4,10 +4,16 @@
     <string name="action_tool_pan">Pan</string>
     <string name="action_tool_draw">Draw</string>
     <string name="action_show_statistics">Statistics</string>
+    <string name="action_share">Share</string>
     <string name="stitchblock_stitches">"%d Stitches"</string>
+    <string name="external_storage_justification">You need to allow access to External storage</string>
+    <string name="write_permissions_denied">Write permissions Denied</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
     <string name="error_file_not_found">Error: File not found.</string>
     <string name="error_uri_not_retrieved">Error: URI not retrieved.</string>
     <string name="error_file_read_failed">Error: File read failed.</string>
+    <string name="stitch_block_color">Stitch block color</string>
     <!-- Statistics section -->
     <string name="number_of_stitches">Number of stitch entries:</string>
     <string name="normal_stitches">  Normal:        </string>

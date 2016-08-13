@@ -3,8 +3,9 @@ package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
-public class FormatExp implements IFormat.Reader {
+public class FormatExp implements IFormat.Reader, IFormat.Writer {
 
     public boolean hasColor() {
         return false;
@@ -14,8 +15,8 @@ public class FormatExp implements IFormat.Reader {
         return true;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         byte b0, b1;
         try {
             for (int i = 0; stream.available() > 0; i++) {
@@ -70,7 +71,53 @@ public class FormatExp implements IFormat.Reader {
             }
         } catch (IOException ex) {
         }
-
         return p.getFlippedPattern(false, true);
+    }
+
+    private void encode(byte[] b, byte dx, byte dy, int flags) {
+        if (flags == IFormat.TRIM) {
+            b[0] = (byte) 128;
+            b[1] = 2;
+            b[2] = dx;
+            b[3] = dy;
+        } else if (flags == IFormat.STOP) {
+            b[0] = (byte) 128;
+            b[1] = 1;
+            b[2] = dx;
+            b[3] = dy;
+        } else {
+            b[0] = dx;
+            b[1] = dy;
+        }
+    }
+
+    public void write(EmbPattern pattern, OutputStream stream) {
+        double dx, dy;
+        double xx = 0.0, yy = 0.0;
+        int flags;
+        byte b[] = new byte[4];
+        try {
+            for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
+                for (int i = 0; i < stitchBlock.size(); i++) {
+                    float x = stitchBlock.getX(i);
+                    float y = stitchBlock.getY(i);
+                    dx = x - xx;
+                    dy = y - yy;
+                    xx = x;
+                    yy = y;
+                    flags = IFormat.NORMAL;
+                    encode(b, (byte) Math.round(dx), (byte) Math.round(dy), flags);
+                    stream.write(b[0]);
+                    stream.write(b[1]);
+                    if ((b[0] == -128) && ((b[1] == 1) || (b[1] == 2) || (b[1] == 4))) {
+                        stream.write(b[2]);
+                        stream.write(b[3]);
+                    }
+                }
+            }
+            stream.write(0x1A);
+            stream.close();
+        } catch (IOException ex) {
+        }
     }
 }

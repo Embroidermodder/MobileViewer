@@ -177,15 +177,15 @@ public class FormatSew implements IFormat.Reader {
         return true;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         byte[] b = new byte[2];
         int flags;
         int numberOfColors;
         try {
-            numberOfColors = BinaryReader.readInt16LE(stream);
+            numberOfColors = BinaryHelper.readInt16LE(stream);
             for (int i = 0; i < numberOfColors; i++) {
-                int index = BinaryReader.readInt16LE(stream);
+                int index = BinaryHelper.readInt16LE(stream);
                 p.addThread(getThreadByIndex(index % 79));
             }
             stream.skip(0x1D78 - numberOfColors * 2 - 2);

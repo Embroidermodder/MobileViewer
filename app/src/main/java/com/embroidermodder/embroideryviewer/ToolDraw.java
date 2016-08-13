@@ -11,7 +11,7 @@ public class ToolDraw implements Tool {
 
     @Override
     public boolean touch(DrawView drawView, MotionEvent event) {
-        Pattern pattern = drawView.getPattern();
+        EmbPattern pattern = drawView.getPattern();
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 pattern.addStitchAbs(event.getX(), event.getY(), IFormat.NORMAL, false);

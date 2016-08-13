@@ -1,14 +1,14 @@
 package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
+import java.io.OutputStream;
 
 public class IFormat {
-    public static int NORMAL = 0;
-    public static int JUMP = 1;
-    public static int TRIM = 2;
-    public static int STOP = 4;
-    public static int END = 8;
-
+    public static final int NORMAL = 0;
+    public static final int JUMP = 1;
+    public static final int TRIM = 2;
+    public static final int STOP = 4;
+    public static final int END = 8;
 
     public static IFormat.Reader getReaderByFilename(String filename) {
         filename = filename.toLowerCase();
@@ -41,6 +41,10 @@ public class IFormat {
 
         boolean hasStitches();
 
-        Pattern read(DataInputStream stream);
+        EmbPattern read(DataInputStream stream);
+    }
+
+    public interface Writer {
+        void write(EmbPattern pattern, OutputStream stream);
     }
 }

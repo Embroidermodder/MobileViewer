@@ -15,7 +15,7 @@ public class FormatColTest {
         String fileContents = "1\r0,1,2,3\n\r";
         DataInputStream anyInputStream = new DataInputStream(new ByteArrayInputStream(fileContents.getBytes()));
         FormatCol col = new FormatCol();
-        Pattern p = col.read(anyInputStream);
+        EmbPattern p = col.read(anyInputStream);
         ArrayList<EmbThread> threadList = p.getThreadList();
         assertEquals(threadList.size(), 1);
         assertEquals(threadList.get(0).getColor().red, 3);
@@ -26,7 +26,7 @@ public class FormatColTest {
         String fileContents = "2\r0,1,2,3\n\r1,2,3,4\n\r";
         DataInputStream anyInputStream = new DataInputStream(new ByteArrayInputStream(fileContents.getBytes()));
         FormatCol col = new FormatCol();
-        Pattern p = col.read(anyInputStream);
+        EmbPattern p = col.read(anyInputStream);
         ArrayList<EmbThread> threadList = p.getThreadList();
         assertEquals(threadList.size(), 2);
         assertEquals(threadList.get(0).getColor().red, 3);

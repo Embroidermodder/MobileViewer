@@ -1,16 +1,22 @@
 package com.embroidermodder.embroideryviewer;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -30,12 +36,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class MainActivity extends AppCompatActivity implements Pattern.Provider {
+public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
+    private static final String AUTHORITY = "com.embroidermodder.embroideryviewer";
     String fragmentTag;
-    private int SELECT_FILE = 1;
+    private final int SELECT_FILE = 1;
     private Intent _intent;
     private DrawView drawView;
     private DrawerLayout mainActivity;
@@ -46,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Pattern p = null;
+        EmbPattern p = null;
         Intent intent = getIntent();
         String action = intent.getAction();
         if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)
@@ -71,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
                 Toast.makeText(this, R.string.error_file_not_found, Toast.LENGTH_LONG).show();
             }
         }
-        if (p == null) p = new Pattern();
+        if (p == null) p = new EmbPattern();
 
         mainActivity = (DrawerLayout) findViewById(R.id.mainActivity);
         drawView = (DrawView) findViewById(R.id.drawview);
@@ -140,10 +149,102 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
             case R.id.action_show_statistics:
                 showStatistics();
                 return true;
+            case R.id.action_share:
+                //saveFileWrapper(getFilesDir());
+                saveFileWrapper(Environment.getExternalStorageDirectory());
+               // ContextComapgetUriForFile(getContext(),
+                //Context.grantUriPermission(package, Uri,  FLAG_GRANT_READ_URI_PERMISSION);
+//                Intent shareIntent = new Intent();
+//                shareIntent.setAction(Intent.ACTION_SEND);
+//                shareIntent.putExtra(Intent.EXTRA_STREAM, uriToImage);
+//                shareIntent.setType("image/jpeg");
+//                shareIntent.setFlags(FLAG_GRANT_READ_URI_PERMISSION);
+//                startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
 
+
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void saveFileWrapper(File root) {
+        int hasWriteExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                showMessageOKCancel(getString(R.string.external_storage_justification),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        REQUEST_CODE_ASK_PERMISSIONS);
+                            }
+                        });
+                return;
+            }
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_CODE_ASK_PERMISSIONS);
+            return;
+        }
+        saveFile(root);
+//        Intent shareIntent = new Intent();
+//                shareIntent.setAction(Intent.ACTION_SEND);
+//                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+//                shareIntent.setType("application/exp");
+//                shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.action_open_file)));
+    }
+
+    private void saveFile(File root) {
+        try {
+            int n = 10000;
+            Random generator = new Random();
+            n = generator.nextInt(n);
+            String fname = "Image-" + n + ".pec";
+            File file = new File(root, fname);
+            //Uri returnUri = FileProvider.getUriForFile(this,AUTHORITY, file);
+            if (file.exists()) {
+                file.delete();
+            }
+            FileOutputStream outputStream = new FileOutputStream(file);
+            //FormatExp format = new FormatExp();
+            FormatPec format = new FormatPec();
+            //FormatPes format = new FormatPes();
+            //IFormat.Writer format = new FormatDst();
+            format.write(drawView.getPattern(), outputStream);
+            outputStream.flush();
+            outputStream.close();
+            return;// returnUri;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(MainActivity.this)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, okListener)
+                .setNegativeButton(R.string.cancel, null)
+                .create()
+                .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    saveFile(getFilesDir());
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
     @Override
@@ -156,29 +257,14 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         }
     }
 
-
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        switch (requestCode) {
-//            case "ReadDownloadsFolder":
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    //code for granted
-//                } else {
-//                    //code for denied
-//                }
-//                return;
-//        }
-//    }
-
     private void onSelectFileResult(Intent data) {
         try {
             this._intent = data;
             Uri uri = data.getData();
-            Pattern p = ReadFromUri(uri);
+            EmbPattern p = ReadFromUri(uri);
             if (p == null) {
                 Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
-                p = new Pattern(); //read failed.
+                p = new EmbPattern(); //read failed.
             }
             setPattern(p);
         } catch (FileNotFoundException ex) {
@@ -211,12 +297,12 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
     }
 
     @Override
-    public Pattern getPattern() {
+    public EmbPattern getPattern() {
         if (drawView == null) return null;
         return drawView.getPattern();
     }
 
-    public void setPattern(Pattern pattern) {
+    public void setPattern(EmbPattern pattern) {
         drawView.setPattern(pattern);
         drawView.invalidate();
         useColorFragment();
@@ -228,16 +314,19 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
         builder.show();
     }
 
-    private Pattern ReadFromUri(Uri uri) throws FileNotFoundException {
+    private EmbPattern ReadFromUri(Uri uri) throws FileNotFoundException {
         IFormat.Reader formatReader = IFormat.getReaderByFilename(uri.getPath());
         if (formatReader == null) {
-            Cursor returnCursor =
-                    getContentResolver().query(uri, null, null, null, null);
+            Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
             if (returnCursor != null) {
-                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                returnCursor.moveToFirst();
-                String filename = returnCursor.getString(nameIndex);
-                formatReader = IFormat.getReaderByFilename(filename);
+                try {
+                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    returnCursor.moveToFirst();
+                    String filename = returnCursor.getString(nameIndex);
+                    formatReader = IFormat.getReaderByFilename(filename);
+                } finally {
+                    returnCursor.close();
+                }
             }
         }
         if (formatReader == null) {
@@ -249,8 +338,7 @@ public class MainActivity extends AppCompatActivity implements Pattern.Provider 
             FileDescriptor fd = mInputPFD.getFileDescriptor();
             FileInputStream fis = new FileInputStream(fd);
             DataInputStream in = new DataInputStream(fis);
-            Pattern p = formatReader.read(in);
-            return p;
+            return formatReader.read(in);
         }
         return null;
     }

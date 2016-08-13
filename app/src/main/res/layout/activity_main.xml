@@ -23,5 +23,4 @@
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_left_drawer"/>
-
 </android.support.v4.widget.DrawerLayout>

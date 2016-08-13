@@ -177,19 +177,19 @@ public class FormatJef implements IFormat.Reader {
         return true;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         byte[] b = new byte[2];
         int flags;
         int stitchOffset, numberOfColors, numberOfStitches;
         try {
-            stitchOffset = BinaryReader.readInt32LE(stream);
+            stitchOffset = BinaryHelper.readInt32LE(stream);
             stream.skip(20);
-            numberOfColors = BinaryReader.readInt32LE(stream);
-            numberOfStitches = BinaryReader.readInt32LE(stream);
+            numberOfColors = BinaryHelper.readInt32LE(stream);
+            numberOfStitches = BinaryHelper.readInt32LE(stream);
             stream.skip(84);
             for (int i = 0; i < numberOfColors; i++) {
-                int index = BinaryReader.readInt32LE(stream);
+                int index = BinaryHelper.readInt32LE(stream);
                 p.addThread(getThreadByIndex(index % 79));
             }
             stream.skip(stitchOffset - 116 - (numberOfColors * 4));

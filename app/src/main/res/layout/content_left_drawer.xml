@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="400dp"
+    android:layout_width="270dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"

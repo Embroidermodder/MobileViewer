@@ -5,13 +5,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 public class StitchBlockAdapter extends BaseAdapter {
-    Pattern pattern;
+    EmbPattern pattern;
 
-    public StitchBlockAdapter(Pattern pattern) {
+    public StitchBlockAdapter(EmbPattern pattern) {
         this.pattern = pattern;
     }
 
-    public void setPattern(Pattern pattern) {
+    public void setPattern(EmbPattern pattern) {
         this.pattern = pattern;
     }
 

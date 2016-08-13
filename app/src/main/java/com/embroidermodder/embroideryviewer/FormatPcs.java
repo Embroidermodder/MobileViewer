@@ -21,8 +21,8 @@ public class FormatPcs implements IFormat.Reader {
         return true;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         char allZeroColor = 1;
         int i;
         byte[] b = new byte[9];
@@ -46,7 +46,7 @@ public class FormatPcs implements IFormat.Reader {
 //            break;
 //    }
 
-            colorCount = BinaryReader.readInt16LE(stream);
+            colorCount = BinaryHelper.readInt16LE(stream);
 
             for (i = 0; i < colorCount; i++) {
 
@@ -61,7 +61,7 @@ public class FormatPcs implements IFormat.Reader {
                 p.addThread(t);
                 stream.readByte();
             }
-            st = BinaryReader.readInt16LE(stream);
+            st = BinaryHelper.readInt16LE(stream);
             for (i = 0; i < st; i++) {
                 flags = IFormat.NORMAL;
                 if (stream.read(b) != 9) {

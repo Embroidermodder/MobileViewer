@@ -1,10 +1,13 @@
 package com.embroidermodder.embroideryviewer;
 
 
+import android.graphics.RectF;
+
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
-public class FormatDst implements IFormat.Reader {
+public class FormatDst implements IFormat.Reader, IFormat.Writer {
 
     public boolean hasColor() {
         return false;
@@ -16,7 +19,7 @@ public class FormatDst implements IFormat.Reader {
 
     private int decodeFlags(byte b) {
         int returnCode = 0;
-        if (b == 0xF3) {
+        if (b == -13) {
             return IFormat.END;
         }
         if ((b & 0x80) > 0) {
@@ -28,8 +31,8 @@ public class FormatDst implements IFormat.Reader {
         return returnCode;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         byte[] b = new byte[3];
 
         try {
@@ -107,5 +110,208 @@ public class FormatDst implements IFormat.Reader {
 
         }
         return p.getFlippedPattern(false, true);
+    }
+
+    static int setbit(int pos) {
+        return 1 << pos;
+    }
+
+    private static void encodeRecord(OutputStream file, int x, int y, int flags) throws IOException {
+        char b0, b1, b2;
+        b0 = b1 = b2 = 0;
+
+    /* cannot encode values > +121 or < -121. */
+        //if(x > 121 || x < -121) {
+        //    embLog_error("format-dst.c encode_record(), x is not in valid range [-121,121] , x = %d\n", x);
+        //}
+        //if(y > 121 || y < -121) {
+        //    embLog_error("format-dst.c encode_record(), y is not in valid range [-121,121] , y = %d\n", y);
+        // }
+
+        if (x >= +41) {
+            b2 += setbit(2);
+            x -= 81;
+        }
+        if (x <= -41) {
+            b2 += setbit(3);
+            x += 81;
+        }
+        if (x >= +14) {
+            b1 += setbit(2);
+            x -= 27;
+        }
+        if (x <= -14) {
+            b1 += setbit(3);
+            x += 27;
+        }
+        if (x >= +5) {
+            b0 += setbit(2);
+            x -= 9;
+        }
+        if (x <= -5) {
+            b0 += setbit(3);
+            x += 9;
+        }
+        if (x >= +2) {
+            b1 += setbit(0);
+            x -= 3;
+        }
+        if (x <= -2) {
+            b1 += setbit(1);
+            x += 3;
+        }
+        if (x >= +1) {
+            b0 += setbit(0);
+            x -= 1;
+        }
+        if (x <= -1) {
+            b0 += setbit(1);
+            x += 1;
+        }
+        //if(x !=   0) { embLog_error("format-dst.c encode_record(), x should be zero yet x = %d\n", x); }
+        if (y >= +41) {
+            b2 += setbit(5);
+            y -= 81;
+        }
+        if (y <= -41) {
+            b2 += setbit(4);
+            y += 81;
+        }
+        if (y >= +14) {
+            b1 += setbit(5);
+            y -= 27;
+        }
+        if (y <= -14) {
+            b1 += setbit(4);
+            y += 27;
+        }
+        if (y >= +5) {
+            b0 += setbit(5);
+            y -= 9;
+        }
+        if (y <= -5) {
+            b0 += setbit(4);
+            y += 9;
+        }
+        if (y >= +2) {
+            b1 += setbit(7);
+            y -= 3;
+        }
+        if (y <= -2) {
+            b1 += setbit(6);
+            y += 3;
+        }
+        if (y >= +1) {
+            b0 += setbit(7);
+            y -= 1;
+        }
+        if (y <= -1) {
+            b0 += setbit(6);
+            y += 1;
+        }
+        //if(y !=   0) { embLog_error("format-dst.c encode_record(), y should be zero yet y = %d\n", y); }
+
+        b2 |= (char) 3;
+
+        if ((flags & IFormat.END) > 0) {
+            b2 = (char) -13;
+            b0 = b1 = (char) 0;
+        }
+
+        if ((flags & (IFormat.JUMP | IFormat.TRIM)) > 0) {
+            b2 = (char) (b2 | 0x83);
+        }
+        if ((flags & IFormat.STOP) == IFormat.STOP) {
+            b2 = (char) (b2 | 0xC3);
+        }
+
+        file.write(b0);
+        file.write(b1);
+        file.write(b2);
+    }
+
+    public void write(EmbPattern pattern, OutputStream file) {
+        try {
+            pattern.getFlippedPattern(false, true);
+            RectF boundingRect;
+            int xx, yy, dx, dy, flags;
+            int i;
+            int co = 1, st = 0;
+            int ax, ay, mx, my;
+
+            //embPattern_correctForMaxStitchLength(pattern, 12.1, 12.1);
+
+
+            xx = yy = 0;
+            co = 1;
+            co = pattern.getThreadList().size();
+            st = 0;
+            for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
+                for (int j = 0; j < stitchBlock.count(); j++) {
+                    st++;
+                }
+            }
+            boundingRect = pattern.calculateBoundingBox();
+            file.write(String.format("LA:%-16s", "Untitled").getBytes());
+            file.write(0x0D);
+            file.write(String.format("ST:%7d", st).getBytes());
+            file.write(0x0D);
+            file.write(String.format("CO:%3d", co - 1).getBytes()); /* number of color changes, not number of colors! */
+            file.write(0x0D);
+            file.write(String.format("+X:%5d", (int) (boundingRect.right * 10.0)).getBytes());
+            file.write(0x0D);
+            file.write(String.format("-X:%5d", (int) (Math.abs(boundingRect.left) * 10.0)).getBytes());
+            file.write(0x0D);
+            file.write(String.format("+Y:%5d", (int) (boundingRect.bottom * 10.0)).getBytes());
+            file.write(0x0D);
+            file.write(String.format("-Y:%5d", (int) (Math.abs(boundingRect.top) * 10.0)).getBytes());
+            file.write(0x0D);
+            ax = ay = mx = my = 0;
+
+            String pd = "";
+            if (pd.isEmpty()) {
+                pd = "******";
+            }
+            file.write(String.format("AX:+%5d", ax).getBytes());
+            file.write(0x0D);
+            file.write(String.format("AY:+%5d", ay).getBytes());
+            file.write(0x0D);
+            file.write(String.format("MX:+%5d", mx).getBytes());
+            file.write(0x0D);
+            file.write(String.format("MY:+%5d", my).getBytes());
+            file.write(0x0D);
+            file.write(String.format("PD:%6s", pd).getBytes());
+            file.write(0x0D);
+            file.write(0x1a); /* 0x1a is the code for end of section. */
+
+            /* pad out header to proper length */
+            for (i = 125; i < 512; i++) {
+                file.write(0x20);
+            }
+
+            /* write stitches */
+            xx = yy = 0;
+            EmbThread previousThread = pattern.getStitchBlocks().get(0).getThread();
+            for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
+                flags = IFormat.TRIM;
+                if (previousThread != stitchBlock.getThread()) {
+                    flags = IFormat.STOP;
+                }
+                for (int j = 0; j < stitchBlock.count(); j++) {
+                    dx = Math.round(stitchBlock.getX(j)) - xx;
+                    dy = Math.round(stitchBlock.getY(j)) - yy;
+                    xx += dx;
+                    yy += dy;
+                    encodeRecord(file, dx, dy, flags);
+                    flags = IFormat.NORMAL;
+                }
+                previousThread = stitchBlock.getThread();
+            }
+            file.write(0xA1); /* finish file with a terminator character */
+            file.write(0);
+            file.write(0);
+        } catch (IOException e) {
+
+        }
     }
 }

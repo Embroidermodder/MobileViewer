@@ -13,8 +13,8 @@ public class FormatInf implements IFormat.Reader {
         return false;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         try {
             stream.skip(12);
             int numberOfColors = stream.readInt();
@@ -29,8 +29,8 @@ public class FormatInf implements IFormat.Reader {
                 t.setDescription("");
                 p.addThread(t);
                 stream.skip(2);
-                t.setCatalogNumber(BinaryReader.readString(stream, 50));
-                t.setDescription(BinaryReader.readString(stream, 50));
+                t.setCatalogNumber(BinaryHelper.readString(stream, 50));
+                t.setDescription(BinaryHelper.readString(stream, 50));
             }
         } catch (IOException ex) {
         }

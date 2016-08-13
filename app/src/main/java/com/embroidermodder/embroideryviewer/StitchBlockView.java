@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 public class StitchBlockView extends RelativeLayout {
     public ImageButton color;
-    public TextView index;
     public TextView name;
     public TextView stitches;
 
@@ -31,7 +30,7 @@ public class StitchBlockView extends RelativeLayout {
         init(context);
     }
 
-    public static StitchBlockView inflate(ViewGroup parent, int i, Pattern pattern, StitchBlock stitchBlock) {
+    public static StitchBlockView inflate(ViewGroup parent, int i, EmbPattern pattern, StitchBlock stitchBlock) {
         StitchBlockView itemView = (StitchBlockView) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.stitchblock_item, parent, false);
         itemView.setStitchBlock(i, pattern, stitchBlock);
@@ -40,15 +39,15 @@ public class StitchBlockView extends RelativeLayout {
 
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.stitchblock_item_child, this, true);
-        index = (TextView) findViewById(R.id.stitchblock_index);
         color = (ImageButton) findViewById(R.id.stitchblock_color);
         name = (TextView) findViewById(R.id.stitchblock_name);
         stitches = (TextView) findViewById(R.id.stitchblock_stitches);
     }
 
-    public void setStitchBlock(final int i, final Pattern pattern, final StitchBlock stitchBlock) {
-        int colorvalue = stitchBlock.getThread().getColor().getAndroidColor();
-        color.setBackgroundColor(colorvalue);
+    public void setStitchBlock(final int i, final EmbPattern pattern, final StitchBlock stitchBlock) {
+        EmbThread thread = stitchBlock.getThread();
+        int colorValue = thread.getColor().getAndroidColor();
+        color.setBackgroundColor(colorValue);
         color.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -56,10 +55,9 @@ public class StitchBlockView extends RelativeLayout {
                 pattern.notifyChange(1);
             }
         });
-        index.setText(Integer.toString(i));
-        String namevalue = stitchBlock.getThread().getCatalogNumber();
+        String namevalue = stitchBlock.getThread().getDescription();
         if ((namevalue == null) || ("".equals(namevalue))) {
-            namevalue = asHexColor(colorvalue);
+            namevalue = asHexColor(colorValue);
         }
         name.setText(namevalue);
         stitches.setText(getContext().getString(R.string.stitchblock_stitches, stitchBlock.size()));

@@ -14,14 +14,14 @@ public class FormatXxx implements IFormat.Reader {
         return true;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         try {
             stream.skipBytes(0x27);
 
-            int num_of_colors = BinaryReader.readInt16LE(stream);
+            int num_of_colors = BinaryHelper.readInt16LE(stream);
             stream.skipBytes(0xD3);
-            int palette_offset = BinaryReader.readInt32LE(stream);
+            int palette_offset = BinaryHelper.readInt32LE(stream);
             for (int i = 0; i <= num_of_colors; i++) {
                 p.addThread(new EmbThread(0, 0, 0, "", ""));
             }
@@ -43,7 +43,7 @@ public class FormatXxx implements IFormat.Reader {
                     s++;
                     dx = (short) ((b2 & 0xFF) + (stream.readByte() << 8));
                     s++;
-                    dy = (short) BinaryReader.readInt16LE(stream);
+                    dy = (short) BinaryHelper.readInt16LE(stream);
                     s++;
                     stitch_type = IFormat.TRIM;
                 } else if (b1 == 0x7F) {

@@ -24,7 +24,7 @@ public class FormatInfTest {
         };
         DataInputStream anyInputStream = new DataInputStream(new ByteArrayInputStream(fileContents));
         FormatInf inf = new FormatInf();
-        Pattern p = inf.read(anyInputStream);
+        EmbPattern p = inf.read(anyInputStream);
         ArrayList<EmbThread> threadList = p.getThreadList();
         assertEquals(threadList.size(), 1);
         assertEquals(threadList.get(0).getColor().red, 1);
@@ -51,7 +51,7 @@ public class FormatInfTest {
         };
         DataInputStream anyInputStream = new DataInputStream(new ByteArrayInputStream(fileContents));
         FormatInf inf = new FormatInf();
-        Pattern p = inf.read(anyInputStream);
+        EmbPattern p = inf.read(anyInputStream);
         ArrayList<EmbThread> threadList = p.getThreadList();
         assertEquals(threadList.size(), 2);
         assertEquals(threadList.get(0).getColor().red, 2);

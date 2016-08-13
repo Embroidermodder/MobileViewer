@@ -11,16 +11,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-public class DrawView extends View implements Pattern.Provider, Pattern.Listener {
+public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Listener {
     private static final float MARGIN = 0.05f;
 
     Tool tool = new ToolPan();
-    Paint _paint = new Paint();
+    final Paint _paint = new Paint();
     Matrix viewMatrix;
     Matrix invertMatrix;
     private int _height;
     private int _width;
-    private Pattern pattern = null;
+    private EmbPattern pattern = null;
     private RectF viewPort;
 
     public DrawView(Context context, AttributeSet attrs) {
@@ -129,11 +129,11 @@ public class DrawView extends View implements Pattern.Provider, Pattern.Listener
     }
 
     @Override
-    public Pattern getPattern() {
+    public EmbPattern getPattern() {
         return pattern;
     }
 
-    public void setPattern(Pattern pattern) {
+    public void setPattern(EmbPattern pattern) {
         if (this.pattern != null) this.pattern.removeListener(this);
         this.pattern = pattern;
         if (pattern.getStitchBlocks().isEmpty()) {

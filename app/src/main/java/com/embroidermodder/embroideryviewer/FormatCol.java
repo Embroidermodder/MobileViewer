@@ -16,9 +16,9 @@ public class FormatCol implements IFormat.Reader {
         return false;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
-        int numberOfColors = 0;
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
+        int numberOfColors;
         try {
             BufferedReader d = new BufferedReader(new InputStreamReader(stream));
             Scanner scanner = new Scanner(d.readLine());

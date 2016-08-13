@@ -1,11 +1,17 @@
 package com.embroidermodder.embroideryviewer;
 
+import android.graphics.RectF;
+
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-public class FormatPec implements IFormat.Reader {
+public class FormatPec implements IFormat.Reader, IFormat.Writer {
 
-    public static void readPecStitches(Pattern pattern, DataInputStream stream) {
+    public static void readPecStitches(EmbPattern pattern, DataInputStream stream) {
         try {
             while (stream.available() > 0) {
                 int val1 = (stream.readByte() & 0xFF);
@@ -200,6 +206,14 @@ public class FormatPec implements IFormat.Reader {
         return null;
     }
 
+    public static ArrayList<EmbThread> getThreads(){
+        ArrayList<EmbThread> threads = new ArrayList();
+        for(int i = 0; i < 64; i++){
+            threads.add(getThreadByIndex(i));
+        }
+        return threads;
+    }
+
     public boolean hasColor() {
         return true;
     }
@@ -208,8 +222,8 @@ public class FormatPec implements IFormat.Reader {
         return true;
     }
 
-    public Pattern read(DataInputStream stream) {
-        Pattern p = new Pattern();
+    public EmbPattern read(DataInputStream stream) {
+        EmbPattern p = new EmbPattern();
         try {
             stream.skip(0x38);
             int colorChanges = stream.readByte();
@@ -222,5 +236,201 @@ public class FormatPec implements IFormat.Reader {
         } catch (IOException ex) {
         }
         return p;
+    }
+
+    private static void encodeJump(OutputStream file, int x, int types) throws IOException {
+        int outputVal = Math.abs(x) & 0x7FF;
+        int orPart = 0x80;
+        if ((types & IFormat.TRIM) == IFormat.TRIM) {
+            orPart |= 0x20;
+        } else if ((types & IFormat.JUMP) == IFormat.JUMP) {
+            orPart |= 0x10;
+        }
+
+        if (x < 0) {
+            outputVal = x + 0x1000 & 0x7FF;
+            outputVal |= 0x800;
+        }
+        file.write(((outputVal >> 8) & 0x0F) | orPart);
+        file.write((outputVal & 0xFF));
+    }
+
+    private static void pecEncodeStop(OutputStream file, byte val) throws IOException {
+        file.write(0xFE);
+        file.write(0xB0);
+        file.write(val);
+    }
+
+    private static void pecEncode(OutputStream file, EmbPattern p) throws IOException {
+        double thisX = 0.0;
+        double thisY = 0.0;
+        byte stopCode = 2;
+        EmbThread previousThread = p.getStitchBlocks().get(0).getThread();
+
+        for(StitchBlock stitchBlock : p.getStitchBlocks()) {
+                if(previousThread != stitchBlock.getThread()) {
+                    pecEncodeStop(file, stopCode);
+                    if (stopCode == (byte) 2) {
+                        stopCode = (byte) 1;
+                    } else {
+                        stopCode = (byte) 2;
+                    }
+                }
+            int flags = IFormat.TRIM;
+            long deltaX, deltaY;
+            for(int i = 0; i < stitchBlock.size(); i++) {
+                deltaX = Math.round(stitchBlock.getX(i) - thisX);
+                deltaY = Math.round(stitchBlock.getY(i) - thisY);
+                thisX += (double) deltaX;
+                thisY += (double) deltaY;
+
+                if (deltaX < 63 && deltaX > -64 && deltaY < 63 && deltaY > -64 && ((flags & (IFormat.JUMP | IFormat.TRIM)) == 0)) {
+                    file.write((byte)((deltaX < 0) ? (deltaX + 0x80) : deltaX));
+                    file.write((byte)((deltaY < 0) ? (deltaY + 0x80) : deltaY));
+                } else {
+                    encodeJump(file, (int)deltaX, flags);
+                    encodeJump(file, (int)deltaY, flags);
+                }
+                flags = IFormat.NORMAL;
+            }
+            previousThread = stitchBlock.getThread();
+        }
+        file.write(0xFF);
+    }
+
+    private static void writeImage(OutputStream stream, byte[][] image) throws IOException {
+        int i, j;
+        for (i = 0; i < 38; i++) {
+            for (j = 0; j < 6; j++) {
+                int offset = j * 8;
+                byte output = 0;
+                output |= (byte) (image[i][offset] != 0 ? 1 : 0);
+                output |= (byte) ((image[i][offset + 1] != (byte) 0) ? 1 : 0) << 1;
+                output |= (byte) ((image[i][offset + 2] != (byte) 0) ? 1 : 0) << 2;
+                output |= (byte) ((image[i][offset + 3] != (byte) 0) ? 1 : 0) << 3;
+                output |= (byte) ((image[i][offset + 4] != (byte) 0) ? 1 : 0) << 4;
+                output |= (byte) ((image[i][offset + 5] != (byte) 0) ? 1 : 0) << 5;
+                output |= (byte) ((image[i][offset + 6] != (byte) 0) ? 1 : 0) << 6;
+                output |= (byte) ((image[i][offset + 7] != (byte) 0) ? 1 : 0) << 7;
+                stream.write(output);
+            }
+        }
+    }
+
+    private static void clearImage(byte[][] image){
+        for (byte[] row: image) {
+            Arrays.fill(row, (byte)0);
+        }
+    }
+
+    public static void writePecStitches(EmbPattern pattern, OutputStream file, String fileName) throws IOException {
+        byte image[][] = new byte[38][48];
+        int i, currentThreadCount, graphicsOffsetValue, height, width;
+        double xFactor, yFactor;
+        int dotPos = fileName.lastIndexOf(".");
+        int start = fileName.lastIndexOf("/");
+        file.write("LA:".getBytes());
+        String internalFilename = fileName.substring(Math.max(0,start), Math.max(0, dotPos));
+        if(internalFilename.length() > 16){
+            internalFilename = internalFilename.substring(0, 16);
+        }
+        file.write(internalFilename.getBytes());
+        for(i = 0; i < (16-internalFilename.length()); i++) {
+            file.write(0x20);
+        }
+        file.write(0x0D);
+        for(i = 0; i < 12; i++) {
+            file.write(0x20);
+        }
+        file.write(0xFF);
+        file.write(0x00);
+        file.write(0x06);
+        file.write(0x26);
+
+        for(i = 0; i < 12; i++) {
+            file.write(0x20);
+        }
+        currentThreadCount = pattern.getThreadList().size();
+        file.write((byte)(currentThreadCount-1));
+
+        ArrayList<EmbThread> pecThreads = getThreads();
+        for(i = 0; i < currentThreadCount; i++) {
+            file.write((byte)pattern.getThreadList().get(i).findNearestColorIndex(pecThreads));
+        }
+        for(i = 0; i < (0x1CF - currentThreadCount); i++) {
+            file.write(0x20);
+        }
+        file.write(0x00);
+        file.write(0x00);
+
+        ByteArrayOutputStream tempArray = new ByteArrayOutputStream();
+        pecEncode(tempArray, pattern);
+
+        graphicsOffsetValue = tempArray.size()  + 17;
+                file.write(graphicsOffsetValue & 0xFF);
+        file.write((graphicsOffsetValue >> 8) & 0xFF);
+        file.write((graphicsOffsetValue >> 16) & 0xFF);
+
+        file.write(0x31);
+        file.write(0xFF);
+        file.write(0xF0);
+
+        RectF bounds = pattern.calculateBoundingBox();
+
+        height = Math.round(bounds.height());
+        width = Math.round(bounds.width());
+    /* write 2 byte x size */
+        BinaryHelper.writeShort(file, (short)width);
+    /* write 2 byte y size */
+        BinaryHelper.writeShort(file, (short)height);
+
+    /* Write 4 miscellaneous int16's */
+        BinaryHelper.writeShort(file, (short)0x1E0);
+        BinaryHelper.writeShort(file, (short)0x1B0);
+
+        BinaryHelper.writeShortBE(file, (0x9000 | -Math.round(bounds.left)));
+        BinaryHelper.writeShortBE(file, (0x9000 | -Math.round(bounds.top)));
+        file.write(tempArray.toByteArray());
+
+    /* Writing all colors */
+        clearImage(image);
+        yFactor = 32.0 / height;
+        xFactor = 42.0 / width;
+        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
+            for(int j = 0; j < stitchBlock.count(); j++){
+                int x = (int)Math.round((stitchBlock.getX(j) - bounds.left) * xFactor) + 3;
+                int y = (int)Math.round((stitchBlock.getY(j) - bounds.top) * yFactor) + 3;
+                image[y][x] = 1;
+            }
+        }
+        writeImage(file, image);
+
+    /* Writing each individual color */
+        clearImage(image);
+        EmbThread previousThread = pattern.getStitchBlocks().get(0).getThread();
+        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
+            if(previousThread != stitchBlock.getThread()) {
+                writeImage(file, image);
+                clearImage(image);
+            }
+            for(int j = 0; j < stitchBlock.count(); j++) {
+                int x = (int) Math.round((stitchBlock.getX(j) - bounds.left) * xFactor) + 3;
+                int y = (int) Math.round((stitchBlock.getY(j) - bounds.top) * yFactor) + 3;
+                image[y][x] = 1;
+            }
+            previousThread = stitchBlock.getThread();
+        }
+        writeImage(file, image);
+    }
+
+    public void write(EmbPattern pattern, OutputStream stream) {
+        try {
+            //pattern.fixColorCount(pattern);
+            //pattern.correctForMaxStitchLength(pattern, 12.7, 204.7);
+            stream.write("#PEC0001".getBytes());
+            writePecStitches(pattern, stream, "TEMPFILE.PEC");
+        }catch (Exception e){
+
+        }
     }
 }

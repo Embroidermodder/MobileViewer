@@ -1,5 +1,7 @@
 package com.embroidermodder.embroideryviewer;
 
+import java.util.ArrayList;
+
 public class EmbThread {
     private EmbColor _color;
     private String _description;
@@ -42,5 +44,26 @@ public class EmbThread {
 
     public void setCatalogNumber(String value) {
         _catalogNumber = value;
+    }
+
+    public int findNearestColorIndex(ArrayList<EmbThread> colorArray) {
+        EmbColor color = this.getColor();
+        double currentClosestValue = Double.MAX_VALUE;
+        int closestIndex = -1;
+        int red = color.red;
+        int green = color.green;
+        int blue = color.blue;
+        for (int i = 0; i < colorArray.size(); i++) {
+            EmbColor c = colorArray.get(i).getColor();
+            int deltaRed = red - c.red;
+            int deltaBlue = green - c.green;
+            int deltaGreen = blue - c.blue;
+            double dist = Math.sqrt((double) (deltaRed * deltaRed) + (deltaBlue * deltaBlue) + (deltaGreen * deltaGreen));
+            if (dist <= currentClosestValue) {
+                currentClosestValue = dist;
+                closestIndex = i;
+            }
+        }
+        return closestIndex;
     }
 }
