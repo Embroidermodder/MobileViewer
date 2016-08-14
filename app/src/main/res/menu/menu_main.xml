@@ -8,6 +8,11 @@
         android:title="@string/action_open_file"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_load_file"
+        android:orderInCategory="100"
+        android:title="@string/action_load_file"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_pan_mode"
         android:orderInCategory="101"
         android:title="@string/action_tool_pan"
