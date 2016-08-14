@@ -38,6 +38,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
         try {
             stream.skip(0x200);
             while (stream.read(b) == 3) {
+                if (Thread.currentThread().isInterrupted()) return null;
                 int x = 0;
                 int y = 0;
                 if ((b[0] & 0x01) > 0) {

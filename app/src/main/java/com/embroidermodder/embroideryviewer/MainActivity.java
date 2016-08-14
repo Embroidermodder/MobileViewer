@@ -2,6 +2,7 @@ package com.embroidermodder.embroideryviewer;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,8 +24,11 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -152,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             case R.id.action_share:
                 //saveFileWrapper(getFilesDir());
                 saveFileWrapper(Environment.getExternalStorageDirectory());
-               // ContextComapgetUriForFile(getContext(),
+                // ContextComapgetUriForFile(getContext(),
                 //Context.grantUriPermission(package, Uri,  FLAG_GRANT_READ_URI_PERMISSION);
 //                Intent shareIntent = new Intent();
 //                shareIntent.setAction(Intent.ACTION_SEND);
@@ -160,11 +164,16 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
 //                shareIntent.setType("image/jpeg");
 //                shareIntent.setFlags(FLAG_GRANT_READ_URI_PERMISSION);
 //                startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
+                break;
+            case R.id.action_load_file:
+                dialogDismiss();
+                makeDialog(R.layout.embroidery_thumbnail_view);
+                ListView list = (ListView) dialogView.findViewById(R.id.embroideryThumbnailList);
+                File mPath = new File(Environment.getExternalStorageDirectory() + "");
+                list.setAdapter(new ThumbnailAdapter(this,mPath));
 
-
-                return true;
+                break;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -219,6 +228,36 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    Dialog dialog;
+    View dialogView;
+
+    public boolean dialogDismiss() {
+        if ((dialog != null) && (dialog.isShowing())) {
+            dialog.dismiss();
+            return true;
+        }
+        return false;
+    }
+
+
+    public Dialog makeDialog(int layout) {
+        LayoutInflater inflater = getLayoutInflater();
+        dialogView = inflater.inflate(layout, null);
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setView(dialogView);
+
+        if (isFinishing()) {
+            finish();
+            startActivity(getIntent());
+        } else {
+            dialog = builder.create();
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.show();
+            return dialog;
+        }
+        return null;
     }
 
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {

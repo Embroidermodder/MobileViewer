@@ -11,6 +11,7 @@ public class IFormat {
     public static final int END = 8;
 
     private static Object getByFilename(String filename) {
+        if (filename.length() < 4) return null;
         filename = filename.toLowerCase();
         switch (filename.substring(filename.length() - 4)) {
             case ".col":

@@ -112,7 +112,7 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
     public void onDraw(Canvas canvas) {
         if (pattern != null) {
             canvas.save();
-            if (viewMatrix != null) canvas.setMatrix(viewMatrix);
+            if (viewMatrix != null) canvas.concat(viewMatrix);
             for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
                 stitchBlock.draw(canvas, _paint);
             }

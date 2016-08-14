@@ -55,10 +55,10 @@ public class EmbThread {
         int blue = color.blue;
         for (int i = 0; i < colorArray.size(); i++) {
             EmbColor c = colorArray.get(i).getColor();
-            int deltaRed = red - c.red;
-            int deltaBlue = green - c.green;
-            int deltaGreen = blue - c.blue;
-            double dist = Math.sqrt((double) (deltaRed * deltaRed) + (deltaBlue * deltaBlue) + (deltaGreen * deltaGreen));
+            double deltaRed = red - c.red;
+            double deltaBlue = green - c.green;
+            double deltaGreen = blue - c.blue;
+            double dist = (deltaRed * deltaRed) + (deltaBlue * deltaBlue) + (deltaGreen * deltaGreen); //closest squared color distance = still closest colordistance.
             if (dist <= currentClosestValue) {
                 currentClosestValue = dist;
                 closestIndex = i;
