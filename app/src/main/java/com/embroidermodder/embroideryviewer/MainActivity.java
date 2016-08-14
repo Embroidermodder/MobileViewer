@@ -201,20 +201,19 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             Random generator = new Random();
             n = generator.nextInt(n);
             String fname = "Image-" + n + ".pec";
-            File file = new File(root, fname);
-            //Uri returnUri = FileProvider.getUriForFile(this,AUTHORITY, file);
-            if (file.exists()) {
-                file.delete();
+            IFormat.Writer format = IFormat.getWriterByFilename(fname);
+            if(format != null) {
+                File file = new File(root, fname);
+                //Uri returnUri = FileProvider.getUriForFile(this,AUTHORITY, file);
+                if (file.exists()) {
+                    file.delete();
+                }
+                FileOutputStream outputStream = new FileOutputStream(file);
+                format.write(drawView.getPattern(), outputStream);
+                outputStream.flush();
+                outputStream.close();
             }
-            FileOutputStream outputStream = new FileOutputStream(file);
-            //FormatExp format = new FormatExp();
-            FormatPec format = new FormatPec();
-            //FormatPes format = new FormatPes();
-            //IFormat.Writer format = new FormatDst();
-            format.write(drawView.getPattern(), outputStream);
-            outputStream.flush();
-            outputStream.close();
-            return;// returnUri;
+            return;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

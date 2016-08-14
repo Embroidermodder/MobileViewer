@@ -10,7 +10,7 @@ public class IFormat {
     public static final int STOP = 4;
     public static final int END = 8;
 
-    public static IFormat.Reader getReaderByFilename(String filename) {
+    private static Object getByFilename(String filename) {
         filename = filename.toLowerCase();
         switch (filename.substring(filename.length() - 4)) {
             case ".col":
@@ -34,6 +34,16 @@ public class IFormat {
             default:
                 return null;
         }
+    }
+
+    public static IFormat.Reader getReaderByFilename(String filename) {
+        Object o = getByFilename(filename);
+        return IFormat.Reader.class.isInstance(o) ? IFormat.Reader.class.cast(o) : null;
+    }
+
+    public static IFormat.Writer getWriterByFilename(String filename) {
+        Object o = getByFilename(filename);
+        return IFormat.Writer.class.isInstance(o) ? IFormat.Writer.class.cast(o) : null;
     }
 
     public interface Reader {
