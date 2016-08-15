@@ -30,10 +30,9 @@ public class StitchBlockView extends RelativeLayout {
         init(context);
     }
 
-    public static StitchBlockView inflate(ViewGroup parent, int i, EmbPattern pattern, StitchBlock stitchBlock) {
+    public static StitchBlockView inflate(ViewGroup parent) {
         StitchBlockView itemView = (StitchBlockView) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.stitchblock_item, parent, false);
-        itemView.setStitchBlock(i, pattern, stitchBlock);
         return itemView;
     }
 

@@ -32,11 +32,14 @@ public class StitchBlockAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View convertView, ViewGroup parent) {
-        final StitchBlock stitchBlock = pattern.getStitchBlocks().get(i);
+        StitchBlock stitchBlock = pattern.getStitchBlocks().get(i);
+        StitchBlockView stitchBlockView;
         if (convertView == null) {
-            return StitchBlockView.inflate(parent, i, pattern, stitchBlock);
+            stitchBlockView = StitchBlockView.inflate(parent);
         }
-        StitchBlockView stitchBlockView = (StitchBlockView) convertView;
+        else {
+            stitchBlockView = (StitchBlockView) convertView;
+        }
         stitchBlockView.setStitchBlock(i, pattern, stitchBlock);
         return stitchBlockView;
     }

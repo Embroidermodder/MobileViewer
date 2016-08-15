@@ -207,7 +207,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
     }
 
     public static ArrayList<EmbThread> getThreads(){
-        ArrayList<EmbThread> threads = new ArrayList();
+        ArrayList<EmbThread> threads = new ArrayList<>();
         for(int i = 0; i < 64; i++){
             threads.add(getThreadByIndex(i));
         }

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.embroidermodder.embroideryviewer">
-    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -15,7 +20,7 @@
             android:name=".MainActivity"
             android:configChanges="orientation"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -127,43 +132,44 @@
                 <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.EDIT" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:scheme="content" />
                 <data android:host="*" />
                 <data android:mimeType="application/octet-stream" />
             </intent-filter>
 
-            <!--
-            Would require downloading the file selection from the app.
-<intent-filter>
-    <action android:name="android.intent.action.SEND" />
-    <action android:name="android.intent.action.VIEW" />
-    <action android:name="android.intent.action.EDIT" />
-    <category android:name="android.intent.category.BROWSABLE" />
-    <category android:name="android.intent.category.DEFAULT" />
-    <data android:scheme="http" />
-    <data android:scheme="https" />
-    <data android:host="*" />
-    <data android:pathPattern=".*\\.dst" />
-    <data android:pathPattern=".*\\.DST"/>
-    <data android:pathPattern=".*\\.col" />
-    <data android:pathPattern=".*\\.COL" />
-    <data android:pathPattern=".*\\.exp" />
-    <data android:pathPattern=".*\\.EXP" />
-    <data android:pathPattern=".*\\.jef" />
-    <data android:pathPattern=".*\\.JEF" />
-    <data android:pathPattern=".*\\.pcs" />
-    <data android:pathPattern=".*\\.PCS" />
-    <data android:pathPattern=".*\\.pec" />
-    <data android:pathPattern=".*\\.PEC" />
-    <data android:pathPattern=".*\\.pes" />
-    <data android:pathPattern=".*\\.PES" />
-    <data android:pathPattern=".*\\.sew" />
-    <data android:pathPattern=".*\\.SEW" />
-    <data android:pathPattern=".*\\.XXX" />
-    <data android:pathPattern=".*\\.xxx" />
-</intent-filter>
--->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.dst" />
+                <data android:pathPattern=".*\\.DST" />
+                <data android:pathPattern=".*\\.col" />
+                <data android:pathPattern=".*\\.COL" />
+                <data android:pathPattern=".*\\.exp" />
+                <data android:pathPattern=".*\\.EXP" />
+                <data android:pathPattern=".*\\.jef" />
+                <data android:pathPattern=".*\\.JEF" />
+                <data android:pathPattern=".*\\.pcs" />
+                <data android:pathPattern=".*\\.PCS" />
+                <data android:pathPattern=".*\\.pec" />
+                <data android:pathPattern=".*\\.PEC" />
+                <data android:pathPattern=".*\\.pes" />
+                <data android:pathPattern=".*\\.PES" />
+                <data android:pathPattern=".*\\.sew" />
+                <data android:pathPattern=".*\\.SEW" />
+                <data android:pathPattern=".*\\.XXX" />
+                <data android:pathPattern=".*\\.xxx" />
+            </intent-filter>
 
         </activity>
 
