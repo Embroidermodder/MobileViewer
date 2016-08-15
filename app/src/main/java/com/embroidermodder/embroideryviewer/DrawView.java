@@ -26,11 +26,9 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
     public DrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
-
     }
 
     public DrawView(Context context) {
-
         super(context);
         init();
     }
@@ -51,6 +49,8 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
         windowManager.getDefaultDisplay().getSize(size);
         _width = size.x;
         _height = size.y;
+        viewPort = new RectF(0, 0, _width, _height);
+        calculateViewMatrixFromPort();
     }
 
     public void scale(float deltascale, float x, float y) {
@@ -99,8 +99,6 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //anything happening with event here is the X Y of the raw screen event.
-        event.offsetLocation(event.getRawX() - event.getX(), event.getRawY() - event.getY()); //converts the event.getX() to event.getRaw() so the title bar doesn't fubar.
         //anything happening with event here is the X Y of the raw screen event, relative to the view.
         if (tool.rawTouch(this, event)) return true;
         if (invertMatrix != null) event.transform(invertMatrix);
@@ -136,9 +134,7 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
     public void setPattern(EmbPattern pattern) {
         if (this.pattern != null) this.pattern.removeListener(this);
         this.pattern = pattern;
-        if (pattern.getStitchBlocks().isEmpty()) {
-            viewPort = new RectF(0, 0, _width, _height);
-        } else {
+        if (!pattern.getStitchBlocks().isEmpty()) {
             viewPort = pattern.calculateBoundingBox();
             float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
             float extrawidth = _width - (viewPort.width() * scale);

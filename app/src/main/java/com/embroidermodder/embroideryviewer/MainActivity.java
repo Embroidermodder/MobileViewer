@@ -25,10 +25,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -56,45 +58,45 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     private Intent _intent;
     private DrawView drawView;
     private DrawerLayout mainActivity;
+    private Thread urlReaderThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
-        EmbPattern p = null;
         Intent intent = getIntent();
         String action = intent.getAction();
         if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)
                 || Intent.ACTION_EDIT.equals(action)) {
-            //try {
-                Uri returnUri = intent.getData();
-                if (returnUri == null) {
-                    Object object = intent.getExtras().get(Intent.EXTRA_STREAM);
-                    if (object instanceof Uri) {
-                        returnUri = (Uri) object;
+            Uri returnUri = intent.getData();
+            if (returnUri == null) {
+                Object object = intent.getExtras().get(Intent.EXTRA_STREAM);
+                if (object instanceof Uri) {
+                    returnUri = (Uri) object;
+                }
+            }
+            if (returnUri == null) {
+                Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
+            } else {
+                final Uri finalReturnUri = returnUri;
+                urlReaderThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ReadFromUri(finalReturnUri);
                     }
-                }
-                if (returnUri == null) {
-                    Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
-                } else {
-                    ReadFromUri(returnUri);
-                    //if (p == null) {
-                    //    Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
-                    //}
-                }
-            //} catch (FileNotFoundException ex) {
-            //    Toast.makeText(this, R.string.error_file_not_found, Toast.LENGTH_LONG).show();
-            //}
+                });
+                urlReaderThread.start();
+
+            }
         }
-        //if (p == null) p = new EmbPattern();
 
         mainActivity = (DrawerLayout) findViewById(R.id.mainActivity);
         drawView = (DrawView) findViewById(R.id.drawview);
         drawView.initWindowSize();
-
-        //setPattern(p);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, mainActivity, toolbar, R.string.app_name, R.string.app_name);
@@ -172,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             case R.id.action_load_file:
                 dialogDismiss();
                 makeDialog(R.layout.embroidery_thumbnail_view);
-                ListView list = (ListView) dialogView.findViewById(R.id.embroideryThumbnailList);
+                GridView list = (GridView) dialogView.findViewById(R.id.embroideryThumbnailList);
                 File mPath = new File(Environment.getExternalStorageDirectory() + "");
                 list.setAdapter(new ThumbnailAdapter(this, mPath));
 
@@ -333,16 +335,37 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     }
 
     public void invalidateOnMainThread() {
-        if (Looper.getMainLooper().equals(Looper.myLooper())) {
-            drawView.invalidate();
-        } else {
+        if (!Looper.getMainLooper().equals(Looper.myLooper())) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     invalidateOnMainThread();
                 }
             });
+            return;
         }
+        drawView.invalidate();
+    }
+
+    public void toast(final int stringResource) {
+        if (!Looper.getMainLooper().equals(Looper.myLooper())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    toast(stringResource);
+                }
+            });
+            return;
+        }
+        Toast toast;
+        toast = Toast.makeText(this, stringResource, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    public void showStatistics() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(drawView.getStatistics());
+        builder.show();
     }
 
     @Override
@@ -355,12 +378,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         drawView.setPattern(pattern);
         invalidateOnMainThread();
         useColorFragment();
-    }
-
-    public void showStatistics() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(drawView.getStatistics());
-        builder.show();
     }
 
     private void ReadFromUri(final Uri uri) {
@@ -379,66 +396,57 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             }
         }
         if (formatReader == null) {
-            Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
+            toast(R.string.error_file_read_failed);
             return;
         }
 
-        if (("http".equalsIgnoreCase(uri.getScheme()) || ("https".equalsIgnoreCase(uri.getScheme())))) {
-            final IFormat.Reader finalFormatReader = formatReader;
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    InputStream in = getURLStream(uri.toString());
-                    if (in == null) return;
-                    DataInputStream din = new DataInputStream(in);
-                    setPattern(finalFormatReader.read(din));
+        DataInputStream dataInputStream = null;
+        switch (uri.getScheme().toLowerCase()) {
+            case "http":
+            case "https":
+                HttpURLConnection connection;
+                URL url;
+                try {
+                    url = new URL(uri.toString());
+                } catch (MalformedURLException e) {
+                    toast(R.string.error_file_not_found);
+                    return;
                 }
-            });
-            thread.start();
-        }
-        else if ("content".equalsIgnoreCase(uri.getScheme()) || "file".equalsIgnoreCase(uri.getScheme())) {
-            final IFormat.Reader finalFormatReader1 = formatReader;
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    ParcelFileDescriptor mInputPFD;
-                    try {
-                        mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
-                        if (mInputPFD != null) {
-                            FileDescriptor fd = mInputPFD.getFileDescriptor();
-                            InputStream fis = new FileInputStream(fd);
-                            DataInputStream in = new DataInputStream(fis);
-                            setPattern(finalFormatReader1.read(in));
-                        }
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
+
+                try {
+                    connection = (HttpURLConnection) url.openConnection();
+                    InputStream in = new BufferedInputStream(connection.getInputStream());
+                    dataInputStream = new DataInputStream(in);
+                } catch (IOException e) {
+                    toast(R.string.error_file_read_failed);
+                    return;
+                }
+                break;
+            case "content":
+            case "file":
+            default:
+                ParcelFileDescriptor mInputPFD;
+                try {
+                    mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
+                    if (mInputPFD != null) {
+                        FileDescriptor fd = mInputPFD.getFileDescriptor();
+                        InputStream fis = new FileInputStream(fd);
+                        dataInputStream = new DataInputStream(fis);
                     }
-
-
+                } catch (FileNotFoundException e) {
+                    toast(R.string.error_file_not_found);
+                    return;
                 }
-            });
-            thread.start();
+                break;
         }
-    }
-
-    public static InputStream getURLStream(String uri) {
-        HttpURLConnection connection;
-        URL url;
-        try {
-            url = new URL(uri);
-        } catch (MalformedURLException e) {
-            return null;
+        if (dataInputStream == null) {
+            toast(R.string.error_file_read_failed);
         }
-        connection = null;
-        try {
-            connection = (HttpURLConnection) url.openConnection();
-            InputStream in = new BufferedInputStream(connection.getInputStream());
-            return in;
-        } catch (IOException e) {
-            return null;
-        } finally {
-            //if (connection != null) connection.disconnect();
+        EmbPattern pattern = formatReader.read(dataInputStream);
+        if (pattern == null) {
+            toast(R.string.error_file_read_failed);
         }
+        setPattern(pattern);
     }
 
     private boolean unpackZip(String path, String zipname) {
