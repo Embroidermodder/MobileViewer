@@ -110,7 +110,6 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
                 p.addStitchRel(x, y, flags, true);
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
         return p.getFlippedPattern(false, true);
     }
