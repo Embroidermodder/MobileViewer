@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
@@ -40,6 +41,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -64,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         String action = intent.getAction();
         if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)
                 || Intent.ACTION_EDIT.equals(action)) {
-            try {
+            //try {
                 Uri returnUri = intent.getData();
                 if (returnUri == null) {
                     Object object = intent.getExtras().get(Intent.EXTRA_STREAM);
@@ -75,22 +79,22 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 if (returnUri == null) {
                     Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
                 } else {
-                    p = ReadFromUri(returnUri);
-                    if (p == null) {
-                        Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
-                    }
+                    ReadFromUri(returnUri);
+                    //if (p == null) {
+                    //    Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
+                    //}
                 }
-            } catch (FileNotFoundException ex) {
-                Toast.makeText(this, R.string.error_file_not_found, Toast.LENGTH_LONG).show();
-            }
+            //} catch (FileNotFoundException ex) {
+            //    Toast.makeText(this, R.string.error_file_not_found, Toast.LENGTH_LONG).show();
+            //}
         }
-        if (p == null) p = new EmbPattern();
+        //if (p == null) p = new EmbPattern();
 
         mainActivity = (DrawerLayout) findViewById(R.id.mainActivity);
         drawView = (DrawView) findViewById(R.id.drawview);
         drawView.initWindowSize();
 
-        setPattern(p);
+        //setPattern(p);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, mainActivity, toolbar, R.string.app_name, R.string.app_name);
@@ -170,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 makeDialog(R.layout.embroidery_thumbnail_view);
                 ListView list = (ListView) dialogView.findViewById(R.id.embroideryThumbnailList);
                 File mPath = new File(Environment.getExternalStorageDirectory() + "");
-                list.setAdapter(new ThumbnailAdapter(this,mPath));
+                list.setAdapter(new ThumbnailAdapter(this, mPath));
 
                 break;
         }
@@ -211,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             n = generator.nextInt(n);
             String fname = "Image-" + n + ".pec";
             IFormat.Writer format = IFormat.getWriterByFilename(fname);
-            if(format != null) {
+            if (format != null) {
                 File file = new File(root, fname);
                 //Uri returnUri = FileProvider.getUriForFile(this,AUTHORITY, file);
                 if (file.exists()) {
@@ -296,16 +300,10 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     }
 
     private void onSelectFileResult(Intent data) {
-        try {
-            this._intent = data;
-            Uri uri = data.getData();
-            EmbPattern p = ReadFromUri(uri);
-            if (p == null) {
-                Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
-                p = new EmbPattern(); //read failed.
-            }
-            setPattern(p);
-        } catch (FileNotFoundException ex) {
+        this._intent = data;
+        Uri uri = data.getData();
+        if (uri != null) {
+            ReadFromUri(uri);
         }
     }
 
@@ -334,6 +332,19 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         return true;
     }
 
+    public void invalidateOnMainThread() {
+        if (Looper.getMainLooper().equals(Looper.myLooper())) {
+            drawView.invalidate();
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    invalidateOnMainThread();
+                }
+            });
+        }
+    }
+
     @Override
     public EmbPattern getPattern() {
         if (drawView == null) return null;
@@ -342,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
 
     public void setPattern(EmbPattern pattern) {
         drawView.setPattern(pattern);
-        drawView.invalidate();
+        invalidateOnMainThread();
         useColorFragment();
     }
 
@@ -352,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         builder.show();
     }
 
-    private EmbPattern ReadFromUri(Uri uri) throws FileNotFoundException {
+    private void ReadFromUri(final Uri uri) {
         IFormat.Reader formatReader = IFormat.getReaderByFilename(uri.getPath());
         if (formatReader == null) {
             Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
@@ -368,17 +379,66 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             }
         }
         if (formatReader == null) {
+            Toast.makeText(this, R.string.error_file_read_failed, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (("http".equalsIgnoreCase(uri.getScheme()) || ("https".equalsIgnoreCase(uri.getScheme())))) {
+            final IFormat.Reader finalFormatReader = formatReader;
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    InputStream in = getURLStream(uri.toString());
+                    if (in == null) return;
+                    DataInputStream din = new DataInputStream(in);
+                    setPattern(finalFormatReader.read(din));
+                }
+            });
+            thread.start();
+        }
+        else if ("content".equalsIgnoreCase(uri.getScheme()) || "file".equalsIgnoreCase(uri.getScheme())) {
+            final IFormat.Reader finalFormatReader1 = formatReader;
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    ParcelFileDescriptor mInputPFD;
+                    try {
+                        mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
+                        if (mInputPFD != null) {
+                            FileDescriptor fd = mInputPFD.getFileDescriptor();
+                            InputStream fis = new FileInputStream(fd);
+                            DataInputStream in = new DataInputStream(fis);
+                            setPattern(finalFormatReader1.read(in));
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+            });
+            thread.start();
+        }
+    }
+
+    public static InputStream getURLStream(String uri) {
+        HttpURLConnection connection;
+        URL url;
+        try {
+            url = new URL(uri);
+        } catch (MalformedURLException e) {
             return null;
         }
-        ParcelFileDescriptor mInputPFD;
-        mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
-        if (mInputPFD != null) {
-            FileDescriptor fd = mInputPFD.getFileDescriptor();
-            FileInputStream fis = new FileInputStream(fd);
-            DataInputStream in = new DataInputStream(fis);
-            return formatReader.read(in);
+        connection = null;
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            InputStream in = new BufferedInputStream(connection.getInputStream());
+            return in;
+        } catch (IOException e) {
+            return null;
+        } finally {
+            //if (connection != null) connection.disconnect();
         }
-        return null;
     }
 
     private boolean unpackZip(String path, String zipname) {

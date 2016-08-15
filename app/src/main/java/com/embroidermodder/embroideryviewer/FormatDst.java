@@ -4,6 +4,7 @@ package com.embroidermodder.embroideryviewer;
 import android.graphics.RectF;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -37,7 +38,8 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
 
         try {
             stream.skip(0x200);
-            while (stream.read(b) == 3) {
+            while (true) {
+                stream.readFully(b);
                 if (Thread.currentThread().isInterrupted()) return null;
                 int x = 0;
                 int y = 0;
@@ -108,7 +110,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
                 p.addStitchRel(x, y, flags, true);
             }
         } catch (IOException ex) {
-
+            ex.printStackTrace();
         }
         return p.getFlippedPattern(false, true);
     }
