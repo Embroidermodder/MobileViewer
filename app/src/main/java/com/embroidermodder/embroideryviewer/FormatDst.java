@@ -1,10 +1,6 @@
 package com.embroidermodder.embroideryviewer;
-
-
 import android.graphics.RectF;
-
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -114,7 +110,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
         return p.getFlippedPattern(false, true);
     }
 
-    static int setbit(int pos) {
+    static int setBit(int pos) {
         return 1 << pos;
     }
 
@@ -131,84 +127,84 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
         // }
 
         if (x >= +41) {
-            b2 += setbit(2);
+            b2 += setBit(2);
             x -= 81;
         }
         if (x <= -41) {
-            b2 += setbit(3);
+            b2 += setBit(3);
             x += 81;
         }
         if (x >= +14) {
-            b1 += setbit(2);
+            b1 += setBit(2);
             x -= 27;
         }
         if (x <= -14) {
-            b1 += setbit(3);
+            b1 += setBit(3);
             x += 27;
         }
         if (x >= +5) {
-            b0 += setbit(2);
+            b0 += setBit(2);
             x -= 9;
         }
         if (x <= -5) {
-            b0 += setbit(3);
+            b0 += setBit(3);
             x += 9;
         }
         if (x >= +2) {
-            b1 += setbit(0);
+            b1 += setBit(0);
             x -= 3;
         }
         if (x <= -2) {
-            b1 += setbit(1);
+            b1 += setBit(1);
             x += 3;
         }
         if (x >= +1) {
-            b0 += setbit(0);
+            b0 += setBit(0);
             x -= 1;
         }
         if (x <= -1) {
-            b0 += setbit(1);
+            b0 += setBit(1);
             x += 1;
         }
         //if(x !=   0) { embLog_error("format-dst.c encode_record(), x should be zero yet x = %d\n", x); }
         if (y >= +41) {
-            b2 += setbit(5);
+            b2 += setBit(5);
             y -= 81;
         }
         if (y <= -41) {
-            b2 += setbit(4);
+            b2 += setBit(4);
             y += 81;
         }
         if (y >= +14) {
-            b1 += setbit(5);
+            b1 += setBit(5);
             y -= 27;
         }
         if (y <= -14) {
-            b1 += setbit(4);
+            b1 += setBit(4);
             y += 27;
         }
         if (y >= +5) {
-            b0 += setbit(5);
+            b0 += setBit(5);
             y -= 9;
         }
         if (y <= -5) {
-            b0 += setbit(4);
+            b0 += setBit(4);
             y += 9;
         }
         if (y >= +2) {
-            b1 += setbit(7);
+            b1 += setBit(7);
             y -= 3;
         }
         if (y <= -2) {
-            b1 += setbit(6);
+            b1 += setBit(6);
             y += 3;
         }
         if (y >= +1) {
-            b0 += setbit(7);
+            b0 += setBit(7);
             y -= 1;
         }
         if (y <= -1) {
-            b0 += setbit(6);
+            b0 += setBit(6);
             y += 1;
         }
         //if(y !=   0) { embLog_error("format-dst.c encode_record(), y should be zero yet y = %d\n", y); }

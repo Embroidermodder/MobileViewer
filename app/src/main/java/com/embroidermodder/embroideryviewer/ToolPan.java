@@ -40,11 +40,11 @@ public class ToolPan implements Tool {
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
-                float deltascale = distance(cx1, cy1, cx2, cy2) / distance(dx1, dy1, dx2, dy2);
+                float deltaScale = distance(cx1, cy1, cx2, cy2) / distance(dx1, dy1, dx2, dy2);
                 float dpx = px - dcx;
                 float dpy = py - dcy;
                 if (!Float.isNaN(dpx)) drawView.pan(dpx, dpy);
-                if (!Float.isNaN(deltascale)) drawView.scale(deltascale, px, py);
+                if (!Float.isNaN(deltaScale)) drawView.scale(deltaScale, px, py);
                 drawView.invalidate();
                 break;
             default:

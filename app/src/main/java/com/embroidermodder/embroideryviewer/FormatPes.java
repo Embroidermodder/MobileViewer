@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class FormatPes implements IFormat.Reader {
 
-    private ArrayList<EmbThread> _threads;
+    private final ArrayList<EmbThread> _threads;
     public FormatPes(){
         _threads = FormatPec.getThreads();
     }
@@ -44,16 +44,14 @@ public class FormatPes implements IFormat.Reader {
     }
 
     private void pesWriteSewSegSection(EmbPattern pattern, OutputStream file) throws IOException {
-        int flag = 0;
-        int count = 0;
-        int colorCode = -1;
-        int stitchType = 0;
+        int count;
+        int colorCode;
+        int stitchType;
         int blockCount = 0;
         int colorCount = 0;
-        int newColorCode = 0;
+        int newColorCode;
         int colorInfoIndex = 0;
         int i;
-        int colorIndex = 0;
         RectF bounds = pattern.calculateBoundingBox();
         EmbThread previousThread = pattern.getStitchBlocks().get(0).getThread();
         for(StitchBlock stitchBlock : pattern.getStitchBlocks()) {

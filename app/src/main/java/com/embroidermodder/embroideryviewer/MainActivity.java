@@ -25,13 +25,11 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.GridView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -47,18 +45,16 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
-    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
+    final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
     private static final String AUTHORITY = "com.embroidermodder.embroideryviewer";
     String fragmentTag;
     private final int SELECT_FILE = 1;
     private Intent _intent;
     private DrawView drawView;
     private DrawerLayout mainActivity;
-    private Thread urlReaderThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,14 +79,13 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
             } else {
                 final Uri finalReturnUri = returnUri;
-                urlReaderThread = new Thread(new Runnable() {
+                Thread urlReaderThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         ReadFromUri(finalReturnUri);
                     }
                 });
                 urlReaderThread.start();
-
             }
         }
 
@@ -160,30 +155,32 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 showStatistics();
                 return true;
             case R.id.action_share:
-                //saveFileWrapper(getFilesDir());
-                saveFileWrapper(Environment.getExternalStorageDirectory());
-                // ContextComapgetUriForFile(getContext(),
-                //Context.grantUriPermission(package, Uri,  FLAG_GRANT_READ_URI_PERMISSION);
-//                Intent shareIntent = new Intent();
-//                shareIntent.setAction(Intent.ACTION_SEND);
-//                shareIntent.putExtra(Intent.EXTRA_STREAM, uriToImage);
-//                shareIntent.setType("image/jpeg");
-//                shareIntent.setFlags(FLAG_GRANT_READ_URI_PERMISSION);
-//                startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.send_to)));
+                saveFileWrapper(new PermissionRequired() {
+                    @Override
+                    public void openExternalStorage(File root, String data){
+                        saveFile(root, data);
+                    }
+                }, Environment.getExternalStorageDirectory(), "");
                 break;
             case R.id.action_load_file:
                 dialogDismiss();
                 makeDialog(R.layout.embroidery_thumbnail_view);
-                GridView list = (GridView) dialogView.findViewById(R.id.embroideryThumbnailList);
-                File mPath = new File(Environment.getExternalStorageDirectory() + "");
-                list.setAdapter(new ThumbnailAdapter(this, mPath));
-
+                saveFileWrapper(new PermissionRequired() {
+                    @Override
+                    public void openExternalStorage(File root, String data){
+                        loadFile(root, data);
+                    }
+                }, Environment.getExternalStorageDirectory(), "");
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void saveFileWrapper(File root) {
+    interface PermissionRequired {
+        void openExternalStorage(File root, String data);
+    }
+
+    private void saveFileWrapper(PermissionRequired permissionRequired, File root, String data) {
         int hasWriteExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
             if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
@@ -201,25 +198,23 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     REQUEST_CODE_ASK_PERMISSIONS);
             return;
         }
-        saveFile(root);
-//        Intent shareIntent = new Intent();
-//                shareIntent.setAction(Intent.ACTION_SEND);
-//                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-//                shareIntent.setType("application/exp");
-//                shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.action_open_file)));
+        permissionRequired.openExternalStorage(root, data);
+    }
+    private void loadFile(File root, String data) {
+        GridView list = (GridView) dialogView.findViewById(R.id.embroideryThumbnailList);
+        File mPath = new File(root + "");
+        list.setAdapter(new ThumbnailAdapter(MainActivity.this, mPath));
     }
 
-    private void saveFile(File root) {
+    private void saveFile(File root, String data) {
         try {
             int n = 10000;
             Random generator = new Random();
             n = generator.nextInt(n);
-            String fname = "Image-" + n + ".pec";
-            IFormat.Writer format = IFormat.getWriterByFilename(fname);
+            String filename = "Image-" + n + ".pec";
+            IFormat.Writer format = IFormat.getWriterByFilename(filename);
             if (format != null) {
-                File file = new File(root, fname);
-                //Uri returnUri = FileProvider.getUriForFile(this,AUTHORITY, file);
+                File file = new File(root, filename);
                 if (file.exists()) {
                     file.delete();
                 }
@@ -228,7 +223,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 outputStream.flush();
                 outputStream.close();
             }
-            return;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -276,11 +270,19 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CODE_ASK_PERMISSIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    saveFile(getFilesDir());
+                    saveFile(Environment.getExternalStorageDirectory(), "");
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            case REQUEST_CODE_ASK_PERMISSIONS_LOAD:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    loadFile(Environment.getExternalStorageDirectory(), "");
                 } else {
                     Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
                             .show();
@@ -381,26 +383,28 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     }
 
     private void ReadFromUri(final Uri uri) {
-        IFormat.Reader formatReader = IFormat.getReaderByFilename(uri.getPath());
-        if (formatReader == null) {
-            Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+        IFormat.Reader formatReader = null;
+        Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+        try {
             if (returnCursor != null) {
-                try {
-                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    returnCursor.moveToFirst();
-                    String filename = returnCursor.getString(nameIndex);
-                    formatReader = IFormat.getReaderByFilename(filename);
-                } finally {
-                    returnCursor.close();
-                }
+                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                returnCursor.moveToFirst();
+                String filename = returnCursor.getString(nameIndex);
+                formatReader = IFormat.getReaderByFilename(filename);
             }
+        } catch(Exception e) {
+        }
+        finally
+        {
+            try {
+                returnCursor.close();
+            }catch (Exception e){}
         }
         if (formatReader == null) {
             toast(R.string.error_file_read_failed);
             return;
         }
-
-        DataInputStream dataInputStream = null;
+        EmbPattern pattern = null;
         switch (uri.getScheme().toLowerCase()) {
             case "http":
             case "https":
@@ -416,7 +420,8 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 try {
                     connection = (HttpURLConnection) url.openConnection();
                     InputStream in = new BufferedInputStream(connection.getInputStream());
-                    dataInputStream = new DataInputStream(in);
+                    DataInputStream dataInputStream = new DataInputStream(in);
+                    pattern = formatReader.read(dataInputStream);
                 } catch (IOException e) {
                     toast(R.string.error_file_read_failed);
                     return;
@@ -431,7 +436,8 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     if (mInputPFD != null) {
                         FileDescriptor fd = mInputPFD.getFileDescriptor();
                         InputStream fis = new FileInputStream(fd);
-                        dataInputStream = new DataInputStream(fis);
+                        DataInputStream dataInputStream = new DataInputStream(fis);
+                        pattern = formatReader.read(dataInputStream);
                     }
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);
@@ -439,48 +445,9 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 }
                 break;
         }
-        if (dataInputStream == null) {
-            toast(R.string.error_file_read_failed);
-        }
-        EmbPattern pattern = formatReader.read(dataInputStream);
         if (pattern == null) {
             toast(R.string.error_file_read_failed);
         }
         setPattern(pattern);
     }
-
-    private boolean unpackZip(String path, String zipname) {
-        InputStream is;
-        ZipInputStream zis;
-        try {
-            String filename;
-            is = new FileInputStream(path + zipname);
-            zis = new ZipInputStream(new BufferedInputStream(is));
-            ZipEntry ze;
-            byte[] buffer = new byte[1024];
-            int count;
-            while ((ze = zis.getNextEntry()) != null) {
-                filename = ze.getName();
-                // Need to create directories if not exists, or
-                // it will generate an Exception...
-                if (ze.isDirectory()) {
-                    File fmd = new File(path + filename);
-                    fmd.mkdirs();
-                    continue;
-                }
-                FileOutputStream fout = new FileOutputStream(path + filename);
-                while ((count = zis.read(buffer)) != -1) {
-                    fout.write(buffer, 0, count);
-                }
-                fout.close();
-                zis.closeEntry();
-            }
-            zis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
 }

@@ -31,9 +31,8 @@ public class StitchBlockView extends RelativeLayout {
     }
 
     public static StitchBlockView inflate(ViewGroup parent) {
-        StitchBlockView itemView = (StitchBlockView) LayoutInflater.from(parent.getContext())
+        return (StitchBlockView) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.stitchblock_item, parent, false);
-        return itemView;
     }
 
     private void init(Context context) {
@@ -54,11 +53,11 @@ public class StitchBlockView extends RelativeLayout {
                 pattern.notifyChange(1);
             }
         });
-        String namevalue = stitchBlock.getThread().getDescription();
-        if ((namevalue == null) || ("".equals(namevalue))) {
-            namevalue = asHexColor(colorValue);
+        String nameValue = stitchBlock.getThread().getDescription();
+        if ((nameValue == null) || ("".equals(nameValue))) {
+            nameValue = asHexColor(colorValue);
         }
-        name.setText(namevalue);
+        name.setText(nameValue);
         stitches.setText(getContext().getString(R.string.stitchblock_stitches, stitchBlock.size()));
     }
 

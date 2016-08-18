@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -16,11 +15,6 @@ public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Lis
     private ListView colorListView;
 
     public ColorStitchBlockFragment() {
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -46,16 +40,6 @@ public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Lis
         if (getActivity() instanceof EmbPattern.Provider) {
             setPattern(((EmbPattern.Provider) getActivity()).getPattern());
         }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override

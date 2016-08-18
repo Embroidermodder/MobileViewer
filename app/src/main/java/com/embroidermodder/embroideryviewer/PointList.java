@@ -423,24 +423,23 @@ public class PointList {
     }
 
     private boolean checkBounds(float px, float py) {
-        boolean boundChanged = false;
         if (px < minX) {
             minX = px;
-            boundChanged = true;
+            return true;
         }
         if (px > maxX) {
             maxX = px;
-            boundChanged = true;
+            return true;
         }
         if (py < minY) {
             minY = py;
-            boundChanged = true;
+            return true;
         }
         if (py > maxY) {
             maxY = py;
-            boundChanged = true;
+            return true;
         }
-        return boundChanged;
+        return false;
     }
 
     private void resetBounds() {
@@ -460,16 +459,12 @@ public class PointList {
 
     public float getX(int index) {
         index <<= 1;
-        if (index < 0) return Float.NaN;
-        if (index >= count) return Float.NaN;
         return pointlist[index];
     }
 
     public float getY(int index) {
         index <<= 1;
         index++;
-        if (index < 0) return Float.NaN;
-        if (index >= count) return Float.NaN;
         return pointlist[index];
     }
 

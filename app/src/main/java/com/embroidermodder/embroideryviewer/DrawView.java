@@ -53,8 +53,8 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
         calculateViewMatrixFromPort();
     }
 
-    public void scale(float deltascale, float x, float y) {
-        viewMatrix.postScale(deltascale, deltascale, x, y);
+    public void scale(float deltaScale, float x, float y) {
+        viewMatrix.postScale(deltaScale, deltaScale, x, y);
         calculateViewPortFromMatrix();
     }
 
@@ -69,7 +69,6 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
         if (scale != 0) {
             viewMatrix.postTranslate(-viewPort.left, -viewPort.top);
             viewMatrix.postScale(scale, scale);
-
         }
         calculateInvertMatrix();
     }
@@ -137,9 +136,9 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
         if (!pattern.getStitchBlocks().isEmpty()) {
             viewPort = pattern.calculateBoundingBox();
             float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
-            float extrawidth = _width - (viewPort.width() * scale);
-            float extraheight = _height - (viewPort.height() * scale);
-            viewPort.offset(-extrawidth / 2, -extraheight / 2);
+            float extraWidth = _width - (viewPort.width() * scale);
+            float extraHeight = _height - (viewPort.height() * scale);
+            viewPort.offset(-extraWidth / 2, -extraHeight / 2);
             viewPort.inset(-viewPort.width() * MARGIN, -viewPort.height() * MARGIN);
         }
         calculateViewMatrixFromPort();

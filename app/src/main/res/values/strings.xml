@@ -5,8 +5,8 @@
     <string name="action_tool_draw">Draw</string>
     <string name="action_show_statistics">Statistics</string>
     <string name="action_share">Share</string>
-    <string name="stitchblock_stitches">"%d Stitches"</string>
-    <string name="external_storage_justification">You need to allow access to External storage</string>
+    <string name="stitchblock_stitches">"%d Stiches"</string>
+    <string name="external_storage_justification">Files cannot be saved without access to storage</string>
     <string name="write_permissions_denied">Write permissions Denied</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>

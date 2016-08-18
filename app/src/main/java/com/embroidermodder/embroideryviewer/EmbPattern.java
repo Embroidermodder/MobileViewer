@@ -103,21 +103,20 @@ public class EmbPattern {
         this._currentStitchBlock.add(x, y);
     }
 
-    // AddStitchRel adds a stitch to the pattern at the relative position (dx, dy)
-    // to the previous stitch. Positive y is up. Units are in millimeters.
+    /**
+     * AddStitchRel adds a stitch to the pattern at the relative position (dx, dy)
+     * to the previous stitch. Units are in millimeters.
+     *
+     * @param dx               The change in X position.
+     * @param dy               The change in Y position. Positive value move upward.
+     * @param flags            JUMP, TRIM, NORMAL or STOP
+     * @param isAutoColorIndex Should color index be auto-incremented on STOP flag
+     */
     public void addStitchRel(float dx, float dy, int flags, boolean isAutoColorIndex) {
-
         float x = _previousX + dx;
         float y = _previousY + dy;
-
         this.addStitchAbs(x, y, flags, isAutoColorIndex);
     }
-
-    // ChangeColor manually changes the color index to use.
-    public void changeColor(byte index) {
-        //this._currentColorIndex = index;
-    }
-
 
     public void addThread(EmbThread thread) {
         _threadList.add(thread);
@@ -137,8 +136,13 @@ public class EmbPattern {
         return new RectF(left, top, right, bottom);
     }
 
-    // Flip will flip the entire pattern about the x-axis if horz is true,
-    // and/or about the y-axis if vertical is true.
+    /**
+     * Flip will flip the entire pattern about the specified axis
+     *
+     * @param horizontal should pattern be flipped about the x-axis
+     * @param vertical   should pattern be flipped about the xy-axis
+     * @return the flipped pattern
+     */
     public EmbPattern getFlippedPattern(boolean horizontal, boolean vertical) {
         float xMultiplier = horizontal ? -1.0f : 1.0f;
         float yMultiplier = vertical ? -1.0f : 1.0f;
@@ -187,30 +191,16 @@ public class EmbPattern {
         RectF bounds = calculateBoundingBox();
         StringBuilder sb = new StringBuilder();
         //sb.append("Design name: ").append(this._filename).append('\n');
-        int totalsize = getTotalSize();
-        int jumpcount = getJumpCount();
-        int colorcount = getColorCount();
-        sb.append(context.getString(R.string.number_of_stitches)).append(totalsize + jumpcount + colorcount).append('\n');
-        sb.append(context.getString(R.string.normal_stitches)).append(totalsize).append('\n');
-        sb.append(context.getString(R.string.jumps)).append(jumpcount).append('\n');
-        sb.append(context.getString(R.string.colors)).append(colorcount).append('\n');
+        int totalSize = getTotalSize();
+        int jumpCount = getJumpCount();
+        int colorCount = getColorCount();
+        sb.append(context.getString(R.string.number_of_stitches)).append(totalSize + jumpCount + colorCount).append('\n');
+        sb.append(context.getString(R.string.normal_stitches)).append(totalSize).append('\n');
+        sb.append(context.getString(R.string.jumps)).append(jumpCount).append('\n');
+        sb.append(context.getString(R.string.colors)).append(colorCount).append('\n');
         sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
-        //sb.append("Center of design = ").append(convert(bounds.centerX())).append(" x ").append(convert(bounds.centerY())).append('\n');
-        float totallength = getTotalLength();
-        sb.append(context.getString(R.string.total_length)).append(convert(totallength)).append(" mm\n");
-        float min = getMinStitch();
-        float max = getMaxStitch();
-        //sb.append("Maximum stitch length: ").append(convert(max)).append(" [").append(getCountRange(max, max)).append(" at this length]").append('\n');
-        //sb.append("Minimum stitch length: ").append(convert(min)).append(" [").append(getCountRange(min, min)).append(" at this length]").append('\n');
-        //sb.append("Average length of stitches: ").append(convert(totallength / (double) totalsize)).append('\n');
-        //sb.append("Stitch length distribution:").append('\n');
-        float start = min;
-        float step = (max - min) / 10.0f;
-        for (int i = 0; i < 10; i++) {
-            float tmin = (i * step) + start;
-            float tmax = ((i + 1) * step) + start;
-            //sb.append(" ").append(convert(tmin)).append("- ").append(convert(tmax)).append(" == ").append(getCountRange(tmin, tmax)).append('\n');
-        }
+        float totalLength = getTotalLength();
+        sb.append(context.getString(R.string.total_length)).append(convert(totalLength)).append(" mm\n");
         return sb.toString();
     }
 

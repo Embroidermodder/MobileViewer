@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -19,10 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-/**
- * Created by Tat on 8/14/2016.
- */
 
 public class ThumbnailView extends View {
     public static final int MIN_THUMBNAIL_SIZE = 250;
@@ -36,8 +33,7 @@ public class ThumbnailView extends View {
     Matrix matrix;
     Bitmap cache;
 
-
-    Paint _paint = new Paint();
+    final Paint _paint = new Paint();
 
     public ThumbnailView(Context context) {
         super(context);
@@ -58,13 +54,13 @@ public class ThumbnailView extends View {
         int scaledSize = getResources().getDimensionPixelSize(R.dimen.thumbnailText);
         _paint.setTextSize(scaledSize);
         if (fileDefault == null) {
-            fileDefault = getResources().getDrawable(R.mipmap.ic_launcher);
+            fileDefault = ResourcesCompat.getDrawable(getResources(), R.mipmap.ic_launcher, null);
             if (fileDefault != null) {
                 fileDefault.setBounds(0, 0, MIN_THUMBNAIL_SIZE, MIN_THUMBNAIL_SIZE);
             }
         }
         if (directoryDefault == null) {
-            directoryDefault = getResources().getDrawable(R.mipmap.ic_launcher);
+            directoryDefault = ResourcesCompat.getDrawable(getResources(), R.mipmap.ic_launcher, null);
             if (directoryDefault != null) {
                 directoryDefault.setBounds(0, 0, MIN_THUMBNAIL_SIZE, MIN_THUMBNAIL_SIZE);
             }

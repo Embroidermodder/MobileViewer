@@ -12,9 +12,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 
 public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListener {
-    File path;
-    FilenameFilter filter;
-    MainActivity activity;
+    final File path;
+    final FilenameFilter filter;
+    final MainActivity activity;
 
     public ThumbnailAdapter(MainActivity activity, File path) {
         this.activity = activity;
@@ -23,9 +23,7 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
             @Override
             public boolean accept(File dir, String s) {
                 File file = new File(dir, s);
-                //if (file.isDirectory()) return true;
-                if (file.isDirectory()) return false;
-                return (IFormat.getReaderByFilename(s) != null);
+                return !file.isDirectory() && (IFormat.getReaderByFilename(s) != null);
             }
         };
     }
@@ -92,6 +90,5 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
                 }
             }
         }
-
     }
 }

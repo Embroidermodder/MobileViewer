@@ -246,7 +246,6 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         } else if ((types & IFormat.JUMP) == IFormat.JUMP) {
             orPart |= 0x10;
         }
-
         if (x < 0) {
             outputVal = x + 0x1000 & 0x7FF;
             outputVal |= 0x800;
@@ -350,12 +349,24 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         for(i = 0; i < 12; i++) {
             file.write(0x20);
         }
-        currentThreadCount = pattern.getThreadList().size();
-        file.write((byte)(currentThreadCount-1));
+        currentThreadCount = 0;
+
 
         ArrayList<EmbThread> pecThreads = getThreads();
-        for(i = 0; i < currentThreadCount; i++) {
-            file.write((byte)pattern.getThreadList().get(i).findNearestColorIndex(pecThreads));
+        EmbThread previousThread = null;
+        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
+            if(stitchBlock.getThread() != previousThread) {
+                currentThreadCount++;
+            }
+            previousThread = stitchBlock.getThread();
+        }
+        file.write((byte)(currentThreadCount-1));
+        previousThread = null;
+        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
+            if(stitchBlock.getThread() != previousThread) {
+                file.write((byte)stitchBlock.getThread().findNearestColorIndex(pecThreads));
+            }
+            previousThread = stitchBlock.getThread();
         }
         for(i = 0; i < (0x1CF - currentThreadCount); i++) {
             file.write(0x20);
@@ -407,7 +418,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
 
     /* Writing each individual color */
         clearImage(image);
-        EmbThread previousThread = pattern.getStitchBlocks().get(0).getThread();
+        previousThread = pattern.getStitchBlocks().get(0).getThread();
         for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
             if(previousThread != stitchBlock.getThread()) {
                 writeImage(file, image);
@@ -430,7 +441,6 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
             stream.write("#PEC0001".getBytes());
             writePecStitches(pattern, stream, "TEMPFILE.PEC");
         }catch (Exception e){
-
         }
     }
 }

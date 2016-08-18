@@ -8,9 +8,9 @@ public class EmbColor {
     public final int red, green, blue;
 
     public EmbColor(int red, int green, int blue) {
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
+        this.red = red & 0xff;
+        this.green = green & 0xff;
+        this.blue = blue & 0xff;
     }
 
     public static EmbColor Random() {
