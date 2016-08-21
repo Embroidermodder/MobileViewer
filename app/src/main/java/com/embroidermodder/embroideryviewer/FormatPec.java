@@ -3,7 +3,6 @@ package com.embroidermodder.embroideryviewer;
 import android.graphics.RectF;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -68,6 +67,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         } catch (IOException ex) {
 
         }
+        pattern.addStitchRel(0,0, IFormat.END, true);
     }
 
     public static EmbThread getThreadByIndex(int index) {

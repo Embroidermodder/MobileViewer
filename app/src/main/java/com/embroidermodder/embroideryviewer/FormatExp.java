@@ -1,7 +1,6 @@
 package com.embroidermodder.embroideryviewer;
 
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -72,6 +71,7 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
         } catch (IOException ex) {
         }
         pattern.getFlippedPattern(false, true);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {

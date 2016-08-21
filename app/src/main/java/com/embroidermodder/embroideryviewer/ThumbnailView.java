@@ -15,7 +15,6 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -173,6 +172,7 @@ public class ThumbnailView extends View {
                 FileInputStream fis = null;
                 try {
                     fis = new FileInputStream(file);
+                    pattern = new EmbPattern();
                     reader.read(pattern, fis);
                     createFromPattern(pattern);
                 } catch (FileNotFoundException e) {

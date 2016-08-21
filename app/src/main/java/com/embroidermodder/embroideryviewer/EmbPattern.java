@@ -60,6 +60,7 @@ public class EmbPattern {
         }
         if ((flags & IFormat.END) != 0) {
             if (this._currentStitchBlock.isEmpty()) {
+                this._stitchBlocks.remove(this._currentStitchBlock);
                 return;
             }
             //pattern.FixColorCount();

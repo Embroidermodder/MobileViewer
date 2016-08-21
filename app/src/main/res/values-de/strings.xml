@@ -13,6 +13,7 @@
     <string name="error_file_not_found">Fehler: Datei nicht gefunden.</string>
     <string name="error_uri_not_retrieved">Fehler: URI nicht abgerufen.</string>
     <string name="error_file_read_failed">Fehler: Datei lesen fehlgeschlagen.</string>
+    <string name="file_type_not_supported">Dateityp nicht unterstützt.</string>
     <string name="stitch_block_color">Naht farbe</string>
     <!-- Statistics section -->
     <string name="number_of_stitches">Insgesamt Stiche:</string>

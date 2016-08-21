@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -206,7 +205,6 @@ public class FormatSew implements IFormat.Reader {
                         }
                         flags = IFormat.TRIM;
                     } else if (b[1] == 0x10) {
-                        pattern.addStitchRel(0.0f, 0.0f, IFormat.END, true);
                         break;
                     }
                 }
@@ -216,5 +214,6 @@ public class FormatSew implements IFormat.Reader {
 
         }
         pattern.getFlippedPattern(false, true);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
     }
 }

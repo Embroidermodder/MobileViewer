@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -220,5 +219,6 @@ public class FormatJef implements IFormat.Reader {
 
         }
         pattern.getFlippedPattern(false, true);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
     }
 }

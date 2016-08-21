@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -76,10 +75,10 @@ public class FormatPcs implements IFormat.Reader {
                 dy = pcsDecode(b[5], b[6], b[7]);
                 pattern.addStitchAbs(dx, dy, flags, true);
             }
-            pattern.addStitchRel(0.0f, 0.0f, IFormat.END, true);
         } catch (IOException ex) {
 
         }
         pattern.getFlippedPattern(false, true);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
     }
 }

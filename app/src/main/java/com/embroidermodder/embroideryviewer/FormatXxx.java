@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -83,6 +82,7 @@ public class FormatXxx implements IFormat.Reader {
 
         }
         pattern.getFlippedPattern(false, true);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
     }
 
     int xxx_decode_byte(int b) {

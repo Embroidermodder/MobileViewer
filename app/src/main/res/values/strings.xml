@@ -13,6 +13,7 @@
     <string name="error_file_not_found">Error: File not found.</string>
     <string name="error_uri_not_retrieved">Error: URI not retrieved.</string>
     <string name="error_file_read_failed">Error: File read failed.</string>
+    <string name="file_type_not_supported">File type not supported.</string>
     <string name="stitch_block_color">Stitch block color</string>
     <!-- Statistics section -->
     <string name="number_of_stitches">Number of stitch entries:</string>

@@ -39,7 +39,7 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
     }
 
     public void init() {
-        _paint.setStrokeWidth(1);
+        _paint.setStrokeWidth(2);
         _paint.setFlags(Paint.ANTI_ALIAS_FLAG);
     }
 

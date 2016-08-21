@@ -33,7 +33,6 @@ import android.widget.GridView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -401,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             }catch (Exception e){}
         }
         if (formatReader == null) {
-            toast(R.string.error_file_read_failed);
+            toast(R.string.file_type_not_supported);
             return;
         }
         EmbPattern pattern = null;

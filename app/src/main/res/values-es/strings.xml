@@ -13,6 +13,7 @@
     <string name="error_file_not_found">Error: No se encontró el archivo</string>
     <string name="error_uri_not_retrieved">Error: URI no recuperado</string>
     <string name="error_file_read_failed">Error: Archivo Leer falló</string>
+    <string name="file_type_not_supported">Tipo de archivo no soportado.</string>
     <string name="stitch_block_color">Bloques de la puntada de color</string>
     <!-- Statistics section -->
     <string name="number_of_stitches">Total de puntadas: </string>
