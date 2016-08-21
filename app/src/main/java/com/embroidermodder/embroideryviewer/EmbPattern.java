@@ -48,11 +48,11 @@ public class EmbPattern {
                 if (this._threadList.size() == 0) {
                     thread = new EmbThread();
                     thread.setColor(EmbColor.Random());
+                    this._threadList.add(thread);
                 } else {
                     thread = this._threadList.get(0);
                 }
                 this._currentStitchBlock.setThread(thread);
-                this._threadList.add(this._currentStitchBlock.getThread());
                 _stitchBlocks.add(this._currentStitchBlock);
             } else {
                 this._currentStitchBlock = this._stitchBlocks.get(0);

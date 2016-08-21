@@ -30,6 +30,8 @@ public class IFormat {
                 return new FormatPes();
             case ".sew":
                 return new FormatSew();
+            case ".vp3":
+                return new FormatVp3();
             case ".xxx":
                 return new FormatXxx();
             default:
