@@ -8,6 +8,7 @@
     <string name="stitchblock_stitches">"%d Naht"</string>
     <string name="external_storage_justification">Dateien können nicht ohne Zugriff auf Speicher gespeichert werden</string>
     <string name="write_permissions_denied">Schreibberechtigungen verweigert</string>
+    <string name="read_permissions_denied">Leseberechtigungen verweigert</string>
     <string name="ok">OK</string>
     <string name="cancel">Stornieren</string>
     <string name="error_file_not_found">Fehler: Datei nicht gefunden.</string>

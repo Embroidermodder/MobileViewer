@@ -8,6 +8,7 @@
     <string name="stitchblock_stitches">"%d Pontos"</string>
     <string name="external_storage_justification">Os arquivos não podem ser salvos sem acesso ao armazenamento</string>
     <string name="write_permissions_denied">Permissões de gravação negado</string>
+    <string name="read_permissions_denied">permissões de leitura negado</string>
     <string name="ok">Está bem</string>
     <string name="cancel">Cancelar</string>
     <string name="error_file_not_found">Erro: Arquivo não encontrado.</string>

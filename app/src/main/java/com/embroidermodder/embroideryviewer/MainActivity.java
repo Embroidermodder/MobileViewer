@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
-import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -34,8 +33,6 @@ import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,13 +45,14 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
     final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
+    final private int REQUEST_CODE_ASK_PERMISSIONS_READ = 102;
     private static final String AUTHORITY = "com.embroidermodder.embroideryviewer";
     String fragmentTag;
     private final int SELECT_FILE = 1;
     private Intent _intent;
     private DrawView drawView;
     private DrawerLayout mainActivity;
-
+    private Uri _uriToLoad;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
@@ -78,10 +76,11 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
             } else {
                 final Uri finalReturnUri = returnUri;
+
                 Thread urlReaderThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        ReadFromUri(finalReturnUri);
+                        readFileWrapper(finalReturnUri);
                     }
                 });
                 urlReaderThread.start();
@@ -156,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             case R.id.action_share:
                 saveFileWrapper(new PermissionRequired() {
                     @Override
-                    public void openExternalStorage(File root, String data){
+                    public void openExternalStorage(File root, String data) {
                         saveFile(root, data);
                     }
                 }, Environment.getExternalStorageDirectory(), "");
@@ -166,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 makeDialog(R.layout.embroidery_thumbnail_view);
                 saveFileWrapper(new PermissionRequired() {
                     @Override
-                    public void openExternalStorage(File root, String data){
+                    public void openExternalStorage(File root, String data) {
                         loadFile(root, data);
                     }
                 }, Environment.getExternalStorageDirectory(), "");
@@ -199,6 +198,29 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         }
         permissionRequired.openExternalStorage(root, data);
     }
+
+    private void readFileWrapper(Uri uri) {
+        _uriToLoad = uri;
+        int hasReadExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (hasReadExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                showMessageOKCancel(getString(R.string.external_storage_justification_read),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                        REQUEST_CODE_ASK_PERMISSIONS_READ);
+                            }
+                        });
+                return;
+            }
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_CODE_ASK_PERMISSIONS_READ);
+            return;
+        }
+        readFromUri(uri);
+    }
+
     private void loadFile(File root, String data) {
         GridView list = (GridView) dialogView.findViewById(R.id.embroideryThumbnailList);
         File mPath = new File(root + "");
@@ -287,6 +309,14 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                             .show();
                 }
                 break;
+            case REQUEST_CODE_ASK_PERMISSIONS_READ:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    readFromUri(_uriToLoad);
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.read_permissions_denied, Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
@@ -306,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         this._intent = data;
         Uri uri = data.getData();
         if (uri != null) {
-            ReadFromUri(uri);
+            readFileWrapper(uri);
         }
     }
 
@@ -381,23 +411,25 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         useColorFragment();
     }
 
-    private void ReadFromUri(final Uri uri) {
+    private void readFromUri(final Uri uri) {
         IFormat.Reader formatReader = null;
-        Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+        Cursor returnCursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
+        String scheme = uri.getScheme().toLowerCase();
         try {
             if (returnCursor != null) {
                 int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 returnCursor.moveToFirst();
                 String filename = returnCursor.getString(nameIndex);
                 formatReader = IFormat.getReaderByFilename(filename);
+            } else if (scheme.equals("file")) {
+                formatReader = IFormat.getReaderByFilename(uri.toString());
             }
-        } catch(Exception e) {
-        }
-        finally
-        {
+        } catch (Exception e) {
+        } finally {
             try {
                 returnCursor.close();
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
         }
         if (formatReader == null) {
             toast(R.string.file_type_not_supported);
@@ -415,7 +447,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     toast(R.string.error_file_not_found);
                     return;
                 }
-
                 try {
                     connection = (HttpURLConnection) url.openConnection();
                     InputStream in = new BufferedInputStream(connection.getInputStream());
@@ -429,15 +460,10 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             case "content":
             case "file":
             default:
-                ParcelFileDescriptor mInputPFD;
                 try {
-                    mInputPFD = getContentResolver().openFileDescriptor(uri, "r");
-                    if (mInputPFD != null) {
-                        FileDescriptor fd = mInputPFD.getFileDescriptor();
-                        InputStream fis = new FileInputStream(fd);
-                        pattern = new EmbPattern();
-                        formatReader.read(pattern, fis);
-                    }
+                    InputStream fis = getContentResolver().openInputStream(uri);
+                    pattern = new EmbPattern();
+                    formatReader.read(pattern, fis);
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);
                     return;

@@ -63,6 +63,9 @@
                 <data android:pathPattern=".*\\.sew" />
                 <data android:pathPattern=".*\\.SEW" />
                 <data android:mimeType="application/x-sew" />
+                <data android:pathPattern=".*\\.vp3" />
+                <data android:pathPattern=".*\\.VP3" />
+                <data android:mimeType="application/x-vp3" />
                 <data android:pathPattern=".*\\.XXX" />
                 <data android:pathPattern=".*\\.xxx" />
                 <data android:mimeType="application/x-xxx" />
@@ -122,10 +125,16 @@
                     android:pathPattern=".*\\.SEW" />
                 <data
                     android:mimeType="*/*"
-                    android:pathPattern=".*\\.XXX" />
+                    android:pathPattern=".*\\.vp3" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.VP3" />
                 <data
                     android:mimeType="*/*"
                     android:pathPattern=".*\\.xxx" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.XXX" />
             </intent-filter>
 
             <intent-filter>
@@ -167,6 +176,8 @@
                 <data android:pathPattern=".*\\.PES" />
                 <data android:pathPattern=".*\\.sew" />
                 <data android:pathPattern=".*\\.SEW" />
+                <data android:pathPattern=".*\\.vp3" />
+                <data android:pathPattern=".*\\.VP3" />
                 <data android:pathPattern=".*\\.XXX" />
                 <data android:pathPattern=".*\\.xxx" />
             </intent-filter>
