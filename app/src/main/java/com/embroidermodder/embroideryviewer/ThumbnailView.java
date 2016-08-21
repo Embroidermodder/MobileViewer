@@ -29,7 +29,6 @@ public class ThumbnailView extends View {
     public Thread thread;
     public File file;
     EmbPattern pattern;
-    Matrix matrix;
     Bitmap cache;
 
     final Paint _paint = new Paint();
@@ -76,24 +75,7 @@ public class ThumbnailView extends View {
         float _height = getHeight();
         if (_width == 0) _width = MIN_THUMBNAIL_SIZE;
         if (_height == 0) _height = MIN_THUMBNAIL_SIZE;
-
-        RectF viewPort = pattern.calculateBoundingBox();
-        float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
-        matrix = new Matrix();
-        if (scale != 0) {
-            matrix.postTranslate(-viewPort.left, -viewPort.top);
-            matrix.postScale(scale, scale);
-        }
-
-        cache = Bitmap.createBitmap((int) _width, (int) _height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(cache);
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        if (matrix != null) canvas.concat(matrix);
-        for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
-            stitchBlock.draw(canvas, _paint);
-        }
-        _paint.setColor(Color.BLACK);
+        cache = pattern.getThumbnail(_width,_height);
         processInvalidation();
     }
 
@@ -145,7 +127,6 @@ public class ThumbnailView extends View {
 
     public void clear() {
         this.pattern = null;
-        this.matrix = null;
         if (thread != null) {
             thread.interrupt();
         }

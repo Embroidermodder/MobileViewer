@@ -1,7 +1,10 @@
 package com.embroidermodder.embroideryviewer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 
 import java.util.ArrayList;
@@ -289,6 +292,27 @@ public class EmbPattern {
         if (listener instanceof Listener) {
             _listeners.remove(listener);
         }
+    }
+
+    public Bitmap getThumbnail(float _width, float _height) {
+
+        RectF viewPort = calculateBoundingBox();
+        float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
+        Matrix matrix = new Matrix();
+        if (scale != 0) {
+            matrix.postTranslate(-viewPort.left, -viewPort.top);
+            matrix.postScale(scale, scale);
+        }
+
+        Bitmap bmp = Bitmap.createBitmap((int) _width, (int) _height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        if (matrix != null) canvas.concat(matrix);
+        for (StitchBlock stitchBlock : getStitchBlocks()) {
+            stitchBlock.draw(canvas, paint);
+        }
+        return bmp;
     }
 
     public interface Provider {

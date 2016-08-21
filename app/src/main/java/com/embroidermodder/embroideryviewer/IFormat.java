@@ -35,6 +35,8 @@ public class IFormat {
                 return new FormatVp3();
             case ".xxx":
                 return new FormatXxx();
+            case ".png":
+                return new FormatPng();
             default:
                 return null;
         }
