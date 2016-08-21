@@ -422,24 +422,19 @@ public class PointList {
         return (px == minX) || (px == maxX) || (py == minY) || (py == maxY);
     }
 
-    private boolean checkBounds(float px, float py) {
+    private void checkBounds(float px, float py) {
         if (px < minX) {
             minX = px;
-            return true;
         }
         if (px > maxX) {
             maxX = px;
-            return true;
         }
         if (py < minY) {
             minY = py;
-            return true;
         }
         if (py > maxY) {
             maxY = py;
-            return true;
         }
-        return false;
     }
 
     private void resetBounds() {

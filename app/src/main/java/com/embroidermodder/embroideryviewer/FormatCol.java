@@ -3,6 +3,7 @@ package com.embroidermodder.embroideryviewer;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 
@@ -16,8 +17,7 @@ public class FormatCol implements IFormat.Reader {
         return false;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         int numberOfColors;
         try {
             BufferedReader d = new BufferedReader(new InputStreamReader(stream));
@@ -37,10 +37,9 @@ public class FormatCol implements IFormat.Reader {
                 green = lineScanner.nextInt();
                 red = lineScanner.nextInt();
                 EmbThread t = new EmbThread(red, green, blue, "", "");
-                p.addThread(t);
+                pattern.addThread(t);
             }
         } catch (IOException ex) {
         }
-        return p;
     }
 }

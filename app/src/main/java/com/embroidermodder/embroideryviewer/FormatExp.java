@@ -3,6 +3,7 @@ package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class FormatExp implements IFormat.Reader, IFormat.Writer {
@@ -15,27 +16,26 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
         return true;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         byte b0, b1;
         try {
             for (int i = 0; stream.available() > 0; i++) {
                 int flags = IFormat.NORMAL;
-                b0 = stream.readByte();
+                b0 = (byte)stream.read();
                 if (stream.available() <= 0) {
                     break;
                 }
-                b1 = stream.readByte();
+                b1 = (byte)stream.read();
                 if (stream.available() <= 0) {
                     break;
                 }
                 if ((b0 & 0xFF) == 0x80) {
                     if ((b1 & 1) > 0) {
-                        b0 = stream.readByte();
+                        b0 = (byte)stream.read();
                         if (stream.available() <= 0) {
                             break;
                         }
-                        b1 = stream.readByte();
+                        b1 = (byte)stream.read();
                         if (stream.available() <= 0) {
                             break;
                         }
@@ -45,20 +45,20 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
                         if (b1 == 2) {
                             flags = IFormat.NORMAL;
                         }
-                        b0 = stream.readByte();
+                        b0 = (byte)stream.read();
                         if (stream.available() <= 0) {
                             break;
                         }
-                        b1 = stream.readByte();
+                        b1 = (byte)stream.read();
                         if (stream.available() <= 0) {
                             break;
                         }
                     } else if ((b1 & 0xFF) == 0x80) {
-                        b0 = stream.readByte();
+                        b0 = (byte)stream.read();
                         if (stream.available() <= 0) {
                             break;
                         }
-                        b1 = stream.readByte();
+                        b1 = (byte)stream.read();
                         if (stream.available() <= 0) {
                             break;
                         }
@@ -67,11 +67,11 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
                         flags = IFormat.TRIM;
                     }
                 }
-                p.addStitchRel((float) b0, (float) b1, flags, true);
+                pattern.addStitchRel((float) b0, (float) b1, flags, true);
             }
         } catch (IOException ex) {
         }
-        return p.getFlippedPattern(false, true);
+        pattern.getFlippedPattern(false, true);
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {

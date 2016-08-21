@@ -71,7 +71,7 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
         int height;
     }
 
-    private vp3Hoop vp3ReadHoopSection(DataInputStream stream) throws IOException {
+    private vp3Hoop vp3ReadHoopSection(InputStream stream) throws IOException {
         vp3Hoop hoop = new vp3Hoop();
         hoop.right = BinaryHelper.readInt32BE(stream);
         hoop.bottom = BinaryHelper.readInt32BE(stream);
@@ -79,8 +79,8 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
         hoop.top = BinaryHelper.readInt32BE(stream);
 
         hoop.threadLength = BinaryHelper.readInt32LE(stream);
-        hoop.unknown2 = stream.readByte();
-        hoop.numberOfColors = stream.readByte();
+        hoop.unknown2 = (byte)stream.read();
+        hoop.numberOfColors = stream.read();
         hoop.unknown3 = BinaryHelper.readInt16BE(stream);
         hoop.unknown4 = BinaryHelper.readInt32BE(stream);
         hoop.numberOfBytesRemaining = BinaryHelper.readInt32BE(stream);
@@ -88,9 +88,9 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
         hoop.xOffset = BinaryHelper.readInt32BE(stream);
         hoop.yOffset = BinaryHelper.readInt32BE(stream);
 
-        hoop.byte1 = stream.readByte();
-        hoop.byte2 = stream.readByte();
-        hoop.byte3 = stream.readByte();
+        hoop.byte1 = (byte)stream.read();
+        hoop.byte2 = (byte)stream.read();
+        hoop.byte3 = (byte)stream.read();
 
     /* Centered hoop dimensions */
         hoop.right2 = BinaryHelper.readInt32BE(stream);
@@ -103,8 +103,7 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
         return hoop;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern pattern = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         try {
             byte magicString[] = new byte[5];
             byte some;
@@ -123,10 +122,10 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
             int i;
 
             stream.read(magicString); /* %vsm% */
-            some = stream.readByte(); /* 0 */
+            some = (byte)stream.read(); /* 0 */
             softwareVendorString = vp3ReadString(stream);
             someShort = (short)BinaryHelper.readInt16LE(stream);
-            someByte = stream.readByte();
+            someByte = (byte)stream.read();
             bytesRemainingInFile = BinaryHelper.readInt32BE(stream);
             fileCommentString = vp3ReadString(stream);
             vp3ReadHoopSection(stream);
@@ -134,30 +133,30 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
             anotherCommentString = vp3ReadString(stream);
 
     /* TODO: review v1 thru v18 variables and use emb_unused() if needed */
-            v1 = stream.readByte();
-            v2 = stream.readByte();
-            v3 = stream.readByte();
-            v4 = stream.readByte();
-            v5 = stream.readByte();
-            v6 = stream.readByte();
-            v7 = stream.readByte();
-            v8 = stream.readByte();
-            v9 = stream.readByte();
-            v10 = stream.readByte();
-            v11 = stream.readByte();
-            v12 = stream.readByte();
-            v13 = stream.readByte();
-            v14 = stream.readByte();
-            v15 = stream.readByte();
-            v16 = stream.readByte();
-            v17 = stream.readByte();
-            v18 = stream.readByte();
+            v1 = (byte)stream.read();
+            v2 = (byte)stream.read();
+            v3 = (byte)stream.read();
+            v4 = (byte)stream.read();
+            v5 = (byte)stream.read();
+            v6 = (byte)stream.read();
+            v7 = (byte)stream.read();
+            v8 = (byte)stream.read();
+            v9 = (byte)stream.read();
+            v10 = (byte)stream.read();
+            v11 = (byte)stream.read();
+            v12 = (byte)stream.read();
+            v13 = (byte)stream.read();
+            v14 = (byte)stream.read();
+            v15 = (byte)stream.read();
+            v16 = (byte)stream.read();
+            v17 = (byte)stream.read();
+            v18 = (byte)stream.read();
 
             stream.read(magicCode); /* 0x78 0x78 0x55 0x55 0x01 0x00 */
 
             anotherSoftwareVendorString = vp3ReadString(stream);
             numberOfColors = BinaryHelper.readInt16BE(stream);
-            stream.readByte();
+            stream.read();
             for (i = 0; i < numberOfColors; i++) {
                 EmbThread t = new EmbThread();
                 pattern.addThread(t);
@@ -167,19 +166,19 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
                 int unknownThreadString, numberOfBytesInColor;
 
 
-                stream.readByte();
-                stream.readByte();
+                stream.read();
+                stream.read();
                 int sectionLength = BinaryHelper.readInt32BE(stream);
                 startX = BinaryHelper.readInt32BE(stream);
                 startY = BinaryHelper.readInt32BE(stream);
                 pattern.addStitchAbs(startX / 100, -startY / 100, IFormat.JUMP, true);
 
-                tableSize = stream.readByte();
-                stream.readByte();
+                tableSize = (byte)stream.read();
+                stream.read();
 
-                int r = stream.readByte() & 0xFF;
-                int g = stream.readByte() & 0xFF;
-                int b = stream.readByte() & 0xFF;
+                int r = stream.read() & 0xFF;
+                int g = stream.read() & 0xFF;
+                int b = stream.read() & 0xFF;
                 stream.skip(6 * tableSize - 1);
                 threadColorNumber = vp3ReadString(stream);
                 colorName = vp3ReadString(stream);
@@ -200,8 +199,8 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
                 stream.skip(3);
                 int position = 0;
                 while (position < numberOfBytesInColor - 1) {
-                    int x = vp3Decode(stream.readByte());
-                    int y = vp3Decode(stream.readByte());
+                    int x = vp3Decode((byte)stream.read());
+                    int y = vp3Decode((byte)stream.read());
                     position += 2;
                     if (x == -128) { //0x80) {
                         switch (y) {
@@ -229,7 +228,6 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
             Log.v("DEBUG", e.toString());
         }
         pattern.addStitchRel(0, 0, IFormat.END, true);
-        return pattern;
     }
 
     private void vp3WriteString(OutputStream stream, String str) throws IOException {

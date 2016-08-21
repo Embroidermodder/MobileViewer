@@ -1,6 +1,7 @@
 package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class IFormat {
@@ -50,11 +51,7 @@ public class IFormat {
     }
 
     public interface Reader {
-        boolean hasColor();
-
-        boolean hasStitches();
-
-        EmbPattern read(DataInputStream stream);
+        void read(EmbPattern pattern, InputStream stream);
     }
 
     public interface Writer {

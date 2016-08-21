@@ -2,6 +2,7 @@ package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class FormatXxx implements IFormat.Reader {
@@ -14,16 +15,15 @@ public class FormatXxx implements IFormat.Reader {
         return true;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         try {
-            stream.skipBytes(0x27);
+            stream.skip(0x27);
 
             int num_of_colors = BinaryHelper.readInt16LE(stream);
-            stream.skipBytes(0xD3);
+            stream.skip(0xD3);
             int palette_offset = BinaryHelper.readInt32LE(stream);
             for (int i = 0; i <= num_of_colors; i++) {
-                p.addThread(new EmbThread(0, 0, 0, "", ""));
+                pattern.addThread(new EmbThread(0, 0, 0, "", ""));
             }
             int dx, dy;
             byte b1, b2;
@@ -31,9 +31,9 @@ public class FormatXxx implements IFormat.Reader {
             boolean is_jump_stitch = false;
 
             for (int s = 0x100; s < palette_offset; s++) {
-                b1 = stream.readByte();
+                b1 = (byte)stream.read();
                 s++;
-                b2 = stream.readByte();
+                b2 = (byte)stream.read();
                 stitch_type = IFormat.NORMAL;
                 if (is_jump_stitch) {
                     stitch_type = IFormat.TRIM;
@@ -41,7 +41,7 @@ public class FormatXxx implements IFormat.Reader {
                 is_jump_stitch = false;
                 if (b1 == 0x7E || b1 == 0x7D) {
                     s++;
-                    dx = (short) ((b2 & 0xFF) + (stream.readByte() << 8));
+                    dx = (short) ((b2 & 0xFF) + (stream.read() << 8));
                     s++;
                     dy = (short) BinaryHelper.readInt16LE(stream);
                     s++;
@@ -54,9 +54,9 @@ public class FormatXxx implements IFormat.Reader {
                         stitch_type = IFormat.STOP;
                     } else if (b2 == 1) {
                         s++;
-                        b1 = stream.readByte();
+                        b1 = (byte)stream.read();
                         s++;
-                        b2 = stream.readByte();
+                        b2 = (byte)stream.read();
                         stitch_type = IFormat.TRIM;
                     } else {
                         continue;
@@ -67,22 +67,22 @@ public class FormatXxx implements IFormat.Reader {
                     dx = xxx_decode_byte(b1);
                     dy = xxx_decode_byte(b2);
                 }
-                p.addStitchRel(dx, dy, stitch_type, true);
+                pattern.addStitchRel(dx, dy, stitch_type, true);
             }
-            stream.skipBytes(6);
-            ArrayList<EmbThread> threadList = p.getThreadList();
+            stream.skip(6);
+            ArrayList<EmbThread> threadList = pattern.getThreadList();
             for (int i = 0; i <= num_of_colors; i++) {
-                stream.readByte();
-                int r = stream.readByte();
-                int g = stream.readByte();
-                int b = stream.readByte();
+                stream.read();
+                int r = stream.read();
+                int g = stream.read();
+                int b = stream.read();
                 threadList.get(i).setColor(new EmbColor(r, g, b));
             }
 
         } catch (IOException ex) {
 
         }
-        return p.getFlippedPattern(false, true);
+        pattern.getFlippedPattern(false, true);
     }
 
     int xxx_decode_byte(int b) {

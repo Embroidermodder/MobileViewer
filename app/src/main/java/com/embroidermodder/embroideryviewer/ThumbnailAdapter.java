@@ -75,7 +75,8 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
         try {
             fis = new FileInputStream(file);
             DataInputStream in = new DataInputStream(fis);
-            EmbPattern pattern = reader.read(in);
+            EmbPattern pattern = new EmbPattern();
+            reader.read(pattern, in);
             activity.setPattern(pattern);
             activity.dialogDismiss();
         } catch (FileNotFoundException e) {

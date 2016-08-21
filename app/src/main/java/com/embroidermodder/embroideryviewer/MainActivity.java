@@ -420,8 +420,8 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 try {
                     connection = (HttpURLConnection) url.openConnection();
                     InputStream in = new BufferedInputStream(connection.getInputStream());
-                    DataInputStream dataInputStream = new DataInputStream(in);
-                    pattern = formatReader.read(dataInputStream);
+                    pattern = new EmbPattern();
+                    formatReader.read(pattern, in);
                 } catch (IOException e) {
                     toast(R.string.error_file_read_failed);
                     return;
@@ -436,8 +436,8 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     if (mInputPFD != null) {
                         FileDescriptor fd = mInputPFD.getFileDescriptor();
                         InputStream fis = new FileInputStream(fd);
-                        DataInputStream dataInputStream = new DataInputStream(fis);
-                        pattern = formatReader.read(dataInputStream);
+                        pattern = new EmbPattern();
+                        formatReader.read(pattern, fis);
                     }
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);

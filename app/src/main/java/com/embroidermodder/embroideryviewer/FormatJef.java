@@ -2,6 +2,7 @@ package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class FormatJef implements IFormat.Reader {
 
@@ -177,8 +178,7 @@ public class FormatJef implements IFormat.Reader {
         return true;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         byte[] b = new byte[2];
         int flags;
         int stitchOffset, numberOfColors, numberOfStitches;
@@ -190,7 +190,7 @@ public class FormatJef implements IFormat.Reader {
             stream.skip(84);
             for (int i = 0; i < numberOfColors; i++) {
                 int index = BinaryHelper.readInt32LE(stream);
-                p.addThread(getThreadByIndex(index % 79));
+                pattern.addThread(getThreadByIndex(index % 79));
             }
             stream.skip(stitchOffset - 116 - (numberOfColors * 4));
             for (int i = 0; i < numberOfStitches + 100; i++) {
@@ -210,15 +210,15 @@ public class FormatJef implements IFormat.Reader {
                         }
                         flags = IFormat.TRIM;
                     } else if (b[1] == 0x10) {
-                        p.addStitchRel(0.0f, 0.0f, IFormat.END, true);
+                        pattern.addStitchRel(0.0f, 0.0f, IFormat.END, true);
                         break;
                     }
                 }
-                p.addStitchRel((float) b[0], (float) b[1], flags, true);
+                pattern.addStitchRel((float) b[0], (float) b[1], flags, true);
             }
         } catch (IOException ex) {
 
         }
-        return p.getFlippedPattern(false, true);
+        pattern.getFlippedPattern(false, true);
     }
 }

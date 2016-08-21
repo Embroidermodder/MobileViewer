@@ -2,6 +2,7 @@ package com.embroidermodder.embroideryviewer;
 import android.graphics.RectF;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class FormatDst implements IFormat.Reader, IFormat.Writer {
@@ -28,15 +29,14 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
         return returnCode;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         byte[] b = new byte[3];
 
         try {
             stream.skip(0x200);
             while (true) {
-                stream.readFully(b);
-                if (Thread.currentThread().isInterrupted()) return null;
+                stream.read(b);
+                if (Thread.currentThread().isInterrupted()) return;
                 int x = 0;
                 int y = 0;
                 if ((b[0] & 0x01) > 0) {
@@ -103,11 +103,11 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer {
                 if (flags == IFormat.END) {
                     break;
                 }
-                p.addStitchRel(x, y, flags, true);
+                pattern.addStitchRel(x, y, flags, true);
             }
         } catch (IOException ex) {
         }
-        return p.getFlippedPattern(false, true);
+        pattern.getFlippedPattern(false, true);
     }
 
     static int setBit(int pos) {

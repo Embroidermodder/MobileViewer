@@ -160,19 +160,20 @@ public class ThumbnailView extends View {
 
     public void load(final File file) {
         this.file = file;
-        if (file.isDirectory()) return;
-
+        if (file.isDirectory()) {
+            return;
+        }
         final IFormat.Reader reader = IFormat.getReaderByFilename(file.getPath());
-        if (reader == null) return;
-
+        if (reader == null) {
+            return;
+        }
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 FileInputStream fis = null;
                 try {
                     fis = new FileInputStream(file);
-                    DataInputStream in = new DataInputStream(fis);
-                    pattern = reader.read(in);
+                    reader.read(pattern, fis);
                     createFromPattern(pattern);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();

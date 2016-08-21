@@ -5,17 +5,18 @@ import android.graphics.RectF;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class FormatPec implements IFormat.Reader, IFormat.Writer {
 
-    public static void readPecStitches(EmbPattern pattern, DataInputStream stream) {
+    public static void readPecStitches(EmbPattern pattern, InputStream stream) {
         try {
             while (stream.available() > 0) {
-                int val1 = (stream.readByte() & 0xFF);
-                int val2 = (stream.readByte() & 0xFF);
+                int val1 = (stream.read() & 0xFF);
+                int val2 = (stream.read() & 0xFF);
 
                 int stitchType = IFormat.NORMAL;
                 if (val1 == 0xFF && val2 == 0x00) {
@@ -23,7 +24,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
                     break;
                 }
                 if (val1 == 0xFE && val2 == 0xB0) {
-                    stream.readByte();
+                    stream.read();
                     pattern.addStitchRel(0.0f, 0.0f, IFormat.STOP, true);
                     continue;
                 }
@@ -41,7 +42,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
                     if ((val1 & 0x800) > 0) {
                         val1 -= 0x1000;
                     }
-                    val2 = stream.readByte() & 0xFF;
+                    val2 = stream.read() & 0xFF;
                 } else if (val1 >= 0x40) {
                     val1 -= 0x80;
                 }
@@ -52,7 +53,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
                     if ((val2 & 0x10) > 0) {
                         stitchType = IFormat.JUMP;
                     }
-                    val2 = ((val2 & 0x0F) << 8) + (stream.readByte() & 0xFF);
+                    val2 = ((val2 & 0x0F) << 8) + (stream.read() & 0xFF);
 
                     /* Signed 12-bit arithmetic */
                     if ((val2 & 0x800) > 0) {
@@ -222,20 +223,18 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         return true;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         try {
             stream.skip(0x38);
-            int colorChanges = stream.readByte();
+            int colorChanges = stream.read();
             for (int i = 0; i <= colorChanges; i++) {
-                int index = stream.readByte();
-                p.addThread(getThreadByIndex(index % 65));
+                int index = stream.read();
+                pattern.addThread(getThreadByIndex(index % 65));
             }
             stream.skip(0x221 - (0x38 + 1 + colorChanges));
-            readPecStitches(p, stream);
+            readPecStitches(pattern, stream);
         } catch (IOException ex) {
         }
-        return p;
     }
 
     private static void encodeJump(OutputStream file, int x, int types) throws IOException {

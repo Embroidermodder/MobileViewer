@@ -2,6 +2,7 @@ package com.embroidermodder.embroideryviewer;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class FormatPcs implements IFormat.Reader {
 
@@ -21,8 +22,7 @@ public class FormatPcs implements IFormat.Reader {
         return true;
     }
 
-    public EmbPattern read(DataInputStream stream) {
-        EmbPattern p = new EmbPattern();
+    public void read(EmbPattern pattern, InputStream stream) {
         char allZeroColor = 1;
         int i;
         byte[] b = new byte[9];
@@ -31,8 +31,8 @@ public class FormatPcs implements IFormat.Reader {
         byte version, hoopSize;
         int colorCount;
         try {
-            version = stream.readByte();
-            hoopSize = stream.readByte();  /* 0 for PCD, 1 for PCQ (MAXI), 2 for PCS with small hoop(80x80), */
+            version = (byte)stream.read();
+            hoopSize = (byte)stream.read();  /* 0 for PCD, 1 for PCQ (MAXI), 2 for PCS with small hoop(80x80), */
                                       /* and 3 for PCS with large hoop (115x120) */
 
 //    switch (hoopSize) {
@@ -50,16 +50,16 @@ public class FormatPcs implements IFormat.Reader {
 
             for (i = 0; i < colorCount; i++) {
 
-                int red = stream.readByte() & 0xFF;
-                int green = stream.readByte() & 0xFF;
-                int blue = stream.readByte() & 0xFF;
+                int red = stream.read() & 0xFF;
+                int green = stream.read() & 0xFF;
+                int blue = stream.read() & 0xFF;
                 EmbThread t = new EmbThread(red, green, blue, "", "");
                 EmbColor col = t.getColor();
                 if (col.red != 0 || col.green != 0 || col.blue != 0) {
                     allZeroColor = 0;
                 }
-                p.addThread(t);
-                stream.readByte();
+                pattern.addThread(t);
+                stream.read();
             }
             st = BinaryHelper.readInt16LE(stream);
             for (i = 0; i < st; i++) {
@@ -74,12 +74,12 @@ public class FormatPcs implements IFormat.Reader {
                 }
                 dx = pcsDecode(b[1], b[2], b[3]);
                 dy = pcsDecode(b[5], b[6], b[7]);
-                p.addStitchAbs(dx, dy, flags, true);
+                pattern.addStitchAbs(dx, dy, flags, true);
             }
-            p.addStitchRel(0.0f, 0.0f, IFormat.END, true);
+            pattern.addStitchRel(0.0f, 0.0f, IFormat.END, true);
         } catch (IOException ex) {
 
         }
-        return p.getFlippedPattern(false, true);
+        pattern.getFlippedPattern(false, true);
     }
 }
