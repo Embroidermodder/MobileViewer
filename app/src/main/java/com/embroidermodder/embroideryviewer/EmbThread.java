@@ -10,6 +10,10 @@ public class EmbThread {
     public EmbThread() {
     }
 
+    public EmbThread(int color, String description, String catalogNumber) {
+        this((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, description, catalogNumber);
+    }
+
     public EmbThread(int red, int green, int blue, String description, String catalogNumber) {
         _color = new EmbColor(red, green, blue);
         _description = description;

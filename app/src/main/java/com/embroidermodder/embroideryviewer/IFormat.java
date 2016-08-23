@@ -37,6 +37,8 @@ public class IFormat {
                 return new FormatXxx();
             case ".png":
                 return new FormatPng();
+            case ".svg":
+                return new FormatSvg();
             default:
                 return null;
         }
