@@ -36,6 +36,7 @@
                 <data android:scheme="file" />
                 <data android:scheme="content" />
                 <data android:host="*" />
+
                 <data android:pathPattern=".*\\.dst" />
                 <data android:pathPattern=".*\\.DST" />
                 <data android:mimeType="application/x-dst" />
@@ -63,6 +64,9 @@
                 <data android:pathPattern=".*\\.sew" />
                 <data android:pathPattern=".*\\.SEW" />
                 <data android:mimeType="application/x-sew" />
+                <data android:pathPattern=".*\\.svg" />
+                <data android:pathPattern=".*\\.SVG" />
+                <data android:mimeType="image/svg+xml" />
                 <data android:pathPattern=".*\\.vp3" />
                 <data android:pathPattern=".*\\.VP3" />
                 <data android:mimeType="application/x-vp3" />
@@ -125,6 +129,12 @@
                     android:pathPattern=".*\\.SEW" />
                 <data
                     android:mimeType="*/*"
+                    android:pathPattern=".*\\.svg" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.SVG" />
+                <data
+                    android:mimeType="*/*"
                     android:pathPattern=".*\\.vp3" />
                 <data
                     android:mimeType="*/*"
@@ -176,6 +186,8 @@
                 <data android:pathPattern=".*\\.PES" />
                 <data android:pathPattern=".*\\.sew" />
                 <data android:pathPattern=".*\\.SEW" />
+                <data android:pathPattern=".*\\.svg" />
+                <data android:pathPattern=".*\\.SVG" />
                 <data android:pathPattern=".*\\.vp3" />
                 <data android:pathPattern=".*\\.VP3" />
                 <data android:pathPattern=".*\\.XXX" />
