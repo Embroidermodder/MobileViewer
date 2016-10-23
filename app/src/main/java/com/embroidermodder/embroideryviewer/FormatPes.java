@@ -3,7 +3,6 @@ package com.embroidermodder.embroideryviewer;
 import android.graphics.RectF;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

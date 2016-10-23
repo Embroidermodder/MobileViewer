@@ -267,8 +267,8 @@ public class FormatSvg implements IFormat.Writer, IFormat.Reader {
                     case ATTR_STYLE:
                         attributeValue = attribs.getValue(i);
                         String[] styles = attributeValue.split(";");
-                        for (int i1 = 0, m = styles.length; i1 < m; i1++) {
-                            String v = styles[i1];
+
+                        for (String v : styles) {
                             String[] vs = v.split(":");
                             if (vs.length == 2) {
                                 context.put(vs[0], vs[1]);
@@ -366,8 +366,7 @@ public class FormatSvg implements IFormat.Writer, IFormat.Reader {
 
                 default:
             }
-            int c = Color.argb(a, r, g, b);
-            return c;
+            return Color.argb(a, r, g, b);
         }
         m = rgbPattern.matcher(color);
         if (m.find()) {
@@ -397,7 +396,7 @@ public class FormatSvg implements IFormat.Writer, IFormat.Reader {
     }
 
     public static int newColor(int r, int g, int b) {
-        return ((r & 255) << 16) | ((g & 255) << 8) | ((b & 255) << 0);
+        return ((r & 255) << 16) | ((g & 255) << 8) | ((b & 255));
     }
 
     public static int svgColor(String color) {
