@@ -1,5 +1,16 @@
 package com.embroidermodder.embroideryviewer;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Random;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
@@ -31,17 +42,6 @@ import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Random;
-
 public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
     final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     private static final String AUTHORITY = "com.embroidermodder.embroideryviewer";
     String fragmentTag;
     private final int SELECT_FILE = 1;
-    private Intent _intent;
     private DrawView drawView;
     private DrawerLayout mainActivity;
     private Uri _uriToLoad;
@@ -103,21 +102,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             mainActivity.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        if (null != this._intent) {
-            outState.putParcelable("intent", this._intent);
-        }
-    }
-
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        if (null != savedInstanceState && savedInstanceState.containsKey("intent")) {
-            Intent intent = savedInstanceState.getParcelable("intent");
-            onSelectFileResult(intent);
         }
     }
 
@@ -327,7 +311,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     }
 
     private void onSelectFileResult(Intent data) {
-        this._intent = data;
         Uri uri = data.getData();
         if (uri != null) {
             readFileWrapper(uri);
