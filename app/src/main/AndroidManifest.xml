@@ -64,6 +64,9 @@
                 <data android:pathPattern=".*\\.sew" />
                 <data android:pathPattern=".*\\.SEW" />
                 <data android:mimeType="application/x-sew" />
+                <data android:pathPattern=".*\\.shv" />
+                <data android:pathPattern=".*\\.SHV" />
+                <data android:mimeType="application/x-shv" />
                 <data android:pathPattern=".*\\.svg" />
                 <data android:pathPattern=".*\\.SVG" />
                 <data android:mimeType="image/svg+xml" />
@@ -129,6 +132,12 @@
                     android:pathPattern=".*\\.SEW" />
                 <data
                     android:mimeType="*/*"
+                    android:pathPattern=".*\\.shv" />
+                <data
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.SHV" />
+                <data
+                    android:mimeType="*/*"
                     android:pathPattern=".*\\.svg" />
                 <data
                     android:mimeType="*/*"
@@ -186,6 +195,8 @@
                 <data android:pathPattern=".*\\.PES" />
                 <data android:pathPattern=".*\\.sew" />
                 <data android:pathPattern=".*\\.SEW" />
+                <data android:pathPattern=".*\\.shv" />
+                <data android:pathPattern=".*\\.SHV" />
                 <data android:pathPattern=".*\\.svg" />
                 <data android:pathPattern=".*\\.SVG" />
                 <data android:pathPattern=".*\\.vp3" />

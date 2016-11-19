@@ -30,6 +30,12 @@ public class BinaryHelper {
         return (fullInt[1] & 0xFF) + ((fullInt[0] & 0xFF) << 8);
     }
 
+    public static int readInt8(InputStream stream) throws IOException {
+        byte fullInt[] = new byte[1];
+        if(stream.read(fullInt) <= 0) throw new IOException();
+        return (fullInt[0] & 0xFF);
+    }
+
     public static void writeShort(OutputStream stream, int value) throws IOException {
         stream.write(value & 0xFF);
         stream.write((value >> 8) & 0xFF);

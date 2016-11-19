@@ -104,7 +104,9 @@ public class EmbPattern {
         }
         _previousX = x;
         _previousY = y;
-        this._currentStitchBlock.add(x, y);
+        if ((flags & IFormat.JUMP) == 0) {
+            this._currentStitchBlock.add(x, y);
+        }
     }
 
     /**
