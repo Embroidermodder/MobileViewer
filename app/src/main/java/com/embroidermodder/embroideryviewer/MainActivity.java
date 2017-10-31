@@ -130,24 +130,24 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             case R.id.action_show_statistics:
                 showStatistics();
                 return true;
-            //case R.id.action_share:
-            //    saveFileWrapper(new PermissionRequired() {
-            //        @Override
-            //        public void openExternalStorage(File root, String data) {
-            //            saveFile(root, data);
-            //        }
-            //    }, Environment.getExternalStorageDirectory(), "");
-            //    break;
-            //case R.id.action_load_file:
-            //    dialogDismiss();
-            //   makeDialog(R.layout.embroidery_thumbnail_view);
-            //    saveFileWrapper(new PermissionRequired() {
-            //        @Override
-            //        public void openExternalStorage(File root, String data) {
-            //            loadFile(root, data);
-            //        }
-            //    }, Environment.getExternalStorageDirectory(), "");
-            //    break;
+            case R.id.action_share:
+                saveFileWrapper(new PermissionRequired() {
+                    @Override
+                    public void openExternalStorage(File root, String data) {
+                        saveFile(root, data);
+                    }
+                }, Environment.getExternalStorageDirectory(), "");
+                break;
+            case R.id.action_load_file:
+                dialogDismiss();
+               makeDialog(R.layout.embroidery_thumbnail_view);
+                saveFileWrapper(new PermissionRequired() {
+                    @Override
+                    public void openExternalStorage(File root, String data) {
+                        loadFile(root, data);
+                    }
+                }, Environment.getExternalStorageDirectory(), "");
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             int n = 10000;
             Random generator = new Random();
             n = generator.nextInt(n);
-            String filename = "Image-" + n + ".pec";
+            String filename = "Image-" + n + ".pes";
             IFormat.Writer format = IFormat.getWriterByFilename(filename);
             if (format != null) {
                 File file = new File(root, filename);
@@ -239,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         }
         return false;
     }
-
 
     public Dialog makeDialog(int layout) {
         LayoutInflater inflater = getLayoutInflater();

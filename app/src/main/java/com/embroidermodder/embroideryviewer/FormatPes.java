@@ -1,6 +1,7 @@
 package com.embroidermodder.embroideryviewer;
 
 import android.graphics.RectF;
+import android.os.Debug;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -9,7 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-public class FormatPes implements IFormat.Reader {
+public class FormatPes implements IFormat.Reader, IFormat.Writer {
 
     private final ArrayList<EmbThread> _threads;
     public FormatPes(){
@@ -89,8 +90,8 @@ public class FormatPes implements IFormat.Reader {
             BinaryHelper.writeShort(file, (short)colorCode); /* color code */
             BinaryHelper.writeShort(file, (short)count); /* stitches in block */
             for (int j = 0; j < stitchBlock.count(); j++) {
-                BinaryHelper.writeShort(file, (short)(stitchBlock.getX(j) - bounds.left));
-                BinaryHelper.writeShort(file, (short)(stitchBlock.getY(j) + bounds.top));
+                BinaryHelper.writeShort(file, (short) (stitchBlock.getX(j) - bounds.left));
+                BinaryHelper.writeShort(file, (short) (stitchBlock.getY(j) + bounds.top));
             }
             if(lastBlock != stitchBlock) {
                 BinaryHelper.writeShort(file, 0x8003);
@@ -112,7 +113,7 @@ public class FormatPes implements IFormat.Reader {
         int i;
         int hoopHeight = 1800, hoopWidth = 1300;
         RectF bounds;
-        BinaryHelper.writeShort(file, 0x07); /* string length */
+        BinaryHelper.writeShort(file, 0x07);
         file.write("CEmbOne".getBytes());
         bounds = pattern.calculateBoundingBox();
 
@@ -146,7 +147,7 @@ public class FormatPes implements IFormat.Reader {
     /*WriteSubObjects(br, pes, SubBlocks); */
     }
 
-    public void write(EmbPattern pattern, FileOutputStream file) {//String fileName)
+    public void write(EmbPattern pattern, OutputStream file) {
         try {
             file.write("#PES0001".getBytes());
 

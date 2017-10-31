@@ -5,18 +5,44 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.RectF;
+import android.app.ProgressDialog;
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+
+
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.ArrayList;
 
 public class EmbPattern {
+    static final int FLIP_HORIZONTAL = 0;
+    static final int FLIP_VERTICAL = 1;
+    static final int FLIP_BOTH = 2;
+
+    static final int ROTATE_RIGHT = 0;
+    static final int ROTATE_LEFT = 1;
+
+    static final int RIGHT_TO_LEFT = 0;
+    static final int LEFT_TO_RIGHT = 1;
+
     private static final float PIXELS_PER_MM = 10;
     private final ArrayList<StitchBlock> _stitchBlocks;
     private final ArrayList<EmbThread> _threadList;
     private final ArrayList<EmbPattern.Listener> _listeners;
     private String _filename;
     private StitchBlock _currentStitchBlock;
-
+    private ProgressDialog progress;
     private float _previousX = 0;
     private float _previousY = 0;
 
@@ -26,9 +52,72 @@ public class EmbPattern {
         _threadList = new ArrayList<>();
         _currentStitchBlock = null;
     }
-
-    public ArrayList<StitchBlock> getStitchBlocks() {
+    public ArrayList<StitchBlock> getStitchBlocks()
+    {
         return _stitchBlocks;
+    }
+    public ArrayList<EmbPoint> stitches = new ArrayList<EmbPoint>();
+
+    public  ArrayList<EmbPoint> getstitches() {
+        return stitches;
+    }
+
+    public void correctForMaxStitchLength(double maxStitchLength, double maxJumpLength) {
+        double maxLen;
+        float dx, dy, xx, yy, maxXY, addX, addY;
+        int splits, flagsToUse;
+        for (int i = 1; i < stitches.size(); i++) {
+            xx = stitches.get(i-1).X;
+            yy = stitches.get(i-1).Y;
+            dx = stitches.get(i).X - xx;
+            dy = stitches.get(i).Y - yy;
+
+            if ((Math.abs(dx) > maxStitchLength) || (Math.abs(dy) > maxStitchLength)) {
+                maxXY = Math.abs(dx);
+                if (Math.abs(dy) > maxXY) {
+                    maxXY = Math.abs(dy);
+                }
+                if ((stitches.get(i).Flags & ( IFormat.JUMP | IFormat.TRIM)) > 0) {
+                    maxLen = maxJumpLength;
+                } else {
+                    maxLen = maxStitchLength;
+                }
+                splits = (int)Math.ceil((double)maxXY / maxLen);
+                if (splits > 1) {
+                    flagsToUse = stitches.get(i).Flags;
+                    addX = dx / splits;
+                    addY = dy / splits;
+                    for (int j = 1; j < splits; j++) {
+                        stitches.add(i, new EmbPoint(xx + addX * j, yy + addY * j, flagsToUse));
+                        i++;
+                    }
+                    i--;
+                }
+            }
+        }
+    }
+
+    public void rotate_90(int direction) {
+        for (int s = 0; s < stitches.size(); s++) {
+            float tmp = stitches.get(s).Y;
+            stitches.get(s).Y = -stitches.get(s).X;
+            if (direction == ROTATE_LEFT) {
+                stitches.get(s).X = tmp;
+            } else if (direction == ROTATE_RIGHT) {
+                stitches.get(s).X = -tmp;
+            }
+        }
+    }
+
+    public void rel_flip(int flip_type) {
+        for (int s = 0; s < stitches.size(); s++) {
+            if (flip_type == FLIP_HORIZONTAL || flip_type == FLIP_BOTH) {
+                stitches.get(s).X *= -1;
+            }
+            if (flip_type == FLIP_VERTICAL || flip_type == FLIP_BOTH) {
+                stitches.get(s).Y *= -1;
+            }
+        }
     }
 
     public ArrayList<EmbThread> getThreadList() {
@@ -44,6 +133,8 @@ public class EmbPattern {
     }
 
     public void addStitchAbs(float x, float y, int flags, boolean isAutoColorIndex) {
+        EmbPoint s = new EmbPoint(x, y, flags);
+        stitches.add(s);
         if (this._currentStitchBlock == null) {
             if (_stitchBlocks.size() == 0) {
                 this._currentStitchBlock = new StitchBlock();
@@ -102,6 +193,7 @@ public class EmbPattern {
             this.getStitchBlocks().add(sb);
             return;
         }
+
         _previousX = x;
         _previousY = y;
         if ((flags & IFormat.JUMP) == 0) {
@@ -200,13 +292,13 @@ public class EmbPattern {
         int totalSize = getTotalSize();
         int jumpCount = getJumpCount();
         int colorCount = getColorCount();
-        sb.append(context.getString(R.string.number_of_stitches)).append(totalSize + jumpCount + colorCount).append('\n');
+        //  sb.append(context.getString(R.string.number_of_stitches)).append(totalSize + jumpCount + colorCount).append('\n');
         sb.append(context.getString(R.string.normal_stitches)).append(totalSize).append('\n');
         sb.append(context.getString(R.string.jumps)).append(jumpCount).append('\n');
         sb.append(context.getString(R.string.colors)).append(colorCount).append('\n');
         sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
         float totalLength = getTotalLength();
-        sb.append(context.getString(R.string.total_length)).append(convert(totalLength)).append(" mm\n");
+        //  sb.append(context.getString(R.string.total_length)).append(convert(totalLength)).append(" mm\n");
         return sb.toString();
     }
 

@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,7 +17,7 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
     public void read(EmbPattern pattern, InputStream stream) {
         byte b0, b1;
         try {
-            for (int i = 0; stream.available() > 0; i++) {
+            while(stream.available() > 0) {
                 int flags = IFormat.NORMAL;
                 b0 = (byte)stream.read();
                 if (stream.available() <= 0) {
