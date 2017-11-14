@@ -1,37 +1,32 @@
 package com.embroidermodder.embroideryviewer;
 
 import android.graphics.RectF;
-import android.os.Build;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-
 import java.util.Random;
 
-final class DefineConstants
-{
-public static final int HOOP_126X110 = 0;
-public static final int HOOP_110X110 = 1;
-public static final int HOOP_50X50 = 2;
-public static final int HOOP_140X200 = 3;
-public static final int HOOP_230X200 = 4;
+final class DefineConstants {
+    public static final int HOOP_126X110 = 0;
+    public static final int HOOP_110X110 = 1;
+    public static final int HOOP_50X50 = 2;
+    public static final int HOOP_140X200 = 3;
+    public static final int HOOP_230X200 = 4;
 }
 
 public class FormatJef implements IFormat.Reader, IFormat.Writer {
-private static int jefGetHoopSize(int width, int height) {
-if (width < 50 && height < 50) {
-return DefineConstants.HOOP_50X50;
-}
-if (width < 110 && height < 110) {
-return DefineConstants.HOOP_110X110;
-}
-if (width < 140 && height < 200) {
-return DefineConstants.HOOP_140X200;
-}
-return ((int) DefineConstants.HOOP_110X110);
-}
+    private static int jefGetHoopSize(int width, int height) {
+        if (width < 50 && height < 50) {
+            return DefineConstants.HOOP_50X50;
+        }
+        if (width < 110 && height < 110) {
+            return DefineConstants.HOOP_110X110;
+        }
+        if (width < 140 && height < 200) {
+            return DefineConstants.HOOP_140X200;
+        }
+        return DefineConstants.HOOP_110X110;
+    }
 
     public static EmbThread getThreadByIndex(int index) {
         switch (index) {
@@ -210,12 +205,6 @@ return ((int) DefineConstants.HOOP_110X110);
         int flags;
         int stitchOffset, numberOfColors, numberOfStitches;
         try {
-
-
-
-
-
-
             stitchOffset = BinaryHelper.readInt32LE(stream);
             stream.skip(20);
             numberOfColors = BinaryHelper.readInt32LE(stream);
@@ -226,7 +215,6 @@ return ((int) DefineConstants.HOOP_110X110);
                 pattern.addThread(getThreadByIndex(index % 79));
             }
             stream.skip(stitchOffset - 116 - (numberOfColors * 4));
-
 
 
             for (int i = 0; stream.available() > 0; i++) {
@@ -242,170 +230,147 @@ return ((int) DefineConstants.HOOP_110X110);
 
                         flags = IFormat.STOP;
                     } else if ((b[1] == 0x04) || (b[1] == 0x02)) {
-
                         if (stream.read(b) != 2) {
                             break;
                         }
                         flags = IFormat.TRIM;
                     } else if (b[1] == 0x10) {
                         pattern.addStitchRel(0, 0, IFormat.END, true);
-                  //      pattern.add_stitch_rel(0, 0, IFormat.END);
                         break;
                     }
                 }
                 pattern.addStitchRel((float) b[0], (float) b[1], flags, true);
-               // pattern.add_stitch_rel((float) b[0], (float) b[1], flags);
-
             }
         } catch (IOException ex) {
 
         }
         pattern.getFlippedPattern(false, true);
-      //  pattern.addStitchRel(0, 0, IFormat.END, true);
-         pattern.rel_flip(1);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
+        pattern.rel_flip(1);
     }
 
-private void encode(byte[] b, byte dx, byte dy, int flags) {
-    if (flags == IFormat.TRIM) {
-        b[0] = (byte) 128;
-        b[1] = 2;
-        b[2] = dx;
-        b[3] = dy;
-    } else if (flags == IFormat.STOP) {
-        b[0] = (byte) 128;
-        b[1] = 1;
-        b[2] = dx;
-        b[3] = dy;
-    } else {
-        b[0] = dx;
-        b[1] = dy;
+    private void encode(byte[] b, byte dx, byte dy, int flags) {
+        if (flags == IFormat.TRIM) {
+            b[0] = (byte) 128;
+            b[1] = 2;
+            b[2] = dx;
+            b[3] = dy;
+        } else if (flags == IFormat.STOP) {
+            b[0] = (byte) 128;
+            b[1] = 1;
+            b[2] = dx;
+            b[3] = dy;
+        } else {
+            b[0] = dx;
+            b[1] = dy;
+        }
     }
-}
 
-public void write(EmbPattern pattern, OutputStream stream) {
-    pattern.correctForMaxStitchLength(127, 127);
-    int minColors;
-    int colorCount=0;
-    int designWidth;
-    int designHeight;
-    int offsets;
-    double dx, dy;
-    double xx = 0.0, yy = 0.0;
-    int pointCount = 0;
-    int blockCount = 0;
-    colorCount= pattern.getcolor();
+    public void write(EmbPattern pattern, OutputStream stream) {
+        pattern.correctForMaxStitchLength(127, 127);
+        int minColors;
+        int colorCount = 0;
+        int designWidth;
+        int designHeight;
+        int offsets;
+        double dx, dy;
+        double xx = 0.0, yy = 0.0;
+        int pointCount = 0;
+        colorCount = pattern.getThreadList().size();
+        pointCount = pattern.getstitches().size();
+        byte b[] = new byte[4];
+        try {
+            //-------------I NEED TO CHANGE HERE CALCULATION OF OFF SET
+            minColors = Math.max(colorCount, 6);
+            offsets = 0x74 + (minColors * 4);
+            BinaryHelper.writeInt32(stream, offsets);
+            BinaryHelper.writeInt32(stream, 0x0A);
+            //time and date
+            stream.write(String.format("20122017218088").getBytes());
+            stream.write(0x00);
+            stream.write(0x00);
+            BinaryHelper.writeInt32(stream, colorCount);
+            BinaryHelper.writeInt32(stream, pointCount + Math.max(0, (6 - colorCount) * 2) + 1);
 
+            RectF boundingRect = pattern.calculateBoundingBox();
+            designWidth = (int) (boundingRect.width());
+            designHeight = (int) (boundingRect.width());
 
-    pointCount =  pattern.gettotal();
-    blockCount=blockCount;
+            BinaryHelper.writeInt32(stream, jefGetHoopSize(designWidth, designHeight));
+            /* Distance from center of Hoop */
+            BinaryHelper.writeInt32(stream, designWidth / 2); // left
+            BinaryHelper.writeInt32(stream, designHeight / 2); // top
+            BinaryHelper.writeInt32(stream, designWidth / 2); // right
+            BinaryHelper.writeInt32(stream, designHeight / 2); // bottom
 
-
-    byte b[] = new byte[4];
-    try {
-        //-------------I NEED TO CHANGE HERE CALCULATION OF OFF SET
-        minColors = Math.max(colorCount, 6);
-        offsets= 0x74 + (minColors * 4);
-        BinaryHelper.writeInt32(stream, offsets);
-        BinaryHelper.writeInt32(stream, 0x0A);
-        //time and date
-        stream.write(String.format("20122017218088").getBytes());
-        stream.write(0x00);
-        stream.write(0x00);
-        BinaryHelper.writeInt32(stream, colorCount);
-        BinaryHelper.writeInt32(stream, pointCount + Math.max(0, (6 - colorCount) * 2) + 1);
-
-        RectF boundingRect = pattern.calculateBoundingBox();
-        designWidth = (int)(boundingRect.width());
-        designHeight = (int)(boundingRect.width());
-
-        BinaryHelper.writeInt32(stream, jefGetHoopSize(designWidth, designHeight));
-/* Distance from center of Hoop */
-BinaryHelper.writeInt32(stream, (int)(designWidth / 2)); // left
-BinaryHelper.writeInt32(stream, (int)(designHeight / 2)); // top
-BinaryHelper.writeInt32(stream, (int)(designWidth / 2)); // right
-BinaryHelper.writeInt32(stream, (int)(designHeight / 2)); // bottom
-
-/* Distance from default 110 x 110 Hoop */
-if (Math.min(550 - designWidth / 2, 550 - designHeight / 2) >= 0)
-{
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 550 - designWidth / 2)); // left
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 550 - designHeight / 2)); // top
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 550 - designWidth / 2)); // right
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 550 - designHeight / 2)); // bottom
-}
-else
-{
-BinaryHelper.writeInt32(stream,-1);
-BinaryHelper.writeInt32(stream,-1);
-BinaryHelper.writeInt32(stream,-1);
-BinaryHelper.writeInt32(stream,-1);
-}
-
-/* Distance from default 50 x 50 Hoop */
-if ( Math.min(250 - designWidth / 2, 250 - designHeight / 2) >= 0)
-{
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 250 - designWidth / 2)); // left
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 250 - designHeight / 2)); // top
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 250 - designWidth / 2)); // right
-BinaryHelper.writeInt32(stream, (int) Math.max(-1, 250 - designHeight / 2)); // bottom
-}
-else
-{
-BinaryHelper.writeInt32(stream,-1);
-BinaryHelper.writeInt32(stream,-1);
-BinaryHelper.writeInt32(stream,-1);
-BinaryHelper.writeInt32(stream,-1);
-}
-
-/* Distance from default 140 x 200 Hoop */
-BinaryHelper.writeInt32(stream, (int)(700 - designWidth / 2)); // left
-BinaryHelper.writeInt32(stream, (int)(1000 - designHeight / 2)); // top
-BinaryHelper.writeInt32(stream, (int)(700 - designWidth / 2)); // right
-BinaryHelper.writeInt32(stream, (int)(1000 - designHeight / 2)); // bottom
-
-/* repeated Distance from default 140 x 200 Hoop /
-/ TODO: Actually should be distance to custom hoop */
-BinaryHelper.writeInt32(stream, (int)(630 - designWidth / 2)); // left
-BinaryHelper.writeInt32(stream, (int)(550 - designHeight / 2)); // top
-BinaryHelper.writeInt32(stream, (int)(630 - designWidth / 2)); // right
-BinaryHelper.writeInt32(stream, (int)(550 - designHeight / 2)); // bottom
-
-        Random rand = new Random();
-        for (int i =0; i < colorCount; i++) {
-            float r = rand.nextInt(145);
-            BinaryHelper.writeInt32(stream, (int)r); //round colcor
-        }
-        for(int i = 0; i < (minColors - colorCount); i++)
-        {
-            BinaryHelper.writeInt32(stream, 0x0D);
-        }
-
-
-        int flags;
-
-        for (EmbPoint stitches1 : pattern.getstitches1()) {
-
-
-            float x = stitches1.X;
-            float y = stitches1.Y;
-            dx = x - xx;
-            dy = y - yy;
-            xx = x;
-            yy = y;
-            flags = stitches1.Flags;
-            encode(b, (byte) Math.round(dx), (byte) Math.round(dy), flags);
-            stream.write(b[0]);
-            stream.write(b[1]);
-            if ((b[0] == -128) && ((b[1] == 1) || (b[1] == 2) || (b[1] == 4))) {
-                stream.write(b[2]);
-                stream.write(b[3]);
+            /* Distance from default 110 x 110 Hoop */
+            if (Math.min(550 - designWidth / 2, 550 - designHeight / 2) >= 0) {
+                BinaryHelper.writeInt32(stream, Math.max(-1, 550 - designWidth / 2)); // left
+                BinaryHelper.writeInt32(stream, Math.max(-1, 550 - designHeight / 2)); // top
+                BinaryHelper.writeInt32(stream, Math.max(-1, 550 - designWidth / 2)); // right
+                BinaryHelper.writeInt32(stream, Math.max(-1, 550 - designHeight / 2)); // bottom
+            } else {
+                BinaryHelper.writeInt32(stream, -1);
+                BinaryHelper.writeInt32(stream, -1);
+                BinaryHelper.writeInt32(stream, -1);
+                BinaryHelper.writeInt32(stream, -1);
             }
+
+            /* Distance from default 50 x 50 Hoop */
+            if (Math.min(250 - designWidth / 2, 250 - designHeight / 2) >= 0) {
+                BinaryHelper.writeInt32(stream, Math.max(-1, 250 - designWidth / 2)); // left
+                BinaryHelper.writeInt32(stream, Math.max(-1, 250 - designHeight / 2)); // top
+                BinaryHelper.writeInt32(stream, Math.max(-1, 250 - designWidth / 2)); // right
+                BinaryHelper.writeInt32(stream, Math.max(-1, 250 - designHeight / 2)); // bottom
+            } else {
+                BinaryHelper.writeInt32(stream, -1);
+                BinaryHelper.writeInt32(stream, -1);
+                BinaryHelper.writeInt32(stream, -1);
+                BinaryHelper.writeInt32(stream, -1);
+            }
+
+            /* Distance from default 140 x 200 Hoop */
+            BinaryHelper.writeInt32(stream, 700 - designWidth / 2); // left
+            BinaryHelper.writeInt32(stream, 1000 - designHeight / 2); // top
+            BinaryHelper.writeInt32(stream, 700 - designWidth / 2); // right
+            BinaryHelper.writeInt32(stream, 1000 - designHeight / 2); // bottom
+
+            /* repeated Distance from default 140 x 200 Hoop /
+            / TODO: Actually should be distance to custom hoop */
+            BinaryHelper.writeInt32(stream, 630 - designWidth / 2); // left
+            BinaryHelper.writeInt32(stream, 550 - designHeight / 2); // top
+            BinaryHelper.writeInt32(stream, 630 - designWidth / 2); // right
+            BinaryHelper.writeInt32(stream, 550 - designHeight / 2); // bottom
+
+            Random rand = new Random();
+            for (int i = 0; i < colorCount; i++) {
+                float r = rand.nextInt(145);
+                BinaryHelper.writeInt32(stream, (int) r); //round colcor
+            }
+            for (int i = 0; i < (minColors - colorCount); i++) {
+                BinaryHelper.writeInt32(stream, 0x0D);
+            }
+            int flags;
+
+            for (EmbPoint stitches1 : pattern.getstitches()) {
+                float x = stitches1.X;
+                float y = stitches1.Y;
+                dx = x - xx;
+                dy = y - yy;
+                xx = x;
+                yy = y;
+                flags = stitches1.Flags;
+                encode(b, (byte) Math.round(dx), (byte) Math.round(dy), flags);
+                stream.write(b[0]);
+                stream.write(b[1]);
+                if ((b[0] == -128) && ((b[1] == 1) || (b[1] == 2) || (b[1] == 4))) {
+                    stream.write(b[2]);
+                    stream.write(b[3]);
+                }
+            }
+            stream.write(0x1A);
+            stream.close();
+        } catch (IOException ex) {
         }
-
-        stream.write(0x1A);
-        stream.close();
-    } catch (IOException ex) {
     }
-
-}
 }
