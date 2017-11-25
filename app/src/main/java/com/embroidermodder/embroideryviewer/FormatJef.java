@@ -1,20 +1,23 @@
 package com.embroidermodder.embroideryviewer;
 
+import android.graphics.Color;
 import android.graphics.RectF;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-final class DefineConstants {
-    public static final int HOOP_126X110 = 0;
-    public static final int HOOP_110X110 = 1;
-    public static final int HOOP_50X50 = 2;
-    public static final int HOOP_140X200 = 3;
-    public static final int HOOP_230X200 = 4;
-}
-
 public class FormatJef implements IFormat.Reader, IFormat.Writer {
+    final class DefineConstants {
+        public static final int HOOP_126X110 = 0;
+        public static final int HOOP_110X110 = 1;
+        public static final int HOOP_50X50 = 2;
+        public static final int HOOP_140X200 = 3;
+        public static final int HOOP_230X200 = 4;
+    }
+
     private static int jefGetHoopSize(int width, int height) {
         if (width < 50 && height < 50) {
             return DefineConstants.HOOP_50X50;
@@ -250,14 +253,19 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {
-        if (flags == IFormat.TRIM) {
+        if (flags == IFormat.STOP) {
+            b[0] = (byte) 128;
+            b[1] = 1;
+            b[2] = dx;
+            b[3] = dy;
+        } else if ((flags & IFormat.TRIM) > 0) {
             b[0] = (byte) 128;
             b[1] = 2;
             b[2] = dx;
             b[3] = dy;
-        } else if (flags == IFormat.STOP) {
+        } else if ((flags & IFormat.JUMP) > 0) {
             b[0] = (byte) 128;
-            b[1] = 1;
+            b[1] = 4;
             b[2] = dx;
             b[3] = dy;
         } else {
@@ -267,8 +275,8 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
     }
 
     public void write(EmbPattern pattern, OutputStream stream) {
+        pattern.rel_flip(1);
         pattern.correctForMaxStitchLength(127, 127);
-        int minColors;
         int colorCount = 0;
         int designWidth;
         int designHeight;
@@ -281,8 +289,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
         byte b[] = new byte[4];
         try {
             //-------------I NEED TO CHANGE HERE CALCULATION OF OFF SET
-            minColors = Math.max(colorCount, 6);
-            offsets = 0x74 + (minColors * 4);
+            offsets = 0x74 + (colorCount * 8);
             BinaryHelper.writeInt32(stream, offsets);
             BinaryHelper.writeInt32(stream, 0x0A);
             //time and date
@@ -290,7 +297,15 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             stream.write(0x00);
             stream.write(0x00);
             BinaryHelper.writeInt32(stream, colorCount);
-            BinaryHelper.writeInt32(stream, pointCount + Math.max(0, (6 - colorCount) * 2) + 1);
+
+            int jumpAndStopCount = 0;
+            for (EmbPoint stitch : pattern.getstitches()) {
+                if ((stitch.Flags & (IFormat.STOP|IFormat.TRIM|IFormat.JUMP)) > 0) {
+                    jumpAndStopCount++;
+                }
+            }
+
+            BinaryHelper.writeInt32(stream, pointCount + jumpAndStopCount);
 
             RectF boundingRect = pattern.calculateBoundingBox();
             designWidth = (int) (boundingRect.width());
@@ -342,12 +357,16 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             BinaryHelper.writeInt32(stream, 630 - designWidth / 2); // right
             BinaryHelper.writeInt32(stream, 550 - designHeight / 2); // bottom
 
+
             Random rand = new Random();
-            for (int i = 0; i < colorCount; i++) {
-                float r = rand.nextInt(145);
-                BinaryHelper.writeInt32(stream, (int) r); //round colcor
+            ArrayList<EmbThread> jefThreads = new ArrayList<EmbThread>();
+            for(int i = 0; i <= 78; i++){
+                jefThreads.add(getThreadByIndex(i));
             }
-            for (int i = 0; i < (minColors - colorCount); i++) {
+            for (EmbThread t : pattern.getThreadList()) {
+                BinaryHelper.writeInt32(stream, t.findNearestColorIndex(jefThreads));
+            }
+            for (int i = 0; i < colorCount; i++) {
                 BinaryHelper.writeInt32(stream, 0x0D);
             }
             int flags;
@@ -368,7 +387,9 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
                     stream.write(b[3]);
                 }
             }
-            stream.write(0x1A);
+            stream.write(0x80);
+            stream.write(0x10);
+            pattern.rel_flip(1);
             stream.close();
         } catch (IOException ex) {
         }

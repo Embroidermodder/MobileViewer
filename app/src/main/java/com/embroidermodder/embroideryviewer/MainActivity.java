@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             int n = 10000;
             Random generator = new Random();
             n = generator.nextInt(n);
-            String filename = "Image-" + n + ".pes";
+            String filename = "Image-" + n + ".jef";
             IFormat.Writer format = IFormat.getWriterByFilename(filename);
             if (format != null) {
                 File file = new File(root, filename);
