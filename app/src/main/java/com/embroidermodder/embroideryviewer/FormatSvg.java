@@ -340,18 +340,19 @@ public class FormatSvg implements IFormat.Writer, IFormat.Reader {
             String rgb = m.group(1);
             switch (rgb.length()) {
                 case 3:
-                    r = Integer.parseInt(rgb.substring(0, 1), 16);
-                    g = Integer.parseInt(rgb.substring(1, 2), 16);
-                    b = Integer.parseInt(rgb.substring(2, 3), 16);
+                    r = Integer.parseInt(rgb.substring(0, 1) + rgb.substring(0, 1), 16);
+                    g = Integer.parseInt(rgb.substring(1, 2) + rgb.substring(1, 2), 16);
+                    b = Integer.parseInt(rgb.substring(2, 3) + rgb.substring(2, 3), 16);
                     break;
                 case 5: //error color;
                 case 4:
-                    a = Integer.parseInt(rgb.substring(0, 1), 16);
-                    r = Integer.parseInt(rgb.substring(1, 2), 16);
-                    g = Integer.parseInt(rgb.substring(2, 3), 16);
-                    b = Integer.parseInt(rgb.substring(3, 4), 16);
+                    a = Integer.parseInt(rgb.substring(0, 1) + rgb.substring(0, 1), 16);
+                    r = Integer.parseInt(rgb.substring(1, 2) + rgb.substring(1, 2), 16);
+                    g = Integer.parseInt(rgb.substring(2, 3) + rgb.substring(2, 3), 16);
+                    b = Integer.parseInt(rgb.substring(3, 4) + rgb.substring(3, 4), 16);
                     break;
                 case 7: //error color;
+                    break;
                 case 6:
                     r = Integer.parseInt(rgb.substring(0, 2), 16);
                     g = Integer.parseInt(rgb.substring(2, 4), 16);
