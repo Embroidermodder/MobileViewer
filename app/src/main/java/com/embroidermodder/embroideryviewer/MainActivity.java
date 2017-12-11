@@ -519,6 +519,7 @@ public class MainActivity extends AppCompatActivity {
         if (pattern == null) {
             toast(R.string.error_file_read_failed);
         }
+        drawView.setPattern(pattern);
         drawView.notifyChange(1);
         drawView.postInvalidate();
     }

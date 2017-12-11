@@ -251,7 +251,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
         }
         pattern.getFlippedPattern(false, true);
         pattern.addStitchRel(0, 0, IFormat.END, true);
-        pattern.rel_flip(1);
+        //pattern.rel_flip(1);
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {
@@ -391,7 +391,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             }
             stream.write(0x80);
             stream.write(0x10);
-            pattern.rel_flip(1);
+            //pattern.rel_flip(1);
             stream.close();
         } catch (IOException ex) {
         }
