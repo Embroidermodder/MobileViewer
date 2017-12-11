@@ -1,5 +1,9 @@
 package com.embroidermodder.embroideryviewer;
 
+import com.embroidermodder.embroideryviewer.geom.Point;
+import com.embroidermodder.embroideryviewer.geom.PointIterator;
+import com.embroidermodder.embroideryviewer.geom.Points;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -112,14 +116,14 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
         byte b[] = new byte[4];
         try {
 
-            for (EmbPoint stitches1 : pattern.getstitches()) {
-                float x = stitches1.X;
-                float y = stitches1.Y;
+            for (Point stitches1 : new PointIterator<Points>(pattern.getStitches())) {
+                float x = (float)stitches1.getX();
+                float y = (float)stitches1.getY();
                 dx = x - xx;
                 dy = y - yy;
                 xx = x;
                 yy = y;
-                flags = stitches1.Flags;
+                flags = stitches1.data();
 
                 encode(b, (byte) Math.round(dx), (byte) Math.round(dy), flags);
                 stream.write(b[0]);
@@ -130,7 +134,6 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
                 }
             }
             stream.write(0x1A);
-            stream.close();
         } catch (IOException ex) {
         }
     }

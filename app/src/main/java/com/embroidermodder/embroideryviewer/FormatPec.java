@@ -2,6 +2,10 @@ package com.embroidermodder.embroideryviewer;
 
 import android.graphics.RectF;
 
+import com.embroidermodder.embroideryviewer.geom.Point;
+import com.embroidermodder.embroideryviewer.geom.PointIterator;
+import com.embroidermodder.embroideryviewer.geom.Points;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +71,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         } catch (IOException ex) {
 
         }
-        pattern.addStitchRel(0,0, IFormat.END, true);
+        pattern.addStitchRel(0, 0, IFormat.END, true);
     }
 
     public static EmbThread getThreadByIndex(int index) {
@@ -207,9 +211,9 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         return null;
     }
 
-    public static ArrayList<EmbThread> getThreads(){
+    public static ArrayList<EmbThread> getThreads() {
         ArrayList<EmbThread> threads = new ArrayList<>();
-        for(int i = 0; i < 64; i++){
+        for (int i = 0; i < 64; i++) {
             threads.add(getThreadByIndex(i));
         }
         return threads;
@@ -259,39 +263,35 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         file.write(val);
     }
 
-    private static void pecEncode(OutputStream file, EmbPattern p) throws IOException {
+    private static void pecEncode(OutputStream file, EmbPattern pattern) throws IOException {
         double thisX = 0.0;
         double thisY = 0.0;
         byte stopCode = 2;
-        EmbThread previousThread = p.getStitchBlocks().get(0).getThread();
-
-        for(StitchBlock stitchBlock : p.getStitchBlocks()) {
-                if(previousThread != stitchBlock.getThread()) {
-                    pecEncodeStop(file, stopCode);
-                    if (stopCode == (byte) 2) {
-                        stopCode = (byte) 1;
-                    } else {
-                        stopCode = (byte) 2;
-                    }
-                }
-            int flags = IFormat.TRIM;
-            long deltaX, deltaY;
-            for(int i = 0; i < stitchBlock.size(); i++) {
-                deltaX = Math.round(stitchBlock.getX(i) - thisX);
-                deltaY = Math.round(stitchBlock.getY(i) - thisY);
-                thisX += (double) deltaX;
-                thisY += (double) deltaY;
-
-                if (deltaX < 63 && deltaX > -64 && deltaY < 63 && deltaY > -64 && ((flags & (IFormat.JUMP | IFormat.TRIM)) == 0)) {
-                    file.write((byte)((deltaX < 0) ? (deltaX + 0x80) : deltaX));
-                    file.write((byte)((deltaY < 0) ? (deltaY + 0x80) : deltaY));
+        long deltaX, deltaY;
+        for (Point point : new PointIterator<Points>(pattern.getStitches())) {
+            int flags = point.data();
+            if (flags == IFormat.COLOR_CHANGE) {
+                pecEncodeStop(file, stopCode);
+                if (stopCode == (byte) 2) {
+                    stopCode = (byte) 1;
                 } else {
-                    encodeJump(file, (int)deltaX, flags);
-                    encodeJump(file, (int)deltaY, flags);
+                    stopCode = (byte) 2;
                 }
-                flags = IFormat.NORMAL;
+                continue;
             }
-            previousThread = stitchBlock.getThread();
+
+            deltaX = Math.round(point.getX() - thisX);
+            deltaY = Math.round(point.getY() - thisY);
+            thisX += (double) deltaX;
+            thisY += (double) deltaY;
+
+            if (deltaX < 63 && deltaX > -64 && deltaY < 63 && deltaY > -64 && ((flags & (IFormat.JUMP | IFormat.TRIM)) == 0)) {
+                file.write((byte) ((deltaX < 0) ? (deltaX + 0x80) : deltaX));
+                file.write((byte) ((deltaY < 0) ? (deltaY + 0x80) : deltaY));
+            } else {
+                encodeJump(file, (int) deltaX, flags);
+                encodeJump(file, (int) deltaY, flags);
+            }
         }
         file.write(0xFF);
     }
@@ -315,9 +315,9 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         }
     }
 
-    private static void clearImage(byte[][] image){
-        for (byte[] row: image) {
-            Arrays.fill(row, (byte)0);
+    private static void clearImage(byte[][] image) {
+        for (byte[] row : image) {
+            Arrays.fill(row, (byte) 0);
         }
     }
 
@@ -328,16 +328,16 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         int dotPos = fileName.lastIndexOf(".");
         int start = fileName.lastIndexOf("/");
         file.write("LA:".getBytes());
-        String internalFilename = fileName.substring(Math.max(0,start), Math.max(0, dotPos));
-        if(internalFilename.length() > 16){
+        String internalFilename = fileName.substring(Math.max(0, start), Math.max(0, dotPos));
+        if (internalFilename.length() > 16) {
             internalFilename = internalFilename.substring(0, 16);
         }
         file.write(internalFilename.getBytes());
-        for(i = 0; i < (16-internalFilename.length()); i++) {
+        for (i = 0; i < (16 - internalFilename.length()); i++) {
             file.write(0x20);
         }
         file.write(0x0D);
-        for(i = 0; i < 12; i++) {
+        for (i = 0; i < 12; i++) {
             file.write(0x20);
         }
         file.write(0xFF);
@@ -345,29 +345,17 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         file.write(0x06);
         file.write(0x26);
 
-        for(i = 0; i < 12; i++) {
+        for (i = 0; i < 12; i++) {
             file.write(0x20);
         }
-        currentThreadCount = 0;
-
-
         ArrayList<EmbThread> pecThreads = getThreads();
-        EmbThread previousThread = null;
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
-            if(stitchBlock.getThread() != previousThread) {
-                currentThreadCount++;
-            }
-            previousThread = stitchBlock.getThread();
+
+        currentThreadCount = pattern.getThreadList().size();
+        file.write((byte) (currentThreadCount - 1));
+        for (EmbThread thread : pattern.getThreadList()) {
+            file.write((byte) EmbThread.findNearestColorIndex(thread.color, pecThreads));
         }
-        file.write((byte)(currentThreadCount-1));
-        previousThread = null;
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
-            if(stitchBlock.getThread() != previousThread) {
-                file.write((byte)stitchBlock.getThread().findNearestColorIndex(pecThreads));
-            }
-            previousThread = stitchBlock.getThread();
-        }
-        for(i = 0; i < (0x1CF - currentThreadCount); i++) {
+        for (i = 0; i < (0x1CF - currentThreadCount); i++) {
             file.write(0x20);
         }
         file.write(0x00);
@@ -376,8 +364,8 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         ByteArrayOutputStream tempArray = new ByteArrayOutputStream();
         pecEncode(tempArray, pattern);
 
-        graphicsOffsetValue = tempArray.size()  + 17;
-                file.write(graphicsOffsetValue & 0xFF);
+        graphicsOffsetValue = tempArray.size() + 17;
+        file.write(graphicsOffsetValue & 0xFF);
         file.write((graphicsOffsetValue >> 8) & 0xFF);
         file.write((graphicsOffsetValue >> 16) & 0xFF);
 
@@ -390,13 +378,13 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         height = Math.round(bounds.height());
         width = Math.round(bounds.width());
     /* write 2 byte x size */
-        BinaryHelper.writeShort(file, (short)width);
+        BinaryHelper.writeShort(file, (short) width);
     /* write 2 byte y size */
-        BinaryHelper.writeShort(file, (short)height);
+        BinaryHelper.writeShort(file, (short) height);
 
     /* Write 4 miscellaneous int16's */
-        BinaryHelper.writeShort(file, (short)0x1E0);
-        BinaryHelper.writeShort(file, (short)0x1B0);
+        BinaryHelper.writeShort(file, (short) 0x1E0);
+        BinaryHelper.writeShort(file, (short) 0x1B0);
 
         BinaryHelper.writeShortBE(file, (0x9000 | -Math.round(bounds.left)));
         BinaryHelper.writeShortBE(file, (0x9000 | -Math.round(bounds.top)));
@@ -406,10 +394,11 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
         clearImage(image);
         yFactor = 32.0 / height;
         xFactor = 42.0 / width;
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
-            for(int j = 0; j < stitchBlock.count(); j++){
-                int x = (int)Math.round((stitchBlock.getX(j) - bounds.left) * xFactor) + 3;
-                int y = (int)Math.round((stitchBlock.getY(j) - bounds.top) * yFactor) + 3;
+        for (EmbObject object : pattern.asStitchEmbObjects()) {
+            Points points = object.getPoints();
+            for (int j = 0, je = points.size(); j < je; j++) {
+                int x = (int) Math.round((points.getX(j) - bounds.left) * xFactor) + 3;
+                int y = (int) Math.round((points.getY(j) - bounds.top) * yFactor) + 3;
                 image[y][x] = 1;
             }
         }
@@ -417,29 +406,28 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
 
     /* Writing each individual color */
         clearImage(image);
-        previousThread = pattern.getStitchBlocks().get(0).getThread();
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
-            if(previousThread != stitchBlock.getThread()) {
-                writeImage(file, image);
-                clearImage(image);
-            }
-            for(int j = 0; j < stitchBlock.count(); j++) {
-                int x = (int) Math.round((stitchBlock.getX(j) - bounds.left) * xFactor) + 3;
-                int y = (int) Math.round((stitchBlock.getY(j) - bounds.top) * yFactor) + 3;
+
+        for (EmbObject object : pattern.asColorEmbObjects()) {
+            clearImage(image);
+            Points points = object.getPoints();
+            for (int j = 0, je = points.size(); j < je; j++) {
+                if (points.getData(j) != IFormat.NORMAL) continue;
+                int x = (int) Math.round((points.getX(j) - bounds.left) * xFactor) + 3;
+                int y = (int) Math.round((points.getY(j) - bounds.top) * yFactor) + 3;
                 image[y][x] = 1;
             }
-            previousThread = stitchBlock.getThread();
+            writeImage(file, image);
         }
         writeImage(file, image);
     }
 
     public void write(EmbPattern pattern, OutputStream stream) {
         try {
-            //pattern.fixColorCount(pattern);
+            pattern.fixColorCount();
             //pattern.correctForMaxStitchLength(pattern, 12.7, 204.7);
             stream.write("#PEC0001".getBytes());
             writePecStitches(pattern, stream, "TEMPFILE.PEC");
-        }catch (Exception e){
+        } catch (Exception e) {
         }
     }
 }

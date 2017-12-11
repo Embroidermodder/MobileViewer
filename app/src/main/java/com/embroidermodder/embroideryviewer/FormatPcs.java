@@ -53,8 +53,7 @@ public class FormatPcs implements IFormat.Reader {
                 int green = stream.read() & 0xFF;
                 int blue = stream.read() & 0xFF;
                 EmbThread t = new EmbThread(red, green, blue, "", "");
-                EmbColor col = t.getColor();
-                if (col.red != 0 || col.green != 0 || col.blue != 0) {
+                if (t.getRed() != 0 || t.getGreen() != 0 || t.getBlue() != 0) {
                     allZeroColor = 0;
                 }
                 pattern.addThread(t);

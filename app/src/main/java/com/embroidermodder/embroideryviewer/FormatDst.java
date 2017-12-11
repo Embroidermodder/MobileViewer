@@ -1,6 +1,9 @@
 package com.embroidermodder.embroideryviewer;
 import android.graphics.RectF;
-import android.app.ProgressDialog;
+
+import com.embroidermodder.embroideryviewer.geom.Point;
+import com.embroidermodder.embroideryviewer.geom.PointIterator;
+import com.embroidermodder.embroideryviewer.geom.Points;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -115,6 +118,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer  {
         pattern.rel_flip(1);
         pattern.getFlippedPattern(false, true);
         pattern.addStitchRel(0, 0, IFormat.END, true);
+        pattern.fixColorCount();
     }
 
     static int setBit(int pos) {
@@ -237,12 +241,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer  {
             int ax, ay, mx, my;
             pattern.rel_flip(1);
             co = pattern.getThreadList().size();
-            st = 0;
-            for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
-                for (int j = 0; j < stitchBlock.count(); j++) {
-                    st++;
-                }
-            }
+            st = pattern.getStitches().size();
             boundingRect = pattern.calculateBoundingBox();
             file.write(String.format("LA:%-16s", "Untitled").getBytes());
             file.write(0x0D);
@@ -283,13 +282,12 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer  {
 
             /* write stitches */
             xx = yy = 0;
-            EmbThread previousThread = pattern.getStitchBlocks().get(0).getThread();
-            for (EmbPoint stitches : pattern.getstitches()) {
-                dx = stitches.X - xx;
-                dy = stitches.Y - yy;
+            for (Point stitch : new PointIterator<Points>(pattern.getStitches())) {
+                dx = (float)stitch.getX() - xx;
+                dy = (float)stitch.getY() - yy;
                 xx += dx;
                 yy += dy;
-                flags = stitches.Flags;
+                flags = stitch.data();
                 encodeRecord(file, dx, dy,  flags);
             }
             file.write(0xA1); /* finish file with a terminator character */

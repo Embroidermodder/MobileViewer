@@ -1,13 +1,15 @@
 package com.embroidermodder.embroideryviewer;
 
-import android.graphics.Color;
 import android.graphics.RectF;
+
+import com.embroidermodder.embroideryviewer.geom.Point;
+import com.embroidermodder.embroideryviewer.geom.PointIterator;
+import com.embroidermodder.embroideryviewer.geom.Points;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class FormatJef implements IFormat.Reader, IFormat.Writer {
     final class DefineConstants {
@@ -277,6 +279,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
     public void write(EmbPattern pattern, OutputStream stream) {
         pattern.rel_flip(1);
         pattern.correctForMaxStitchLength(127, 127);
+        pattern.fixColorCount();
         int colorCount = 0;
         int designWidth;
         int designHeight;
@@ -285,7 +288,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
         double xx = 0.0, yy = 0.0;
         int pointCount = 0;
         colorCount = pattern.getThreadList().size();
-        pointCount = pattern.getstitches().size();
+        pointCount = pattern.getStitches().size();
         byte b[] = new byte[4];
         try {
             //-------------I NEED TO CHANGE HERE CALCULATION OF OFF SET
@@ -299,8 +302,8 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             BinaryHelper.writeInt32(stream, colorCount);
 
             int jumpAndStopCount = 0;
-            for (EmbPoint stitch : pattern.getstitches()) {
-                if ((stitch.Flags & (IFormat.STOP|IFormat.TRIM|IFormat.JUMP)) > 0) {
+            for (Point stitch : new PointIterator<Points>(pattern.getStitches())) {
+                if ((stitch.data() & (IFormat.STOP | IFormat.TRIM | IFormat.JUMP)) > 0) {
                     jumpAndStopCount++;
                 }
             }
@@ -358,27 +361,26 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             BinaryHelper.writeInt32(stream, 550 - designHeight / 2); // bottom
 
 
-            Random rand = new Random();
             ArrayList<EmbThread> jefThreads = new ArrayList<EmbThread>();
-            for(int i = 0; i <= 78; i++){
+            for (int i = 0; i <= 78; i++) {
                 jefThreads.add(getThreadByIndex(i));
             }
-            for (EmbThread t : pattern.getThreadList()) {
-                BinaryHelper.writeInt32(stream, t.findNearestColorIndex(jefThreads));
+            for (EmbObject embObject : pattern.asColorEmbObjects()) {
+                BinaryHelper.writeInt32(stream, EmbThread.findNearestColorIndex(embObject.getThread().color, jefThreads));
             }
             for (int i = 0; i < colorCount; i++) {
                 BinaryHelper.writeInt32(stream, 0x0D);
             }
             int flags;
 
-            for (EmbPoint stitches1 : pattern.getstitches()) {
-                float x = stitches1.X;
-                float y = stitches1.Y;
+            for (Point stitches1 : new PointIterator<Points>(pattern.getStitches())) {
+                float x = (float)stitches1.getX();
+                float y = (float)stitches1.getY();
                 dx = x - xx;
                 dy = y - yy;
                 xx = x;
                 yy = y;
-                flags = stitches1.Flags;
+                flags = stitches1.data();
                 encode(b, (byte) Math.round(dx), (byte) Math.round(dy), flags);
                 stream.write(b[0]);
                 stream.write(b[1]);

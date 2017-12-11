@@ -15,7 +15,6 @@ import android.view.View;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ThumbnailView extends View {
@@ -26,7 +25,7 @@ public class ThumbnailView extends View {
     public static Drawable fileDefault, directoryDefault;
     public Thread thread;
     public File file;
-    EmbPattern pattern;
+    EmbPatternViewer root;
     Bitmap cache;
 
     final Paint _paint = new Paint();
@@ -65,15 +64,15 @@ public class ThumbnailView extends View {
 
     public void createFromPattern(EmbPattern pattern) {
         if (pattern == null) return;
-        this.pattern = pattern;
-        if (pattern.getStitchBlocks().isEmpty()) {
+        this.root = new EmbPatternViewer(pattern);
+        if (root.isEmpty()) {
             return;
         }
         float _width = getWidth();
         float _height = getHeight();
         if (_width == 0) _width = MIN_THUMBNAIL_SIZE;
         if (_height == 0) _height = MIN_THUMBNAIL_SIZE;
-        cache = pattern.getThumbnail(_width,_height);
+        cache = root.getThumbnail(_width,_height);
         processInvalidation();
     }
 
@@ -124,7 +123,7 @@ public class ThumbnailView extends View {
     }
 
     public void clear() {
-        this.pattern = null;
+        this.root = null;
         if (thread != null) {
             thread.interrupt();
         }
@@ -151,10 +150,10 @@ public class ThumbnailView extends View {
                 FileInputStream fis = null;
                 try {
                     fis = new FileInputStream(file);
-                    pattern = new EmbPattern();
+                    EmbPattern pattern = new EmbPattern();
                     reader.read(pattern, fis);
                     createFromPattern(pattern);
-                } catch (FileNotFoundException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
                     try {

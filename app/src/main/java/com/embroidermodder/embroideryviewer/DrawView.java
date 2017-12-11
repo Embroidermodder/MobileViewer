@@ -11,8 +11,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Listener {
+import java.util.ArrayList;
+
+public class DrawView extends View {
     private static final float MARGIN = 0.05f;
+    public ArrayList<Listener> listeners;
 
     Tool tool = new ToolPan();
     final Paint _paint = new Paint();
@@ -20,7 +23,8 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
     Matrix invertMatrix;
     private int _height;
     private int _width;
-    private EmbPattern pattern = null;
+    private EmbPatternViewer root = null;
+    private EmbPattern embPattern = null;
     private RectF viewPort;
 
     public DrawView(Context context, AttributeSet attrs) {
@@ -107,10 +111,10 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
 
     @Override
     public void onDraw(Canvas canvas) {
-        if (pattern != null) {
+        if (root != null) {
             canvas.save();
             if (viewMatrix != null) canvas.concat(viewMatrix);
-            for (StitchBlock stitchBlock : pattern.getStitchBlocks()) {
+            for (StitchBlock stitchBlock : root) {
                 stitchBlock.draw(canvas, _paint);
             }
             canvas.restore();
@@ -118,23 +122,20 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
     }
 
     public String getStatistics() {
-        return pattern.getStatistics(getContext());
+        return root.getStatistics(getContext());
     }
 
-    public void update(int v) {
-        invalidate();
-    }
-
-    @Override
-    public EmbPattern getPattern() {
-        return pattern;
+    public EmbPattern getEmbPattern() {
+        return embPattern;
     }
 
     public void setPattern(EmbPattern pattern) {
-        if (this.pattern != null) this.pattern.removeListener(this);
-        this.pattern = pattern;
-        if (!pattern.getStitchBlocks().isEmpty()) {
-            viewPort = pattern.calculateBoundingBox();
+        if (pattern == null) return;
+        this.embPattern = pattern;
+        this.root = new EmbPatternViewer(pattern);
+
+        if (!root.isEmpty()) {
+            viewPort = root.calculateBoundingBox();
             float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
             float extraWidth = _width - (viewPort.width() * scale);
             float extraHeight = _height - (viewPort.height() * scale);
@@ -142,7 +143,29 @@ public class DrawView extends View implements EmbPattern.Provider, EmbPattern.Li
             viewPort.inset(-viewPort.width() * MARGIN, -viewPort.height() * MARGIN);
         }
         calculateViewMatrixFromPort();
-        this.pattern.addListener(this);
+        notifyChange(0);
+    }
+
+    public void addListener(Listener listener) {
+        if (listeners == null) listeners = new ArrayList<>();
+        listeners.add(listener);
+    }
+
+    public void removeListener(Listener listener) {
+        if (listeners == null) return;
+        listeners.remove(listener);
+        if (listeners.isEmpty()) listeners = null;
+    }
+
+    public void notifyChange(int id) {
+        if (listeners == null) return;
+        for (Listener listener : listeners) {
+            listener.notifyChange(id);
+        }
+    }
+
+    public interface Listener {
+        void notifyChange(int id);
     }
 
 }

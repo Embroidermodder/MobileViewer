@@ -23,7 +23,7 @@ public class FormatInf implements IFormat.Reader {
                 int red = stream.read();
                 int green = stream.read();
                 int blue = stream.read();
-                t.setColor(new EmbColor(red, green, blue));
+                t.setColor(red, green, blue);
                 t.setCatalogNumber("");
                 t.setDescription("");
                 pattern.addThread(t);

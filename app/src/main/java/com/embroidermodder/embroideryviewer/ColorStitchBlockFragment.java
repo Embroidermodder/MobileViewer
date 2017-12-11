@@ -1,18 +1,20 @@
 package com.embroidermodder.embroideryviewer;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 
 
-public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Listener {
+public class ColorStitchBlockFragment extends Fragment implements DrawView.Listener {
     public static final String TAG = "ColorStitch";
-    private StitchBlockAdapter adapter;
-    private ListView colorListView;
+    private ColorStitchAdapter adapter;
+    private RecyclerView recyclerColorStitch;
 
     public ColorStitchBlockFragment() {
     }
@@ -26,24 +28,31 @@ public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Lis
     public void setPattern(EmbPattern pattern) {
         if (pattern != null) {
             if (adapter == null) {
-                adapter = new StitchBlockAdapter(pattern);
+                adapter = new ColorStitchAdapter();
+                adapter.setPattern(pattern);
+                recyclerColorStitch.setAdapter(adapter);
             }
-            adapter.setPattern(pattern);
-            colorListView.setAdapter(adapter);
+            else {
+                adapter.setPattern(pattern);
+            }
+
+
         }
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        colorListView = (ListView) view.findViewById(R.id.colorListView);
-        if (getActivity() instanceof EmbPattern.Provider) {
-            setPattern(((EmbPattern.Provider) getActivity()).getPattern());
+        recyclerColorStitch = (RecyclerView) view.findViewById(R.id.recyclerColorStitch);
+        Context context = view.getContext();
+        recyclerColorStitch.setLayoutManager(new LinearLayoutManager(context));
+        if (getActivity() instanceof MainActivity) {
+            setPattern(((MainActivity) getActivity()).getPattern());
         }
     }
 
     @Override
-    public void update(int v) {
-        if (adapter != null) adapter.notifyDataSetChanged();
+    public void notifyChange(int id) {
+        adapter.notifyDataSetChanged();
     }
 }
