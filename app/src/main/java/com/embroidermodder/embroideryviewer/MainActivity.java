@@ -1,19 +1,9 @@
 package com.embroidermodder.embroideryviewer;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Random;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -42,16 +32,30 @@ import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Random;
+
+public class MainActivity extends AppCompatActivity {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
     final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
     final private int REQUEST_CODE_ASK_PERMISSIONS_READ = 102;
+    private static final String TEMPFILE = "TEMP";
     private static final String AUTHORITY = "com.embroidermodder.embroideryviewer";
-    String fragmentTag;
+    String drawerFragmentTag;
     private final int SELECT_FILE = 1;
     private DrawView drawView;
     private DrawerLayout mainActivity;
     private Uri _uriToLoad;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
@@ -97,7 +101,54 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if ((getPattern() != null) && (!getPattern().isEmpty())) {
+            saveInternalFile(TEMPFILE);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if ((getPattern() == null) || (getPattern().isEmpty())) {
+            loadInternalFile(TEMPFILE);
+        }
+    }
+
+    public void saveInternalFile(String filename) {
+        try {
+            FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+            EmbWriter writer = new EmbWriterEmm();
+            writer.write(getPattern(), fos);
+            fos.flush();
+            fos.close();
+        } catch (IOException ioerror) {
+        }
+    }
+
+
+    public void loadInternalFile(String filename) {
+        try {
+            FileInputStream fis = openFileInput(filename); //if no file exists, throws error.
+            EmbReader reader = new EmbReaderEmm();
+            EmbPattern pattern = new EmbPattern();
+            reader.read(pattern, fis);
+            setPattern(pattern);
+            fis.close();
+        } catch (IOException ignored) {
+        } catch (OutOfMemoryError ignored) {
+        }
+    }
+
+    @Override
     public void onBackPressed() {
+        if (dialogDismiss()) {
+            return;
+        }
+        if (tryCloseFragment(ShareFragment.TAG)) {
+            return;
+        }
         if (mainActivity.isDrawerOpen(GravityCompat.START)) {
             mainActivity.closeDrawer(GravityCompat.START);
         } else {
@@ -131,16 +182,11 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 showStatistics();
                 return true;
             case R.id.action_share:
-                saveFileWrapper(new PermissionRequired() {
-                    @Override
-                    public void openExternalStorage(File root, String data) {
-                        saveFile(root, data);
-                    }
-                }, Environment.getExternalStorageDirectory(), "");
+                useShareFragment();
                 break;
             case R.id.action_load_file:
                 dialogDismiss();
-               makeDialog(R.layout.embroidery_thumbnail_view);
+                makeDialog(R.layout.embroidery_thumbnail_view);
                 saveFileWrapper(new PermissionRequired() {
                     @Override
                     public void openExternalStorage(File root, String data) {
@@ -150,6 +196,48 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    saveFile(Environment.getExternalStorageDirectory(), "");
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            case REQUEST_CODE_ASK_PERMISSIONS_LOAD:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    loadFile(Environment.getExternalStorageDirectory(), "");
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            case REQUEST_CODE_ASK_PERMISSIONS_READ:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    threadReadFromUri(_uriToLoad);
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.read_permissions_denied, Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == SELECT_FILE) {
+                onSelectFileResult(data);
+            }
+        }
     }
 
     interface PermissionRequired {
@@ -196,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     REQUEST_CODE_ASK_PERMISSIONS_READ);
             return;
         }
-        readFromUri(uri);
+        threadReadFromUri(uri);
     }
 
     private void loadFile(File root, String data) {
@@ -218,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     file.delete();
                 }
                 FileOutputStream outputStream = new FileOutputStream(file);
-                format.write(drawView.getPattern(), outputStream);
+                format.write(drawView.getEmbPattern(), outputStream);
                 outputStream.flush();
                 outputStream.close();
             }
@@ -267,48 +355,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 .show();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    saveFile(Environment.getExternalStorageDirectory(), "");
-                } else {
-                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
-                            .show();
-                }
-                break;
-            case REQUEST_CODE_ASK_PERMISSIONS_LOAD:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadFile(Environment.getExternalStorageDirectory(), "");
-                } else {
-                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
-                            .show();
-                }
-                break;
-            case REQUEST_CODE_ASK_PERMISSIONS_READ:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    readFromUri(_uriToLoad);
-                } else {
-                    Toast.makeText(MainActivity.this, R.string.read_permissions_denied, Toast.LENGTH_SHORT)
-                            .show();
-                }
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == SELECT_FILE) {
-                onSelectFileResult(data);
-            }
-        }
-    }
-
     private void onSelectFileResult(Intent data) {
         Uri uri = data.getData();
         if (uri != null) {
@@ -316,17 +362,26 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         }
     }
 
+    public void useShareFragment() {
+        dialogDismiss();
+        FragmentManager fragmentManager = this.getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        ShareFragment fragment = new ShareFragment();
+        transaction.add(R.id.mainContentArea, fragment, ShareFragment.TAG);
+        transaction.commitAllowingStateLoss();
+    }
+
     public void useColorFragment() {
-        if (fragmentTag != null) {
-            tryCloseFragment(fragmentTag);
+        if (drawerFragmentTag != null) {
+            tryCloseFragment(drawerFragmentTag);
         }
         FragmentManager fragmentManager = this.getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         ColorStitchBlockFragment fragment = new ColorStitchBlockFragment();
-        fragmentTag = ColorStitchBlockFragment.TAG;
+        drawerFragmentTag = ColorStitchBlockFragment.TAG;
         transaction.add(R.id.drawerContent, fragment, ColorStitchBlockFragment.TAG);
         transaction.commit();
-        drawView.getPattern().addListener(fragment);
+        //drawView.getRoot().addListener(fragment);
     }
 
     public boolean tryCloseFragment(String tag) {
@@ -337,7 +392,9 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.remove(fragmentByTag);
         transaction.commit();
-        drawView.getPattern().removeListener(fragmentByTag);
+        if (fragmentByTag instanceof DrawView.Listener) {
+            drawView.removeListener((DrawView.Listener) fragmentByTag);
+        }
         return true;
     }
 
@@ -375,16 +432,26 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         builder.show();
     }
 
-    @Override
     public EmbPattern getPattern() {
         if (drawView == null) return null;
-        return drawView.getPattern();
+        return drawView.getEmbPattern();
     }
 
     public void setPattern(EmbPattern pattern) {
         drawView.setPattern(pattern);
         invalidateOnMainThread();
         useColorFragment();
+    }
+
+
+    public void threadReadFromUri(final Uri uri) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                readFromUri(uri);
+            }
+        });
+        thread.start();
     }
 
     private void readFromUri(final Uri uri) {
@@ -443,12 +510,17 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);
                     return;
+                } catch (IOException e) {
+                    toast(R.string.error_file_read_failed);
                 }
+
                 break;
         }
         if (pattern == null) {
             toast(R.string.error_file_read_failed);
         }
-        setPattern(pattern);
+        drawView.setPattern(pattern);
+        drawView.notifyChange(1);
+        drawView.postInvalidate();
     }
 }

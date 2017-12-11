@@ -1,29 +1,19 @@
 package com.embroidermodder.embroideryviewer;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.RectF;
-import android.app.ProgressDialog;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
+import android.support.annotation.NonNull;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-
-
+import com.embroidermodder.embroideryviewer.geom.DataPoints;
+import com.embroidermodder.embroideryviewer.geom.Point;
+import com.embroidermodder.embroideryviewer.geom.PointDirect;
+import com.embroidermodder.embroideryviewer.geom.PointIterator;
+import com.embroidermodder.embroideryviewer.geom.Points;
+import com.embroidermodder.embroideryviewer.geom.PointsIndex;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class EmbPattern {
     static final int FLIP_HORIZONTAL = 0;
@@ -36,59 +26,76 @@ public class EmbPattern {
     static final int RIGHT_TO_LEFT = 0;
     static final int LEFT_TO_RIGHT = 1;
 
-    private static final float PIXELS_PER_MM = 10;
-    private final ArrayList<StitchBlock> _stitchBlocks;
+    private DataPoints stitches = new DataPoints();
     private final ArrayList<EmbThread> _threadList;
-    private final ArrayList<EmbPattern.Listener> _listeners;
-    private String _filename;
-    private StitchBlock _currentStitchBlock;
-    private ProgressDialog progress;
+
+    public static final String PROP_FILENAME = "filename";
+    public static final String PROP_NAME = "name";
+    public static final String PROP_CATEGORY = "category";
+    public static final String PROP_AUTHOR = "author";
+    public static final String PROP_KEYWORDS = "keywords";
+    public static final String PROP_COMMENTS = "comments";
+
+    public String filename;
+    public String name;
+    public String category;
+    public String author;
+    public String keywords;
+    public String comments;
+
+
     private float _previousX = 0;
     private float _previousY = 0;
 
-    public EmbPattern() {
-        _listeners = new ArrayList<>();
-        _stitchBlocks = new ArrayList<>();
-        _threadList = new ArrayList<>();
-        _currentStitchBlock = null;
+    public EmbPattern(EmbPattern p) {
+        this.filename = p.filename;
+        this.name = p.name;
+        this.category = p.category;
+        this.author = p.author;
+        this.keywords = p.keywords;
+        this.comments = p.comments;
+        this._threadList = new ArrayList<>(p._threadList.size());
+        for (EmbThread thread : p.getThreadList()) {
+            addThread(new EmbThread(thread));
+        }
+        this.stitches = new DataPoints(p.stitches);
     }
-    public ArrayList<StitchBlock> getStitchBlocks()
-    {
-        return _stitchBlocks;
-    }
-    public ArrayList<EmbPoint> stitches = new ArrayList<EmbPoint>();
 
-    public  ArrayList<EmbPoint> getstitches() {
+    public EmbPattern() {
+        _threadList = new ArrayList<>();
+    }
+
+    public DataPoints getStitches() {
         return stitches;
     }
 
     public void correctForMaxStitchLength(double maxStitchLength, double maxJumpLength) {
         double maxLen;
-        float dx, dy, xx, yy, maxXY, addX, addY;
+        double dx, dy, xx, yy, maxXY, addX, addY;
         int splits, flagsToUse;
         for (int i = 1; i < stitches.size(); i++) {
-            xx = stitches.get(i-1).X;
-            yy = stitches.get(i-1).Y;
-            dx = stitches.get(i).X - xx;
-            dy = stitches.get(i).Y - yy;
+            xx = stitches.getX(i - 1);
+            yy = stitches.getY(i - 1);
+            dx = stitches.getX(i) - xx;
+            dy = stitches.getY(i) - yy;
 
             if ((Math.abs(dx) > maxStitchLength) || (Math.abs(dy) > maxStitchLength)) {
                 maxXY = Math.abs(dx);
                 if (Math.abs(dy) > maxXY) {
                     maxXY = Math.abs(dy);
                 }
-                if ((stitches.get(i).Flags & ( IFormat.JUMP | IFormat.TRIM)) > 0) {
+                if ((stitches.getData(i) & (IFormat.JUMP | IFormat.TRIM)) > 0) {
                     maxLen = maxJumpLength;
                 } else {
                     maxLen = maxStitchLength;
                 }
-                splits = (int)Math.ceil((double)maxXY / maxLen);
+                splits = (int) Math.ceil((double) maxXY / maxLen);
                 if (splits > 1) {
-                    flagsToUse = stitches.get(i).Flags;
+                    flagsToUse = stitches.getData(i);
                     addX = dx / splits;
                     addY = dy / splits;
                     for (int j = 1; j < splits; j++) {
-                        stitches.add(i, new EmbPoint(xx + addX * j, yy + addY * j, flagsToUse));
+                        stitches.add(i, new PointDirect(xx + addX * j, yy + addY * j, flagsToUse));
                         i++;
                     }
                     i--;
@@ -98,25 +105,52 @@ public class EmbPattern {
     }
 
     public void rotate_90(int direction) {
-        for (int s = 0; s < stitches.size(); s++) {
-            float tmp = stitches.get(s).Y;
-            stitches.get(s).Y = -stitches.get(s).X;
-            if (direction == ROTATE_LEFT) {
-                stitches.get(s).X = tmp;
-            } else if (direction == ROTATE_RIGHT) {
-                stitches.get(s).X = -tmp;
+        if (direction == ROTATE_LEFT) {
+            for (Point p : new PointIterator<Points>(stitches)) {
+                p.setLocation(p.getY(), p.getX());
+            }
+        } else if (direction == ROTATE_RIGHT) {
+            for (Point p : new PointIterator<Points>(stitches)) {
+                p.setLocation(p.getY(), -p.getX());
             }
         }
+
     }
 
     public void rel_flip(int flip_type) {
-        for (int s = 0; s < stitches.size(); s++) {
-            if (flip_type == FLIP_HORIZONTAL || flip_type == FLIP_BOTH) {
-                stitches.get(s).X *= -1;
+        switch (flip_type) {
+            case FLIP_HORIZONTAL:
+                for (Point p : new PointIterator<Points>(stitches)) {
+                    p.setLocation(-p.getX(), p.getY());
+                }
+                break;
+            case FLIP_VERTICAL:
+                for (Point p : new PointIterator<Points>(stitches)) {
+                    p.setLocation(p.getX(), -p.getY());
+                }
+                break;
+            case FLIP_BOTH:
+                for (Point p : new PointIterator<Points>(stitches)) {
+                    p.setLocation(-p.getX(), -p.getY());
+                }
+        }
+    }
+
+    public void fixColorCount() {
+        int threadIndex = 0;
+        boolean starting = true;
+        for (int i = 0, ie = stitches.size(); i < ie; i++) {
+            int data = stitches.getData(i);
+            if (data == IFormat.NORMAL) {
+                if (starting) threadIndex++;
+                starting = false;
+            } else if (((data & IFormat.STOP) != 0) || ((data & IFormat.COLOR_CHANGE) != 0)) {//TODO: Stop should not be considered color change.
+                if (starting) continue;//if colorchange op, before any stitches, ignore it.
+                threadIndex++;
             }
-            if (flip_type == FLIP_VERTICAL || flip_type == FLIP_BOTH) {
-                stitches.get(s).Y *= -1;
-            }
+        }
+        while (_threadList.size() < threadIndex) {
+            addThread(getRandomThread());
         }
     }
 
@@ -124,81 +158,50 @@ public class EmbPattern {
         return _threadList;
     }
 
+    public void addThread(EmbThread thread) {
+        _threadList.add(thread);
+    }
+
+    public EmbThread getThread(int index) {
+        return _threadList.get(index);
+    }
+
+    public EmbThread getThreadOrRandom(int index) {
+        if (_threadList.size() <= index) {
+            return getRandomThread();
+        }
+        return _threadList.get(index);
+    }
+
+    public EmbThread getRandomThread() {
+        return new EmbThread(0xFF000000 | (int) (Math.random() * 0xFFFFFF), "Random");
+    }
+
+    public int getThreadCount() {
+        if (_threadList == null) return 0;
+        return _threadList.size();
+    }
+
+    public boolean isEmpty() {
+        if (stitches == null) return true;
+        if (stitches.isEmpty()) {
+            return _threadList.isEmpty();
+        }
+        return false;
+    }
+
     public String getFilename() {
-        return _filename;
+        return filename;
     }
 
     public void setFilename(String value) {
-        _filename = value;
+        filename = value;
     }
 
     public void addStitchAbs(float x, float y, int flags, boolean isAutoColorIndex) {
-        EmbPoint s = new EmbPoint(x, y, flags);
-        stitches.add(s);
-        if (this._currentStitchBlock == null) {
-            if (_stitchBlocks.size() == 0) {
-                this._currentStitchBlock = new StitchBlock();
-                EmbThread thread;
-                if (this._threadList.size() == 0) {
-                    thread = new EmbThread();
-                    thread.setColor(EmbColor.Random());
-                    this._threadList.add(thread);
-                } else {
-                    thread = this._threadList.get(0);
-                }
-                this._currentStitchBlock.setThread(thread);
-                _stitchBlocks.add(this._currentStitchBlock);
-            } else {
-                this._currentStitchBlock = this._stitchBlocks.get(0);
-            }
-        }
-        if ((flags & IFormat.END) != 0) {
-            if (this._currentStitchBlock.isEmpty()) {
-                this._stitchBlocks.remove(this._currentStitchBlock);
-                return;
-            }
-            //pattern.FixColorCount();
-        }
-
-        if ((flags & IFormat.STOP) > 0) {
-            if ((this._currentStitchBlock.isEmpty())) {
-                return;
-            }
-            int threadIndex = 0;
-            int currIndex = this._threadList.indexOf(this._currentStitchBlock.getThread());
-            if (isAutoColorIndex) {
-                if ((currIndex + 1) >= this._threadList.size()) {
-                    EmbThread newThread = new EmbThread();
-                    newThread.setColor(EmbColor.Random());
-                    this._threadList.add(newThread);
-                }
-                threadIndex = currIndex + 1;
-            }
-            StitchBlock sb = new StitchBlock();
-            this._currentStitchBlock = sb;
-            sb.setThread(this._threadList.get(threadIndex));
-            this.getStitchBlocks().add(sb);
-            return;
-        }
-        if ((flags & IFormat.TRIM) > 0) {
-            _previousX = x;
-            _previousY = y;
-            if ((this._currentStitchBlock.isEmpty())) {
-                return;
-            }
-            int currIndex = this._threadList.indexOf(this._currentStitchBlock.getThread());
-            StitchBlock sb = new StitchBlock();
-            this._currentStitchBlock = sb;
-            sb.setThread(this._threadList.get(currIndex));
-            this.getStitchBlocks().add(sb);
-            return;
-        }
-
+        stitches.add(x, y, flags);
         _previousX = x;
         _previousY = y;
-        if ((flags & IFormat.JUMP) == 0) {
-            this._currentStitchBlock.add(x, y);
-        }
     }
 
     /**
@@ -216,22 +219,26 @@ public class EmbPattern {
         this.addStitchAbs(x, y, flags, isAutoColorIndex);
     }
 
-    public void addThread(EmbThread thread) {
-        _threadList.add(thread);
+    public float getPreviousX() {
+        return _previousX;
+    }
+
+    public float getPreviousY() {
+        return _previousY;
     }
 
     public RectF calculateBoundingBox() {
-        float left = Float.POSITIVE_INFINITY;
-        float top = Float.POSITIVE_INFINITY;
-        float right = Float.NEGATIVE_INFINITY;
-        float bottom = Float.NEGATIVE_INFINITY;
-        for (StitchBlock sb : this.getStitchBlocks()) {
-            left = Math.min(left, sb.getMinX());
-            top = Math.min(top, sb.getMinY());
-            right = Math.max(right, sb.getMaxX());
-            bottom = Math.max(bottom, sb.getMaxY());
+        double left = Double.POSITIVE_INFINITY;
+        double top = Double.POSITIVE_INFINITY;
+        double right = Double.NEGATIVE_INFINITY;
+        double bottom = Double.NEGATIVE_INFINITY;
+        for (Point p : new PointIterator<Points>(stitches)) {
+            left = Math.min(left, p.getX());
+            top = Math.min(top, p.getY());
+            right = Math.max(right, p.getX());
+            bottom = Math.max(bottom, p.getY());
         }
-        return new RectF(left, top, right, bottom);
+        return new RectF((float) left, (float) top, (float) right, (float) bottom);
     }
 
     /**
@@ -242,178 +249,196 @@ public class EmbPattern {
      * @return the flipped pattern
      */
     public EmbPattern getFlippedPattern(boolean horizontal, boolean vertical) {
-        float xMultiplier = horizontal ? -1.0f : 1.0f;
-        float yMultiplier = vertical ? -1.0f : 1.0f;
-        Matrix m = new Matrix();
-        m.postScale(xMultiplier, yMultiplier);
-        for (StitchBlock sb : this.getStitchBlocks()) {
-            sb.transform(m);
+        if (horizontal) {
+            if (vertical) {
+                rel_flip(FLIP_BOTH);
+            } else {
+                rel_flip(FLIP_HORIZONTAL);
+            }
+        } else {
+            if (vertical) {
+                rel_flip(FLIP_VERTICAL);
+            }
         }
         return this;
     }
 
     public EmbPattern getPositiveCoordinatePattern() {
         RectF boundingRect = this.calculateBoundingBox();
-        Matrix m = new Matrix();
-        m.setTranslate(-boundingRect.left, -boundingRect.top);
-        for (StitchBlock sb : this.getStitchBlocks()) {
-            sb.transform(m);
+        float dx = -boundingRect.left;
+        float dy = -boundingRect.top;
+        for (Point p : new PointIterator<Points>(stitches)) {
+            p.setLocation(p.getX() - dx, p.getY() - dy);
         }
         return this;
     }
 
     public EmbPattern getCenteredPattern() {
         RectF boundingRect = this.calculateBoundingBox();
-        float cx = boundingRect.centerX();
-        float cy = boundingRect.centerY();
-        Matrix m = new Matrix();
-        m.setTranslate(cx, cy);
-        for (StitchBlock sb : this.getStitchBlocks()) {
-            sb.transform(m);
+        float dx = boundingRect.centerX();
+        float dy = boundingRect.centerY();
+        for (Point p : new PointIterator<Points>(stitches)) {
+            p.setLocation(p.getX() - dx, p.getY() - dy);
         }
         return this;
     }
 
-    private float pixelstomm(float v) {
-        return v / PIXELS_PER_MM;
+    public HashMap<String, String> getMetadata() {
+        HashMap<String, String> metadata = new HashMap<>();
+        if (filename != null) metadata.put(PROP_FILENAME, filename);
+        if (name != null) metadata.put(PROP_NAME, name);
+        if (category != null) metadata.put(PROP_CATEGORY, name);
+        if (author != null) metadata.put(PROP_AUTHOR, author);
+        if (keywords != null) metadata.put(PROP_KEYWORDS, keywords);
+        if (comments != null) metadata.put(PROP_COMMENTS, comments);
+        return metadata;
     }
 
-    public String convert(float v) {
-        return String.format("%.1f", pixelstomm(v));
+    public void setMetadata(Map<String, String> map) {
+        filename = map.get(PROP_FILENAME);
+        name = map.get(PROP_NAME);
+        category = map.get(PROP_CATEGORY);
+        author = map.get(PROP_AUTHOR);
+        keywords = map.get(PROP_KEYWORDS);
+        comments = map.get(PROP_COMMENTS);
     }
 
-    public String getStatistics(Context context) {
-        for (StitchBlock s : _stitchBlocks) {
-            s.snap();
-        }
-        RectF bounds = calculateBoundingBox();
-        StringBuilder sb = new StringBuilder();
-        //sb.append("Design name: ").append(this._filename).append('\n');
-        int totalSize = getTotalSize();
-        int jumpCount = getJumpCount();
-        int colorCount = getColorCount();
-        //  sb.append(context.getString(R.string.number_of_stitches)).append(totalSize + jumpCount + colorCount).append('\n');
-        sb.append(context.getString(R.string.normal_stitches)).append(totalSize).append('\n');
-        sb.append(context.getString(R.string.jumps)).append(jumpCount).append('\n');
-        sb.append(context.getString(R.string.colors)).append(colorCount).append('\n');
-        sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
-        float totalLength = getTotalLength();
-        //  sb.append(context.getString(R.string.total_length)).append(convert(totalLength)).append(" mm\n");
-        return sb.toString();
-    }
 
-    private int getTotalSize() {
-        int count = 0;
-        for (StitchBlock sb : _stitchBlocks) {
-            count += sb.size();
-        }
-        return count;
-    }
+    public Iterable<EmbObject> asStitchEmbObjects() {
+        return new Iterable<EmbObject>() {
+            @NonNull
+            @Override
+            public Iterator<EmbObject> iterator() {
+                return new Iterator<EmbObject>() {
+                    int threadIndex = 0;
+                    final PointsIndex<DataPoints> points = new PointsIndex<>(stitches, -1, 0);
 
-    private float getTotalLength() {
-        float count = 0;
-        for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size() - 1; i < s; i++) {
-                count += sb.distanceSegment(i);
+                    final EmbObject object = new EmbObject() {
+                        @Override
+                        public EmbThread getThread() {
+                            return getThreadOrRandom(threadIndex);
+                        }
+
+                        @Override
+                        public Points getPoints() {
+                            return points;
+                        }
+
+                        @Override
+                        public int getType() {
+                            return IFormat.NORMAL;
+                        }
+                    };
+
+                    final int NOT_CALCULATED = 0;
+                    final int HAS_NEXT = 1;
+                    final int ENDED = 2;
+
+                    int mode = NOT_CALCULATED;
+
+                    private void calculate() {
+                        points.setIndex_start(points.getIndex_stop());
+                        points.setIndex_stop(-1);
+                        for (int i = points.getIndex_start(), ie = stitches.size(); i < ie; i++) {
+                            int data = stitches.getData(i);
+                            if (((data & IFormat.STOP) != 0) || ((data & IFormat.COLOR_CHANGE) != 0)) {
+                                threadIndex++;
+                            }
+                            if (data == IFormat.NORMAL) {
+                                points.setIndex_start(i);
+                                break;
+                            }
+                        }
+                        for (int i = points.getIndex_start(), ie = stitches.size(); i < ie; i++) {
+                            int data = stitches.getData(i);
+                            if (data != IFormat.NORMAL) {
+                                points.setIndex_stop(i);
+                                break;
+                            }
+                        }
+                        mode = ((points.getIndex_stop() == -1) || (points.getIndex_start() == points.getIndex_stop())) ? ENDED : HAS_NEXT;
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        if (mode == NOT_CALCULATED) calculate();
+                        return mode == HAS_NEXT;
+                    }
+
+                    @Override
+                    public EmbObject next() {
+                        mode = NOT_CALCULATED;
+                        return object;
+                    }
+                };
             }
-        }
-        return count;
+        };
     }
 
-    private int getJumpCount() {
-        return _stitchBlocks.size();
-    }
 
-    private int getColorCount() {
-        return this._threadList.size();
-    }
+    public Iterable<EmbObject> asColorEmbObjects() {
+        return new Iterable<EmbObject>() {
+            @NonNull
+            @Override
+            public Iterator<EmbObject> iterator() {
+                return new Iterator<EmbObject>() {
+                    int threadIndex = 0;
+                    final PointsIndex<DataPoints> points = new PointsIndex<>(stitches, -1, 0);
+                    final EmbObject object = new EmbObject() {
+                        @Override
+                        public EmbThread getThread() {
+                            return getThreadOrRandom(threadIndex);
+                        }
 
-    private float getMaxStitch() {
-        float count = Float.NEGATIVE_INFINITY;
-        float current;
-        for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size() - 1; i < s; i++) {
-                current = sb.distanceSegment(i);
-                if (current > count) {
-                    count = current;
-                }
+                        @Override
+                        public Points getPoints() {
+                            return points;
+                        }
+
+                        @Override
+                        public int getType() {
+                            return -1;
+                        }
+                    };
+                    final int NOT_CALCULATED = 0;
+                    final int HAS_NEXT = 1;
+                    final int ENDED = 2;
+
+                    int mode = NOT_CALCULATED;
+
+                    private void calculate() {
+                        boolean starting = points.getIndex_start() == -1;
+                        points.setIndex_start(points.getIndex_stop());
+                        points.setIndex_stop(-1);
+
+                        for (int i = points.getIndex_start(), ie = stitches.size(); i < ie; i++) {
+                            int data = stitches.getData(i);
+                            if (data == IFormat.NORMAL) starting = false;
+                            if (((data & IFormat.STOP) != 0) || ((data & IFormat.COLOR_CHANGE) != 0)) { //TODO: Only process color changes, do not use stops as color changes.
+                                if (starting)
+                                    continue; //colorchange before any normal stitches, this does not change anything.
+                                points.setIndex_stop(i);
+                                break;
+                            }
+                        }
+                        mode = ((points.getIndex_stop() == -1) || (points.getIndex_start() == points.getIndex_stop())) ? ENDED : HAS_NEXT;
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        if (mode == NOT_CALCULATED) calculate();
+                        return mode == HAS_NEXT;
+                    }
+
+                    @Override
+                    public EmbObject next() {
+                        mode = NOT_CALCULATED;
+                        threadIndex++;
+                        return object;
+                    }
+                };
             }
-        }
-        return count;
+        };
     }
 
-    private float getMinStitch() {
-        float count = Float.POSITIVE_INFINITY;
-        float current;
-        for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size() - 1; i < s; i++) {
-                current = sb.distanceSegment(i);
-                if (current < count) {
-                    count = current;
-                }
-            }
-        }
-        return count;
-    }
-
-    private int getCountRange(float min, float max) {
-        int count = 0;
-        float current;
-        for (StitchBlock sb : _stitchBlocks) {
-            for (int i = 0, s = sb.size() - 1; i < s; i++) {
-                current = sb.distanceSegment(i);
-                if ((current >= min) && (current <= max)) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    public void notifyChange(int v) {
-        for (Listener listener : _listeners) {
-            listener.update(v);
-        }
-    }
-
-    public void addListener(Listener listener) {
-        if (!_listeners.contains(listener)) {
-            _listeners.add(listener);
-        }
-    }
-
-    public void removeListener(Object listener) {
-        if (listener instanceof Listener) {
-            _listeners.remove(listener);
-        }
-    }
-
-    public Bitmap getThumbnail(float _width, float _height) {
-
-        RectF viewPort = calculateBoundingBox();
-        float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
-        Matrix matrix = new Matrix();
-        if (scale != 0) {
-            matrix.postTranslate(-viewPort.left, -viewPort.top);
-            matrix.postScale(scale, scale);
-        }
-
-        Bitmap bmp = Bitmap.createBitmap((int) _width, (int) _height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bmp);
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        if (matrix != null) canvas.concat(matrix);
-        for (StitchBlock stitchBlock : getStitchBlocks()) {
-            stitchBlock.draw(canvas, paint);
-        }
-        return bmp;
-    }
-
-    public interface Provider {
-        EmbPattern getPattern();
-    }
-
-    public interface Listener {
-        void update(int v);
-    }
 }

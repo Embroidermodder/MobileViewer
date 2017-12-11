@@ -36,8 +36,6 @@ public class ToolPan implements Tool {
             px = (cx1 + cx2) / 2;
             py = (cy1 + cy2) / 2;
         }
-
-
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
                 float deltaScale = distance(cx1, cy1, cx2, cy2) / distance(dx1, dy1, dx2, dy2);

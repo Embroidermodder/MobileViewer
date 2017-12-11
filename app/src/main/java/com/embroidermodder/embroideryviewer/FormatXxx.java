@@ -75,7 +75,7 @@ public class FormatXxx implements IFormat.Reader {
                 int r = stream.read();
                 int g = stream.read();
                 int b = stream.read();
-                threadList.get(i).setColor(new EmbColor(r, g, b));
+                threadList.get(i).setColor(r, g, b);
             }
 
         } catch (IOException ex) {

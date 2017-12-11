@@ -9,7 +9,8 @@ public class FormatPng implements IFormat.Writer {
     @Override
     public void write(EmbPattern pattern, OutputStream stream) {
         RectF bounds = pattern.calculateBoundingBox();
-        Bitmap bitmap = pattern.getThumbnail(bounds.width(),bounds.height());
+        EmbPatternViewer viewRootLayer = new EmbPatternViewer(pattern);
+        Bitmap bitmap = viewRootLayer.getThumbnail(bounds.width(),bounds.height());
         bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
     }
 }

@@ -1,21 +1,24 @@
 package com.embroidermodder.embroideryviewer;
 
 import android.graphics.RectF;
-import android.os.Debug;
+
+import com.embroidermodder.embroideryviewer.geom.Points;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class FormatPes implements IFormat.Reader, IFormat.Writer {
 
     private final ArrayList<EmbThread> _threads;
-    public FormatPes(){
+
+    public FormatPes() {
         _threads = FormatPec.getThreads();
     }
+
     public boolean hasColor() {
         return true;
     }
@@ -52,16 +55,12 @@ public class FormatPes implements IFormat.Reader, IFormat.Writer {
         int colorInfoIndex = 0;
         int i;
         RectF bounds = pattern.calculateBoundingBox();
-        EmbThread previousThread = pattern.getStitchBlocks().get(0).getThread();
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()) {
-            if(previousThread != stitchBlock.getThread()) {
-                colorCount++;
-            }
+
+        colorCount = pattern.getThreadCount();
+        for (EmbObject object : pattern.asStitchEmbObjects()) {
             blockCount++;
         }
-
-        blockCount = pattern.getStitchBlocks().size();
-        BinaryHelper.writeShort(file, (short)blockCount); /* block count */
+        BinaryHelper.writeShort(file, (short) blockCount); /* block count */
         BinaryHelper.writeShort(file, 0xFFFF);
         BinaryHelper.writeShort(file, 0x00);
 
@@ -71,12 +70,14 @@ public class FormatPes implements IFormat.Reader, IFormat.Writer {
         short[] colorInfo = new short[colorCount * 2];
         colorCode = -1;
         blockCount = 0;
-        StitchBlock lastBlock = pattern.getStitchBlocks().get(pattern.getStitchBlocks().size()- 1);
-        for(StitchBlock stitchBlock : pattern.getStitchBlocks()){
-            newColorCode = stitchBlock.getThread().findNearestColorIndex(_threads);
-            if(newColorCode != colorCode) {
-                colorInfo[colorInfoIndex++] = (short)blockCount;
-                colorInfo[colorInfoIndex++] = (short)newColorCode;
+        ArrayList<EmbThread> pecthreads = FormatPec.getThreads();
+        Iterator<EmbObject> iterator = pattern.asStitchEmbObjects().iterator();
+        while (iterator.hasNext()) {
+            EmbObject object = iterator.next();
+            newColorCode = EmbThread.findNearestColorIndex(object.getThread().color, pecthreads);
+            if (newColorCode != colorCode) {
+                colorInfo[colorInfoIndex++] = (short) blockCount;
+                colorInfo[colorInfoIndex++] = (short) newColorCode;
                 colorCode = newColorCode;
             }
 //            if((flag & IFormat.JUMP) == IFormat.JUMP) {
@@ -85,21 +86,22 @@ public class FormatPes implements IFormat.Reader, IFormat.Writer {
 //                stitchType = 0;
 //            }
             stitchType = 0;
-            count = stitchBlock.count();
-            BinaryHelper.writeShort(file, (short)stitchType); /* 1 for jump, 0 for normal */
-            BinaryHelper.writeShort(file, (short)colorCode); /* color code */
-            BinaryHelper.writeShort(file, (short)count); /* stitches in block */
-            for (int j = 0; j < stitchBlock.count(); j++) {
-                BinaryHelper.writeShort(file, (short) (stitchBlock.getX(j) - bounds.left));
-                BinaryHelper.writeShort(file, (short) (stitchBlock.getY(j) + bounds.top));
+            Points points = object.getPoints();
+            count = points.size();
+            BinaryHelper.writeShort(file, (short) stitchType); /* 1 for jump, 0 for normal */
+            BinaryHelper.writeShort(file, (short) colorCode); /* color code */
+            BinaryHelper.writeShort(file, (short) count); /* stitches in block */
+            for (int j = 0, je = points.size(); j < je; j++) {
+                BinaryHelper.writeShort(file, (short) (points.getX(j) - bounds.left));
+                BinaryHelper.writeShort(file, (short) (points.getY(j) + bounds.top));
             }
-            if(lastBlock != stitchBlock) {
+            if (iterator.hasNext()) {
                 BinaryHelper.writeShort(file, 0x8003);
             }
             blockCount++;
         }
-        BinaryHelper.writeShort(file, (short)colorCount);
-        for(i = 0; i < colorCount; i++) {
+        BinaryHelper.writeShort(file, (short) colorCount);
+        for (i = 0; i < colorCount; i++) {
             BinaryHelper.writeShort(file, colorInfo[i * 2]);
             BinaryHelper.writeShort(file, colorInfo[i * 2 + 1]);
         }
@@ -149,6 +151,7 @@ public class FormatPes implements IFormat.Reader, IFormat.Writer {
 
     public void write(EmbPattern pattern, OutputStream file) {
         try {
+            pattern.fixColorCount();
             file.write("#PES0001".getBytes());
 
             ByteArrayOutputStream tempArray = new ByteArrayOutputStream();

@@ -79,7 +79,7 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
             reader.read(pattern, in);
             activity.setPattern(pattern);
             activity.dialogDismiss();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         finally {

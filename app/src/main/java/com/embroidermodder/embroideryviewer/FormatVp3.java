@@ -180,9 +180,10 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
                 threadColorNumber = vp3ReadString(stream);
                 colorName = vp3ReadString(stream);
                 threadVendor = vp3ReadString(stream);
-                t.setColor(new EmbColor(r, g, b));
+                t.setColor(r, g, b);
                 t.setDescription(colorName);
                 t.setCatalogNumber(threadColorNumber);
+                t.setBrand(threadVendor);
 
                 if (i > 0) {
                     pattern.addStitchRel(0, 0, IFormat.STOP, true);
