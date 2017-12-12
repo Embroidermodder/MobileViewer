@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
     private final int SELECT_FILE = 1;
     private DrawView drawView;
     private DrawerLayout mainActivity;
-    private Uri _uriToLoad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,30 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
         Intent intent = getIntent();
-        String action = intent.getAction();
-        if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action)
-                || Intent.ACTION_EDIT.equals(action)) {
-            Uri returnUri = intent.getData();
-            if (returnUri == null) {
-                Object object = intent.getExtras().get(Intent.EXTRA_STREAM);
-                if (object instanceof Uri) {
-                    returnUri = (Uri) object;
-                }
-            }
-            if (returnUri == null) {
-                Toast.makeText(this, R.string.error_uri_not_retrieved, Toast.LENGTH_LONG).show();
-            } else {
-                final Uri finalReturnUri = returnUri;
-
-                Thread urlReaderThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        readFileWrapper(finalReturnUri);
-                    }
-                });
-                urlReaderThread.start();
-            }
-        }
+        threadLoadIntent(intent);
 
         mainActivity = (DrawerLayout) findViewById(R.id.mainActivity);
         drawView = (DrawView) findViewById(R.id.drawview);
@@ -157,6 +133,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) { //requires single instance mode, else this does nothing.
+        super.onNewIntent(intent);
+        threadLoadIntent(intent);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -219,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case REQUEST_CODE_ASK_PERMISSIONS_READ:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    threadReadFromUri(_uriToLoad);
+                        threadLoadIntent(getIntent()); //restarts the load of the intent.
                 } else {
                     Toast.makeText(MainActivity.this, R.string.read_permissions_denied, Toast.LENGTH_SHORT)
                             .show();
@@ -235,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == SELECT_FILE) {
-                onSelectFileResult(data);
+                threadLoadIntent(data);
             }
         }
     }
@@ -265,8 +247,7 @@ public class MainActivity extends AppCompatActivity {
         permissionRequired.openExternalStorage(root, data);
     }
 
-    private void readFileWrapper(Uri uri) {
-        _uriToLoad = uri;
+    private void callIfLoadIntentStreamIsUnreadableWithoutPermissions() {
         int hasReadExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE);
         if (hasReadExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
             if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
@@ -284,7 +265,6 @@ public class MainActivity extends AppCompatActivity {
                     REQUEST_CODE_ASK_PERMISSIONS_READ);
             return;
         }
-        threadReadFromUri(uri);
     }
 
     private void loadFile(File root, String data) {
@@ -294,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveFile(File root, String data) {
+        //todo: this really only save one jef to the root directory. Decide what needs to be done.
         try {
             int n = 10000;
             Random generator = new Random();
@@ -353,13 +334,6 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.cancel, null)
                 .create()
                 .show();
-    }
-
-    private void onSelectFileResult(Intent data) {
-        Uri uri = data.getData();
-        if (uri != null) {
-            readFileWrapper(uri);
-        }
     }
 
     public void useShareFragment() {
@@ -444,46 +418,85 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void threadReadFromUri(final Uri uri) {
+    public void threadLoadIntent(final Intent intent) {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                readFromUri(uri);
+                loadFromIntent(intent);
             }
         });
         thread.start();
     }
 
-    private void readFromUri(final Uri uri) {
-        IFormat.Reader formatReader = null;
-        Cursor returnCursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
-        String scheme = uri.getScheme().toLowerCase();
-        try {
-            if (returnCursor != null) {
-                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                returnCursor.moveToFirst();
-                String filename = returnCursor.getString(nameIndex);
-                formatReader = IFormat.getReaderByFilename(filename);
-            } else if (scheme.equals("file")) {
-                formatReader = IFormat.getReaderByFilename(uri.toString());
-            }
-        } catch (Exception e) {
-        } finally {
-            try {
-                returnCursor.close();
-            } catch (Exception e) {
-            }
+
+    public Uri getUriFromIntent(Intent intent) {
+        Uri uri = intent.getData();
+        if (uri != null) return uri;
+
+        Bundle bundle = intent.getExtras();
+        if (bundle == null) return null;
+
+        Object object = bundle.get(Intent.EXTRA_STREAM);
+        if (object instanceof Uri) {
+            return (Uri) object;
         }
-        if (formatReader == null) {
-            toast(R.string.file_type_not_supported);
+        return null;
+    }
+
+    protected String getDisplayNameByUri(Uri uri) {
+        String filename = null;
+        if (uri.getScheme().equalsIgnoreCase("content")) {
+            Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
+            if ((returnCursor != null) && (returnCursor.getCount() != 0)) {
+                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (returnCursor.moveToFirst()) filename = returnCursor.getString(nameIndex);
+                returnCursor.close();
+            }
+        } else {
+            filename = uri.getPath();
+        }
+        return filename;
+    }
+
+    protected void loadFromIntent(Intent intent) {
+        if (intent == null) return;
+        if (intent.hasExtra("done")) return;
+        intent.putExtra("done", 1);
+
+        Uri uri = getUriFromIntent(intent);
+        if (uri == null) {
+            String action = intent.getAction();
+            if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_VIEW.equals(action) || Intent.ACTION_EDIT.equals(action)) {
+                //todo: toast error message about the URI not being read.
+            }
             return;
         }
+
+        IFormat.Reader reader = null;
+        String mime = intent.getType();
+        //reader = IFormat.getReaderByMime(mime); Sometimes the intent *only* has the MIME type and does not have an extention.
+
+        if (reader == null) {
+            String name = getDisplayNameByUri(uri);
+            //String ext = IFormat.getExtentionByDisplayName(name);
+            //if (ext == null) {
+                //Toast error message about how the extension doesn't exist and there's no way to know what the file is without mimetype or extension.
+                //return;
+            //}
+            reader = IFormat.getReaderByFilename(name);
+            if (reader == null) {
+                toast(R.string.file_type_not_supported);
+                return;
+            }
+        }
+        //I have a reader.
         EmbPattern pattern = null;
         switch (uri.getScheme().toLowerCase()) {
             case "http":
             case "https":
                 HttpURLConnection connection;
                 URL url;
+
                 try {
                     url = new URL(uri.toString());
                 } catch (MalformedURLException e) {
@@ -492,9 +505,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 try {
                     connection = (HttpURLConnection) url.openConnection();
+                    connection.getHeaderField(HttpURLConnection.HTTP_LENGTH_REQUIRED);
+                    connection.setReadTimeout(1000);
                     InputStream in = new BufferedInputStream(connection.getInputStream());
                     pattern = new EmbPattern();
-                    formatReader.read(pattern, in);
+                    reader.read(pattern, in);
+                    in.close();
+                    connection.disconnect();
                 } catch (IOException e) {
                     toast(R.string.error_file_read_failed);
                     return;
@@ -502,25 +519,22 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case "content":
             case "file":
-            default:
                 try {
                     InputStream fis = getContentResolver().openInputStream(uri);
                     pattern = new EmbPattern();
-                    formatReader.read(pattern, fis);
+                    reader.read(pattern, fis);
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);
                     return;
                 } catch (IOException e) {
                     toast(R.string.error_file_read_failed);
                 }
-
                 break;
         }
-        if (pattern == null) {
-            toast(R.string.error_file_read_failed);
+        if (pattern != null) {
+            drawView.setPattern(pattern);
+            drawView.notifyChange(1);
+            drawView.postInvalidate();
         }
-        drawView.setPattern(pattern);
-        drawView.notifyChange(1);
-        drawView.postInvalidate();
     }
 }
