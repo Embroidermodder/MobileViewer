@@ -44,7 +44,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
     final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
     final private int REQUEST_CODE_ASK_PERMISSIONS_READ = 102;
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case REQUEST_CODE_ASK_PERMISSIONS_READ:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                        threadLoadIntent(getIntent()); //restarts the load of the intent.
+                    threadLoadIntent(getIntent()); //restarts the load of the intent.
                 } else {
                     Toast.makeText(MainActivity.this, R.string.read_permissions_denied, Toast.LENGTH_SHORT)
                             .show();
@@ -287,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
                     file.delete();
                 }
                 FileOutputStream outputStream = new FileOutputStream(file);
-                format.write(drawView.getEmbPattern(), outputStream);
+                format.write(drawView.getPattern(), outputStream);
                 outputStream.flush();
                 outputStream.close();
             }
@@ -355,7 +355,6 @@ public class MainActivity extends AppCompatActivity {
         drawerFragmentTag = ColorStitchBlockFragment.TAG;
         transaction.add(R.id.drawerContent, fragment, ColorStitchBlockFragment.TAG);
         transaction.commit();
-        //drawView.getRoot().addListener(fragment);
     }
 
     public boolean tryCloseFragment(String tag) {
@@ -366,23 +365,13 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.remove(fragmentByTag);
         transaction.commit();
-        if (fragmentByTag instanceof DrawView.Listener) {
-            drawView.removeListener((DrawView.Listener) fragmentByTag);
+        if (fragmentByTag instanceof EmbPattern.Listener) {
+            EmbPattern pattern = getPattern();
+            if (pattern != null) {
+                pattern.removeListener((EmbPattern.Listener) fragmentByTag);
+            }
         }
         return true;
-    }
-
-    public void invalidateOnMainThread() {
-        if (!Looper.getMainLooper().equals(Looper.myLooper())) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    invalidateOnMainThread();
-                }
-            });
-            return;
-        }
-        drawView.invalidate();
     }
 
     public void toast(final int stringResource) {
@@ -408,12 +397,22 @@ public class MainActivity extends AppCompatActivity {
 
     public EmbPattern getPattern() {
         if (drawView == null) return null;
-        return drawView.getEmbPattern();
+        return drawView.getPattern();
     }
 
-    public void setPattern(EmbPattern pattern) {
+    public void setPattern(final EmbPattern pattern) {
+        if (!Looper.getMainLooper().equals(Looper.myLooper())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setPattern(pattern);
+                }
+            });
+            return;
+        }
         drawView.setPattern(pattern);
-        invalidateOnMainThread();
+        getPattern().notifyChange(EmbPattern.NOTIFY_LOADED);
+        drawView.invalidate();
         useColorFragment();
     }
 
@@ -480,8 +479,8 @@ public class MainActivity extends AppCompatActivity {
             String name = getDisplayNameByUri(uri);
             //String ext = IFormat.getExtentionByDisplayName(name);
             //if (ext == null) {
-                //Toast error message about how the extension doesn't exist and there's no way to know what the file is without mimetype or extension.
-                //return;
+            //Toast error message about how the extension doesn't exist and there's no way to know what the file is without mimetype or extension.
+            //return;
             //}
             reader = IFormat.getReaderByFilename(name);
             if (reader == null) {
@@ -532,8 +531,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         if (pattern != null) {
-            drawView.setPattern(pattern);
-            drawView.notifyChange(1);
+            setPattern(pattern);
+
             drawView.postInvalidate();
         }
     }

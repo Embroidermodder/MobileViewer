@@ -13,20 +13,22 @@ import yuku.ambilwarna.AmbilWarnaDialog;
 
 public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     EmbPattern pattern;
-    static final int COLOR = 0;
-    static final int STITCH = 1;
+    static final int METADATA = 0;
+    static final int COLOR = 1;
+    static final int STITCH = 2;
 
     public ColorStitchAdapter() {
     }
 
     public void setPattern(EmbPattern root) {
         this.pattern = root;
-        this.notifyDataSetChanged();
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         switch (viewType) {
+            case METADATA:
+                return new MetaDataViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.color_stitch_stitch_item, parent, false));
             case STITCH:
                 return new ColorStitchStitchViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.color_stitch_stitch_item, parent, false));
             case COLOR:
@@ -38,21 +40,44 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public int getItemViewType(int position) {
-        if (pattern.getThreadCount() > position) return COLOR;
+        if (6 > position) return METADATA;
+        if (pattern.getThreadCount() > (position - 6)) return COLOR;
         return STITCH;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         switch (holder.getItemViewType()) {
+            case METADATA:
+                MetaDataViewHolder mHolder = (MetaDataViewHolder) holder;
+                switch (position) {
+                    case 0:
+                        mHolder.setDataPair(EmbPattern.PROP_FILENAME,pattern.filename);
+                        break;
+                    case 1:
+                        mHolder.setDataPair(EmbPattern.PROP_NAME,pattern.name);
+                        break;
+                    case 2:
+                        mHolder.setDataPair(EmbPattern.PROP_AUTHOR,pattern.author);
+                        break;
+                    case 3:
+                        mHolder.setDataPair(EmbPattern.PROP_CATEGORY,pattern.category);
+                        break;
+                    case 4:
+                        mHolder.setDataPair(EmbPattern.PROP_KEYWORDS,pattern.keywords);
+                        break;
+                    case 5:
+                        mHolder.setDataPair(EmbPattern.PROP_COMMENTS,pattern.comments);
+                }
+                break;
             case STITCH:
                 ColorStitchStitchViewHolder sHolder = (ColorStitchStitchViewHolder) holder;
-                Point p = pattern.getStitches().getPoint(position - pattern.getThreadCount());
+                Point p = pattern.getStitches().getPoint((position - 6) - pattern.getThreadCount());
                 sHolder.setPoint(p);
                 break;
             case COLOR:
                 ColorStitchColorViewHolder cHolder = (ColorStitchColorViewHolder) holder;
-                EmbThread thread = pattern.getThreadList().get(position);
+                EmbThread thread = pattern.getThreadList().get(position-6);
                 cHolder.setThread(thread);
                 break;
         }
@@ -93,6 +118,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                         public void onOk(AmbilWarnaDialog dialog, int newColor) {
                             thread.setColor(newColor);
                             notifyItemChanged(getAdapterPosition());
+                            pattern.notifyChange(EmbPattern.NOTIFY_THREAD_COLOR);
                         }
                     });
                     dialog.show();
@@ -153,6 +179,23 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             }
 
         }
+    }
+
+    public class MetaDataViewHolder extends RecyclerView.ViewHolder {
+        TextView value;
+        TextView key;
+
+        public MetaDataViewHolder(View itemView) {
+            super(itemView);
+            value = (TextView) itemView.findViewById(R.id.stitchblock_coords);
+            key = (TextView) itemView.findViewById(R.id.stitchblock_name);
+        }
+
+        public void setDataPair(String key, String value) {
+            this.key.setText(key);
+            this.value.setText(value);
+        }
+
     }
 
     private class EmptyViewHolder extends RecyclerView.ViewHolder {
