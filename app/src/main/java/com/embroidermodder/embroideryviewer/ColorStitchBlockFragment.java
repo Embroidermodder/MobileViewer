@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 
-public class ColorStitchBlockFragment extends Fragment implements DrawView.Listener {
+public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Listener {
     public static final String TAG = "ColorStitch";
     private ColorStitchAdapter adapter;
     private RecyclerView recyclerColorStitch;
@@ -27,15 +27,14 @@ public class ColorStitchBlockFragment extends Fragment implements DrawView.Liste
 
     public void setPattern(EmbPattern pattern) {
         if (pattern != null) {
+            pattern.addListener(this);
             if (adapter == null) {
                 adapter = new ColorStitchAdapter();
                 adapter.setPattern(pattern);
                 recyclerColorStitch.setAdapter(adapter);
-            }
-            else {
+            } else {
                 adapter.setPattern(pattern);
             }
-
 
         }
     }
@@ -46,13 +45,20 @@ public class ColorStitchBlockFragment extends Fragment implements DrawView.Liste
         recyclerColorStitch = (RecyclerView) view.findViewById(R.id.recyclerColorStitch);
         Context context = view.getContext();
         recyclerColorStitch.setLayoutManager(new LinearLayoutManager(context));
-        if (getActivity() instanceof MainActivity) {
-            setPattern(((MainActivity) getActivity()).getPattern());
+        if (getActivity() instanceof EmbPattern.Provider) {
+            setPattern(((EmbPattern.Provider) getActivity()).getPattern());
         }
     }
 
     @Override
     public void notifyChange(int id) {
-        adapter.notifyDataSetChanged();
+        if (id == EmbPattern.NOTIFY_CHANGE) {
+            if (getActivity() instanceof EmbPattern.Provider) {
+                setPattern(((EmbPattern.Provider) getActivity()).getPattern());
+            }
+            adapter.notifyDataSetChanged();
+        } else {
+            adapter.notifyDataSetChanged();
+        }
     }
 }

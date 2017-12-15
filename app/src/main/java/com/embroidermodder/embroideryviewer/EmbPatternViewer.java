@@ -10,15 +10,20 @@ import android.graphics.RectF;
 import com.embroidermodder.embroideryviewer.geom.DataPoints;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class EmbPatternViewer extends ArrayList<StitchBlock> {
     EmbPattern pattern;
 
     private static final float PIXELS_PER_MM = 10;
 
+
     public EmbPatternViewer(EmbPattern pattern) {
         this.pattern = pattern;
+        refresh();
+    }
+
+    public void refresh() {
+        clear();
         int threadIndex = 0;
         DataPoints stitches = pattern.getStitches();
         int start;
@@ -44,19 +49,11 @@ public class EmbPatternViewer extends ArrayList<StitchBlock> {
                 int data = stitches.getData(i);
                 if (data != IFormat.NORMAL) {
                     stop = i;
-                    add(new StitchBlock(stitches, start, stop, getThread(threadIndex), 0));
+                    add(new StitchBlock(stitches, start, stop, pattern.getThreadOrFiller(threadIndex), 0));
                     break;
                 }
             }
         } while ((stop != -1) && (start != stop));
-    }
-
-    public EmbThread getThread(int threadIndex) {
-        if (pattern.getThreadList().size() <= threadIndex) {
-            Random r = new Random();
-            return new EmbThread(0xFF000000 | r.nextInt(0xFFFFFF), "Random");
-        }
-        return pattern.getThread(threadIndex);
     }
 
     public Bitmap getThumbnail(float _width, float _height) {

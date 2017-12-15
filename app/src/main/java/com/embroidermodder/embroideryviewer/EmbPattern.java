@@ -26,6 +26,16 @@ public class EmbPattern {
     static final int RIGHT_TO_LEFT = 0;
     static final int LEFT_TO_RIGHT = 1;
 
+    public static final int NOTIFY_CORRECT_LENGTH = 1; //these are just provisional.
+    public static final int NOTIFY_ROTATED = 2;
+    public static final int NOTIFY_FLIP = 3;
+    public static final int NOTIFY_THREADS_FIX = 4;
+    public static final int NOTIFY_METADATA = 5;
+    public static final int NOTIFY_STITCH_CHANGE = 6;
+    public static final int NOTIFY_LOADED = 7;
+    public static final int NOTIFY_CHANGE = 8;
+    public static final int NOTIFY_THREAD_COLOR = 9;
+
     private DataPoints stitches = new DataPoints();
     private final ArrayList<EmbThread> _threadList;
 
@@ -47,6 +57,9 @@ public class EmbPattern {
     private float _previousX = 0;
     private float _previousY = 0;
 
+
+    private ArrayList<Listener> listeners;
+
     public EmbPattern(EmbPattern p) {
         this.filename = p.filename;
         this.name = p.name;
@@ -63,6 +76,20 @@ public class EmbPattern {
 
     public EmbPattern() {
         _threadList = new ArrayList<>();
+    }
+
+    public void setPattern(EmbPattern p) {
+        this.filename = p.filename;
+        this.name = p.name;
+        this.category = p.category;
+        this.author = p.author;
+        this.keywords = p.keywords;
+        this.comments = p.comments;
+        this._threadList.clear();
+        for (EmbThread thread : p.getThreadList()) {
+            addThread(new EmbThread(thread));
+        }
+        this.stitches = new DataPoints(p.stitches);
     }
 
     public DataPoints getStitches() {
@@ -102,6 +129,7 @@ public class EmbPattern {
                 }
             }
         }
+        notifyChange(NOTIFY_CORRECT_LENGTH);
     }
 
     public void rotate_90(int direction) {
@@ -114,6 +142,7 @@ public class EmbPattern {
                 p.setLocation(p.getY(), -p.getX());
             }
         }
+        notifyChange(NOTIFY_ROTATED);
 
     }
 
@@ -134,6 +163,8 @@ public class EmbPattern {
                     p.setLocation(-p.getX(), -p.getY());
                 }
         }
+        //todo: The stitches relies on datapoints now so, the points can be moved with a matrix applied to them.
+        notifyChange(NOTIFY_FLIP);
     }
 
     public void fixColorCount() {
@@ -150,8 +181,9 @@ public class EmbPattern {
             }
         }
         while (_threadList.size() < threadIndex) {
-            addThread(getRandomThread());
+            addThread(getThreadOrFiller(_threadList.size()));
         }
+        notifyChange(NOTIFY_THREADS_FIX);
     }
 
     public ArrayList<EmbThread> getThreadList() {
@@ -166,15 +198,16 @@ public class EmbPattern {
         return _threadList.get(index);
     }
 
-    public EmbThread getThreadOrRandom(int index) {
+    public EmbThread getRandomThread() {
+        return new EmbThread(0xFF000000 | (int) (Math.random() * 0xFFFFFF), "Random");
+    }
+
+    public EmbThread getThreadOrFiller(int index) {
         if (_threadList.size() <= index) {
+            if (index < 60) return FormatPec.getThreadByIndex(index);
             return getRandomThread();
         }
         return _threadList.get(index);
-    }
-
-    public EmbThread getRandomThread() {
-        return new EmbThread(0xFF000000 | (int) (Math.random() * 0xFFFFFF), "Random");
     }
 
     public int getThreadCount() {
@@ -196,12 +229,14 @@ public class EmbPattern {
 
     public void setFilename(String value) {
         filename = value;
+        notifyChange(NOTIFY_METADATA);
     }
 
     public void addStitchAbs(float x, float y, int flags, boolean isAutoColorIndex) {
         stitches.add(x, y, flags);
         _previousX = x;
         _previousY = y;
+        notifyChange(NOTIFY_STITCH_CHANGE);
     }
 
     /**
@@ -316,7 +351,7 @@ public class EmbPattern {
                     final EmbObject object = new EmbObject() {
                         @Override
                         public EmbThread getThread() {
-                            return getThreadOrRandom(threadIndex);
+                            return getThreadOrFiller(threadIndex);
                         }
 
                         @Override
@@ -387,7 +422,7 @@ public class EmbPattern {
                     final EmbObject object = new EmbObject() {
                         @Override
                         public EmbThread getThread() {
-                            return getThreadOrRandom(threadIndex);
+                            return getThreadOrFiller(threadIndex);
                         }
 
                         @Override
@@ -439,6 +474,32 @@ public class EmbPattern {
                 };
             }
         };
+    }
+
+    public void addListener(Listener listener) {
+        if (listeners == null) listeners = new ArrayList<>();
+        listeners.add(listener);
+    }
+
+    public void removeListener(Listener listener) {
+        if (listeners == null) return;
+        listeners.remove(listener);
+        if (listeners.isEmpty()) listeners = null;
+    }
+
+    public void notifyChange(int id) {
+        if (listeners == null) return;
+        for (Listener listener : listeners) {
+            listener.notifyChange(id);
+        }
+    }
+
+    public interface Listener {
+        void notifyChange(int id);
+    }
+
+    public interface Provider {
+        EmbPattern getPattern();
     }
 
 }
