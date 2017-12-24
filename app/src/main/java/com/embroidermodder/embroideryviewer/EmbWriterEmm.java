@@ -20,7 +20,7 @@ public class EmbWriterEmm extends EmbWriter {
         int threadcount = pattern.getThreadCount();
         writeInt32LE(threadcount);
         if (threadcount != 0) {
-            for (EmbThread thread : pattern.getThreadList()) {
+            for (EmbThread thread : pattern.getThreadlist()) {
                 writeThread(thread);
             }
         }

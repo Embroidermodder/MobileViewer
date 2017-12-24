@@ -77,7 +77,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 break;
             case COLOR:
                 ColorStitchColorViewHolder cHolder = (ColorStitchColorViewHolder) holder;
-                EmbThread thread = pattern.getThreadList().get(position-6);
+                EmbThread thread = pattern.getThreadlist().get(position-6);
                 cHolder.setThread(thread);
                 break;
         }
@@ -160,20 +160,26 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         private String getStitchName(int data) {
             switch (data) {
-                case IFormat.NORMAL:
+                case EmbPattern.STITCH:
                     return "Stitch";
-                case IFormat.JUMP:
+                case EmbPattern.JUMP:
                     return "Jump";
-                case IFormat.END:
+                case EmbPattern.END:
                     return "End";
-                case IFormat.STOP:
+                case EmbPattern.STOP:
                     return "Stop";
-                case IFormat.COLOR_CHANGE:
+                case EmbPattern.COLOR_CHANGE:
                     return "ColorChange";
-                case IFormat.TRIM:
+                    case EmbPattern.NO_COMMAND:
+                        return "No Command";
+                        case EmbPattern.INIT:
+                            return "Init";
+                case EmbPattern.TIE_OFF:
+                    return "Tie-Off";
+                case EmbPattern.TIE_ON:
+                    return "Tie-On";
+                case EmbPattern.TRIM:
                     return "Trim";
-                case IFormat.JUMP | IFormat.TRIM:
-                    return "Trim/Jump";
                 default:
                     return "Unknown: " + data;
             }

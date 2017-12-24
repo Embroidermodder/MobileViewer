@@ -51,6 +51,7 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
     public static final int SAVE_TYPE_HUS = 11;
     public static final int SAVE_TYPE_CVS = 12;
     public static final int SAVE_TYPE_KSM = 13;
+    public static final int SAVE_TYPE_EMM = 14;
 
     public static final String VAR_SAVENAME = "save_name";
     public static final String VAR_SETTINGS = "emb_settings";
@@ -60,7 +61,7 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
     static final int SETTINGS_DEFAULT = SAVE_TYPE_DST;
 
     private Integer[] ids = new Integer[]{
-            R.id.radioDst, R.id.radioJef, R.id.radioXxx, R.id.radioExp, R.id.radioSvg, R.id.radioPcs, R.id.radioSew, R.id.radioVp3, R.id.radioPes, R.id.radioPec, R.id.radioShv, R.id.radioHus, R.id.radioCvs, R.id.radioKsm
+            R.id.radioDst, R.id.radioJef, R.id.radioXxx, R.id.radioExp, R.id.radioSvg, R.id.radioPcs, R.id.radioSew, R.id.radioVp3, R.id.radioPes, R.id.radioPec, R.id.radioShv, R.id.radioHus, R.id.radioCvs, R.id.radioKsm, R.id.radioEmm
     };
 
     private EmbPattern embPattern;
@@ -294,6 +295,11 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
                 filename = validateName(name, "ksm");
                 file = createCachedEmbroideryFile(filename, name);
                 shareFile(file, name, "application/x-ksm");
+                break;
+            case SAVE_TYPE_EMM:
+                filename = validateName(name, "emm");
+                file = createCachedEmbroideryFile(filename, name);
+                shareFile(file, name, "application/x-emm");
                 break;
         }
         dismissFragment();

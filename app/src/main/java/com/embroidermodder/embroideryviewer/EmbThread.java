@@ -67,6 +67,14 @@ public class EmbThread {
         this.weight = embthread.weight;
     }
 
+    public EmbThread(int red, int green, int blue, String description, String catalogNumber, String brand, String chart) {
+        this.color = newColor(red,green,blue);
+        this.description = description;
+        this.catalogNumber = catalogNumber;
+        this.brand = brand;
+        this.chart = chart;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -308,7 +316,7 @@ public class EmbThread {
         if (color == null) {
             return 0;
         }
-        Pattern PATTERN_HEX = Pattern.compile("#([0-9A-Fa-f]+)");
+        Pattern PATTERN_HEX = Pattern.compile("#?([0-9A-Fa-f]+)");
         Matcher m;
         m = PATTERN_HEX.matcher(color);
         if (m.find()) {
@@ -710,4 +718,11 @@ public class EmbThread {
         chart = map.get(PROP_CHART);
         weight = map.get(PROP_WEIGHT);
     }
+
+
+    @Override
+    public String toString() {
+        return "EmbThread{" + "description=" + description + ", catalogNumber=" + catalogNumber + ", brand=" + brand + ", " + this.getHexColor() + '}';
+    }
+
 }

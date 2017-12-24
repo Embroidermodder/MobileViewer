@@ -39,6 +39,8 @@
     <string name="format_hus">.hus</string>
     <string name="format_ksm">.ksm</string>
     <string name="format_cvs">.cvs</string>
+    <string name="format_emm">.emm</string>
     <string name="send_file_to">Send File To…</string>
     <string name="share_option_lockstitch">LockStitch</string>
+
 </resources>

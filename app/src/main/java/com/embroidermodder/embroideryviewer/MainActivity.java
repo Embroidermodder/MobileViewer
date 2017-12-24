@@ -532,7 +532,6 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         }
         if (pattern != null) {
             setPattern(pattern);
-
             drawView.postInvalidate();
         }
     }

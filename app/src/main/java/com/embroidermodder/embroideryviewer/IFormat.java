@@ -5,56 +5,73 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class IFormat {
-    public static final int NORMAL = 0;
-    public static final int JUMP = 1;
-    public static final int TRIM = 2;
-    public static final int STOP = 4;
-    public static final int END = 8;
-    public static final int COLOR_CHANGE = 16;
+    public static String getExtentionByFileName(String name) {
+        if (name == null) return null;
+        String[] split = name.split("\\.");
+        if (split.length <= 1) {
+            return null;
+        }
+        return split[split.length - 1].toLowerCase();
+    }
 
-    private static Object getByFilename(String filename) {
-        if (filename.length() < 4) return null;
-        filename = filename.toLowerCase();
-        switch (filename.substring(filename.length() - 4)) {
-            case ".col":
-                return new FormatCol();
-            case ".exp":
-                return new FormatExp();
-            case ".dst":
-                return new FormatDst();
-            case ".jef":
-                return new FormatJef();
-            case ".pcs":
-                return new FormatPcs();
-            case ".pec":
-                return new FormatPec();
-            case ".pes":
-                return new FormatPes();
-            case ".sew":
-                return new FormatSew();
-            case ".shv":
-                return new FormatShv();
-            case ".vp3":
-                return new FormatVp3();
-            case ".xxx":
-                return new FormatXxx();
-            case ".png":
-                return new FormatPng();
-            case ".svg":
-                return new FormatSvg();
+    public static IFormat.Reader getReaderByFilename(String filename) {
+        String ext = getExtentionByFileName(filename);
+        switch (ext) {
+            case "emm":
+                return new EmbReaderEmm();
+            case "col":
+                return new EmbReaderCOL();
+            case "inf":
+                return new EmbReaderINF();
+            case "exp":
+                return new EmbReaderEXP();
+            case "dst":
+                return new EmbReaderDST();
+            case "jef":
+                return new EmbReaderJEF();
+            case "pcs":
+                return new EmbReaderPCS();
+            case "pec":
+                return new EmbReaderPEC();
+            case "pes":
+                return new EmbReaderPES();
+            case "sew":
+                return new EmbReaderSEW();
+            case "shv":
+                return new EmbReaderSHV();
+            case "vp3":
+                return new EmbReaderVP3();
+            case "xxx":
+                return new EmbReaderXXX();
+            case "svg":
+                return new EmbReaderSVG();
             default:
                 return null;
         }
     }
 
-    public static IFormat.Reader getReaderByFilename(String filename) {
-        Object o = getByFilename(filename);
-        return IFormat.Reader.class.isInstance(o) ? IFormat.Reader.class.cast(o) : null;
-    }
-
     public static IFormat.Writer getWriterByFilename(String filename) {
-        Object o = getByFilename(filename);
-        return IFormat.Writer.class.isInstance(o) ? IFormat.Writer.class.cast(o) : null;
+        String ext = getExtentionByFileName(filename);
+        switch (ext) {
+            case "exp":
+                return new EmbWriterEXP();
+            case "dst":
+                return new EmbWriterDST();
+            case "pec":
+                return new EmbWriterPEC();
+            case "pes":
+                return new EmbWriterPES();
+            case "emm":
+                return new EmbWriterEmm();
+            case "jef":
+                return new EmbWriterJEF();
+            case "png":
+                return new FormatPng();
+            case "svg":
+                return new EmbWriterSVG();
+            default:
+                return null;
+        }
     }
 
     public interface Reader {

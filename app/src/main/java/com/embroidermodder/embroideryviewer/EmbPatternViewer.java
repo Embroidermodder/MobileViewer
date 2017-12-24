@@ -35,19 +35,19 @@ public class EmbPatternViewer extends ArrayList<StitchBlock> {
 
             for (int i = start, ie = stitches.size(); i < ie; i++) {
                 int data = stitches.getData(i);
-                if (((data & IFormat.STOP) != 0) || ((data & IFormat.COLOR_CHANGE) != 0)) {//TODO: Stop should not iterate the threadindex, stop is not color change.
+                if (((data & EmbPattern.STOP) != 0) || ((data & EmbPattern.COLOR_CHANGE) != 0)) {//TODO: Stop should not iterate the threadindex, stop is not color change.
                     if (start != 0) { //if colorchange op, before any stitches, ignore it.
                         threadIndex++;
                     }
                 }
-                if (data == IFormat.NORMAL) {
+                if (data == EmbPattern.STITCH) {
                     start = i;
                     break;
                 }
             }
             for (int i = start, ie = stitches.size(); i < ie; i++) {
                 int data = stitches.getData(i);
-                if (data != IFormat.NORMAL) {
+                if (data != EmbPattern.STITCH) {
                     stop = i;
                     add(new StitchBlock(stitches, start, stop, pattern.getThreadOrFiller(threadIndex), 0));
                     break;
@@ -77,7 +77,8 @@ public class EmbPatternViewer extends ArrayList<StitchBlock> {
     }
 
     public RectF calculateBoundingBox() {
-        return pattern.calculateBoundingBox();
+        DataPoints stitches = pattern.getStitches();
+        return new RectF(stitches.getMinX(), stitches.getMinY(),stitches.getMaxX(), stitches.getMaxY());
     }
 
     private float pixelstomm(float v) {
