@@ -251,7 +251,6 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
         }
         pattern.getFlippedPattern(false, true);
         pattern.addStitchRel(0, 0, IFormat.END, true);
-        pattern.rel_flip(1);
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {
@@ -270,6 +269,9 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             b[1] = 4;
             b[2] = dx;
             b[3] = dy;
+        } else if ((flags & IFormat.END) > 0) {
+            b[0] = (byte) 128;
+            b[1] = 0x10;
         } else {
             b[0] = dx;
             b[1] = dy;
@@ -294,7 +296,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             //-------------I NEED TO CHANGE HERE CALCULATION OF OFF SET
             offsets = 0x74 + (colorCount * 8);
             BinaryHelper.writeInt32(stream, offsets);
-            BinaryHelper.writeInt32(stream, 0x0A);
+            BinaryHelper.writeInt32(stream, 0x14);
             //time and date
             stream.write(String.format("20122017218088").getBytes());
             stream.write(0x00);
@@ -365,8 +367,8 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
             for (int i = 0; i <= 78; i++) {
                 jefThreads.add(getThreadByIndex(i));
             }
-            for (EmbObject embObject : pattern.asColorEmbObjects()) {
-                BinaryHelper.writeInt32(stream, EmbThread.findNearestColorIndex(embObject.getThread().color, jefThreads));
+            for (EmbThread thread : pattern.getThreadList()) {
+                BinaryHelper.writeInt32(stream, EmbThread.findNearestColorIndex(thread.color, jefThreads));
             }
             for (int i = 0; i < colorCount; i++) {
                 BinaryHelper.writeInt32(stream, 0x0D);
@@ -389,8 +391,6 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
                     stream.write(b[3]);
                 }
             }
-            stream.write(0x80);
-            stream.write(0x10);
             pattern.rel_flip(1);
             stream.close();
         } catch (IOException ex) {
