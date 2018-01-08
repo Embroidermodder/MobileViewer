@@ -233,6 +233,9 @@ public class EmbPattern {
     }
 
     public void addStitchAbs(float x, float y, int flags, boolean isAutoColorIndex) {
+        if((flags & IFormat.END) > 0 && stitches.count > 0 && stitches.getData(stitches.size() - 1) == IFormat.END) {
+            return;
+        }
         stitches.add(x, y, flags);
         _previousX = x;
         _previousY = y;

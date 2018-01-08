@@ -13,11 +13,11 @@ import java.util.ArrayList;
 
 public class FormatJef implements IFormat.Reader, IFormat.Writer {
     final class DefineConstants {
-        public static final int HOOP_126X110 = 0;
-        public static final int HOOP_110X110 = 1;
-        public static final int HOOP_50X50 = 2;
-        public static final int HOOP_140X200 = 3;
-        public static final int HOOP_230X200 = 4;
+        public static final int HOOP_110X110 = 0;
+        public static final int HOOP_50X50 = 1;
+        public static final int HOOP_140X200 = 2;
+        public static final int HOOP_126X110 = 3;
+        public static final int HOOP_200X200 = 4;
     }
 
     private static int jefGetHoopSize(int width, int height) {
