@@ -66,7 +66,7 @@ public class FormatPcs implements IFormat.Reader {
                     break;
                 }
                 if ((b[8] & 0x01) != 0) {
-                    flags = IFormat.STOP;
+                    flags = IFormat.COLOR_CHANGE;
                 } else if ((b[8] & 0x04) != 0) {
                     flags = IFormat.TRIM;
                 }

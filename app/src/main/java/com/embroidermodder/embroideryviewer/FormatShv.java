@@ -182,7 +182,7 @@ public class FormatShv implements IFormat.Reader {
                 b0 = BinaryHelper.readInt8(stream);
                 b1 = BinaryHelper.readInt8(stream);
                 if (stitchesPerColor.containsKey(currColorIndex) && stitchesSinceStop >= stitchesPerColor.get(currColorIndex)) {
-                    pattern.addStitchRel(0, 0, IFormat.STOP, true);
+                    pattern.addStitchRel(0, 0, IFormat.COLOR_CHANGE, true);
                     stitchesSinceStop = 0;
                     currColorIndex++;
                 }

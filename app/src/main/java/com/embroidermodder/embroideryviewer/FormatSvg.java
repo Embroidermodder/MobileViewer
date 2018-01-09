@@ -208,7 +208,7 @@ public class FormatSvg implements IFormat.Writer, IFormat.Reader {
                     public void path(String path, int strokeColor) {
                         if (strokeColor != lastColor) {
                             pattern.addThread(new EmbThread(strokeColor, "SVG Color " + EmbThread.getHexColor(strokeColor), null));
-                            if (lastColor != 0) pattern.addStitchRel(0,0,IFormat.STOP, true); //TODO: Should be Colorchange.
+                            if (lastColor != 0) pattern.addStitchRel(0,0,IFormat.COLOR_CHANGE, true); //TODO: Should be Colorchange.
                         }
                         lastColor = strokeColor;
                         parser.parse(path, command);

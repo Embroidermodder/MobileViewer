@@ -50,7 +50,7 @@ public class FormatXxx implements IFormat.Reader {
                         b1 = 0;
                         b2 = 0;
                         is_jump_stitch = true;
-                        stitch_type = IFormat.STOP;
+                        stitch_type = IFormat.COLOR_CHANGE;
                     } else if (b2 == 1) {
                         s++;
                         b1 = (byte)stream.read();

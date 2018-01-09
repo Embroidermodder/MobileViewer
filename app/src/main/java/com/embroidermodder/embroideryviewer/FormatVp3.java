@@ -186,7 +186,7 @@ public class FormatVp3 implements IFormat.Reader { //}, IFormat.Writer {
                 t.setBrand(threadVendor);
 
                 if (i > 0) {
-                    pattern.addStitchRel(0, 0, IFormat.STOP, true);
+                    pattern.addStitchRel(0, 0, IFormat.COLOR_CHANGE, true);
                 }
                 int offsetToNextColorX = BinaryHelper.readInt32BE(stream);
                 int offsetToNextColorY = BinaryHelper.readInt32BE(stream);

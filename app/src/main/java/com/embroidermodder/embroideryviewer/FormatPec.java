@@ -28,7 +28,7 @@ public class FormatPec implements IFormat.Reader, IFormat.Writer {
                 }
                 if (val1 == 0xFE && val2 == 0xB0) {
                     stream.read();
-                    pattern.addStitchRel(0.0f, 0.0f, IFormat.STOP, true);
+                    pattern.addStitchRel(0.0f, 0.0f, IFormat.COLOR_CHANGE, true);
                     continue;
                 }
                 /* High bit set means 12-bit offset, otherwise 7-bit signed delta */

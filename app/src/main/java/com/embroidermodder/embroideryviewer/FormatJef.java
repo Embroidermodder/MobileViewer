@@ -233,7 +233,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
                             break;
                         }
 
-                        flags = IFormat.STOP;
+                        flags = IFormat.COLOR_CHANGE;
                     } else if ((b[1] == 0x04) || (b[1] == 0x02)) {
                         if (stream.read(b) != 2) {
                             break;
@@ -254,7 +254,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {
-        if (flags == IFormat.STOP) {
+        if (flags == IFormat.COLOR_CHANGE) {
             b[0] = (byte) 128;
             b[1] = 1;
             b[2] = dx;
@@ -305,7 +305,7 @@ public class FormatJef implements IFormat.Reader, IFormat.Writer {
 
             int jumpAndStopCount = 0;
             for (Point stitch : new PointIterator<Points>(pattern.getStitches())) {
-                if ((stitch.data() & (IFormat.STOP | IFormat.TRIM | IFormat.JUMP)) > 0) {
+                if ((stitch.data() & (IFormat.COLOR_CHANGE | IFormat.TRIM | IFormat.JUMP)) > 0) {
                     jumpAndStopCount++;
                 }
             }

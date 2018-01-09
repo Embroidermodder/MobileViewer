@@ -198,7 +198,7 @@ public class FormatSew implements IFormat.Reader {
                         if (stream.read(b) != 2) {
                             break;
                         }
-                        flags = IFormat.STOP;
+                        flags = IFormat.COLOR_CHANGE;
                     } else if ((b[1] == 0x04) || (b[1] == 0x02)) {
                         if (stream.read(b) != 2) {
                             break;

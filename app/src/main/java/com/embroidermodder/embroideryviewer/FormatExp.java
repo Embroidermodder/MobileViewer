@@ -42,7 +42,7 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
                         if (stream.available() <= 0) {
                             break;
                         }
-                        flags = IFormat.STOP;
+                        flags = IFormat.COLOR_CHANGE;
                     } else if ((b1 == 2) || (b1 == 4) || b1 == 6) {
                         flags = IFormat.TRIM;
                         if (b1 == 2) {
@@ -97,7 +97,7 @@ public class FormatExp implements IFormat.Reader, IFormat.Writer {
             b[1] = 2;
             b[2] = dx;
             b[3] = dy;
-        } else if (flags == IFormat.STOP) {
+        } else if (flags == IFormat.COLOR_CHANGE) {
             b[0] = (byte) 128;
             b[1] = 1;
             b[2] = dx;

@@ -29,7 +29,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer  {
             returnCode |= IFormat.TRIM;
         }
         if ((b & 0x40) > 0) {
-            returnCode |= IFormat.STOP;
+            returnCode |= IFormat.COLOR_CHANGE;
         }
         return returnCode;
     }
@@ -219,7 +219,7 @@ public class FormatDst implements IFormat.Reader, IFormat.Writer  {
             if ((flags & (IFormat.TRIM)) > 0) {
                 b2 = (char) (b2 | 0x83);
             }
-            if ((flags & IFormat.STOP) == IFormat.STOP) {
+            if ((flags & IFormat.COLOR_CHANGE) == IFormat.COLOR_CHANGE) {
                 b2 = (char) (b2 | 0xC3);
             }
             file.write(b0);
