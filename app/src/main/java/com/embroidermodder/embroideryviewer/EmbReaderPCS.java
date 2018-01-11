@@ -4,7 +4,6 @@ import java.io.IOException;
 
 public class EmbReaderPCS extends EmbReader {
 
-
     static float pcsDecode(int a1, int a2, int a3) {
         int res = (a1 & 0xFF) + ((a2 & 0xFF) << 8) + ((a3 & 0xFF) << 16);
         if (res > 0x7FFFFF) {
