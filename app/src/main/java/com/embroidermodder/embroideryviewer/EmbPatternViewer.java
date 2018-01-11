@@ -35,7 +35,7 @@ public class EmbPatternViewer extends ArrayList<StitchBlock> {
 
             for (int i = start, ie = stitches.size(); i < ie; i++) {
                 int data = stitches.getData(i);
-                if (((data & EmbPattern.STOP) != 0) || ((data & EmbPattern.COLOR_CHANGE) != 0)) {//TODO: Stop should not iterate the threadindex, stop is not color change.
+                if (data == EmbPattern.COLOR_CHANGE) {
                     if (start != 0) { //if colorchange op, before any stitches, ignore it.
                         threadIndex++;
                     }

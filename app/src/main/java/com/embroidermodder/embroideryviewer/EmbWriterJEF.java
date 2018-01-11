@@ -9,11 +9,11 @@ import java.io.IOException;
 
 public class EmbWriterJEF extends EmbWriter {
     final class DefineConstants {
-        public static final int HOOP_126X110 = 0;
-        public static final int HOOP_110X110 = 1;
-        public static final int HOOP_50X50 = 2;
-        public static final int HOOP_140X200 = 3;
-        public static final int HOOP_230X200 = 4;
+        public static final int HOOP_110X110 = 0;
+        public static final int HOOP_50X50 = 1;
+        public static final int HOOP_140X200 = 2;
+        public static final int HOOP_126X110 = 3;
+        public static final int HOOP_200X200 = 4;
     }
 
     @Override
@@ -42,7 +42,6 @@ public class EmbWriterJEF extends EmbWriter {
     public void write() throws IOException {
         DataPoints stitches = pattern.getStitches();
         //pattern.rel_flip(1);
-        //pattern.correctForMaxStitchLength(127, 127);
         pattern.fixColorCount();
         int colorCount = 0;
         int designWidth;
@@ -58,7 +57,7 @@ public class EmbWriterJEF extends EmbWriter {
         //-------------I NEED TO CHANGE HERE CALCULATION OF OFF SET
         offsets = 0x74 + (colorCount * 8);
         writeInt32(offsets);
-        writeInt32(0x0A);
+        writeInt32(0x14);
         //time and date
         write(String.format("20122017218088").getBytes());
         writeInt8(0x00);
@@ -80,7 +79,6 @@ public class EmbWriterJEF extends EmbWriter {
         }
 
         writeInt32(pointCount + jumpAndStopCount);
-
 
         designWidth = (int) (stitches.getWidth());
         designHeight = (int) (stitches.getHeight());
@@ -133,8 +131,8 @@ public class EmbWriterJEF extends EmbWriter {
 
 
         EmbThread[] threadSet = EmbThreadJef.getThreadSet();
-        for (EmbObject embObject : pattern.asColorEmbObjects()) {
-            writeInt32( EmbThread.findNearestIndex(embObject.getThread().color, threadSet));
+        for (EmbThread thread : pattern.getThreadlist()) {
+            writeInt32( EmbThread.findNearestIndex(thread.color, threadSet));
         }
         for (int i = 0; i < colorCount; i++) {
             writeInt32( 0x0D);
@@ -157,8 +155,6 @@ public class EmbWriterJEF extends EmbWriter {
                 writeInt8(b[3]);
             }
         }
-        writeInt8(0x80);
-        writeInt8(0x10);
     }
 
     private static int jefGetHoopSize(int width, int height) {
@@ -175,7 +171,7 @@ public class EmbWriterJEF extends EmbWriter {
     }
 
     private void encode(byte[] b, byte dx, byte dy, int flags) {
-        if (flags == EmbPattern.STOP) {
+        if ((flags == EmbPattern.COLOR_CHANGE) || (flags == EmbPattern.STOP)) {
             b[0] = (byte) 128;
             b[1] = 1;
             b[2] = dx;
@@ -190,6 +186,9 @@ public class EmbWriterJEF extends EmbWriter {
             b[1] = 4;
             b[2] = dx;
             b[3] = dy;
+        } else if (flags == EmbPattern.END) {
+            b[0] = (byte) 128;
+            b[1] = 0x10;
         } else {
             b[0] = dx;
             b[1] = dy;

@@ -169,7 +169,7 @@ public class EmbReaderVP3 extends EmbReader {
             t.setBrand(threadVendor);
 
             if (i > 0) {
-                pattern.addStitchRel(0, 0, EmbPattern.STOP, true);
+                pattern.addStitchRel(0, 0, EmbPattern.COLOR_CHANGE, true);
             }
             int offsetToNextColorX = readInt32BE();
             int offsetToNextColorY = readInt32BE();

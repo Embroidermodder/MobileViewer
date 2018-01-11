@@ -17,12 +17,12 @@ public class EmbPattern {
     public static final int STITCH = 0;
     public static final int JUMP = 1;
     public static final int TRIM = 2;
-    public static final int STOP = 3;
-    public static final int END = 4;
-    public static final int COLOR_CHANGE = 5;
-    public static final int INIT = 6;
-    public static final int TIE_ON = 7;
-    public static final int TIE_OFF = 8;
+    public static final int STOP = 4;
+    public static final int END = 8;
+    public static final int COLOR_CHANGE = 16;
+    public static final int INIT = 32;
+    public static final int TIE_ON = 64;
+    public static final int TIE_OFF = 128;
     public static final int COMMAND_MASK = 0xFF;
 
 
