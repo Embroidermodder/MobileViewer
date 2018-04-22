@@ -1,7 +1,5 @@
 package com.embroidermodder.embroideryviewer.geom;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Points Direct extension with integer data attached to the points.
+ * Points Direct extension with integer data attached at a 1:1 connection to the points.
  */
 
 public class DataPoints extends PointsDirect {

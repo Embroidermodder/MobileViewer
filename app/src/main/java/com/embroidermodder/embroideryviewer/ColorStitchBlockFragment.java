@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+
 
 public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Listener {
     public static final String TAG = "ColorStitch";

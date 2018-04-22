@@ -4,6 +4,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;

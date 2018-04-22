@@ -22,6 +22,9 @@ import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;

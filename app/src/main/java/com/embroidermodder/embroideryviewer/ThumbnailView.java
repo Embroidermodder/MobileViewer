@@ -13,6 +13,9 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +28,7 @@ public class ThumbnailView extends View {
     public static Drawable fileDefault, directoryDefault;
     public Thread thread;
     public File file;
-    EmbPatternViewer root;
+    EmbPatternQuickView root;
     Bitmap cache;
 
     final Paint _paint = new Paint();
@@ -64,15 +67,15 @@ public class ThumbnailView extends View {
 
     public void createFromPattern(EmbPattern pattern) {
         if (pattern == null) return;
-        this.root = new EmbPatternViewer(pattern);
+        this.root = new EmbPatternQuickView(pattern);
         if (root.isEmpty()) {
             return;
         }
         float _width = getWidth();
-        float _height = getHeight();
+        //float _height = getHeight();
         if (_width == 0) _width = MIN_THUMBNAIL_SIZE;
-        if (_height == 0) _height = MIN_THUMBNAIL_SIZE;
-        cache = root.getThumbnail(_width,_height);
+        //if (_height == 0) _height = MIN_THUMBNAIL_SIZE;
+        cache = root.squareThumbnail((int) _width);
         processInvalidation();
     }
 
@@ -83,7 +86,7 @@ public class ThumbnailView extends View {
         } else {
             canvas.save();
             canvas.getClipBounds(rect);
-            canvas.translate(rect.left,rect.top);
+            canvas.translate(rect.left, rect.top);
             if (file == null || file.isDirectory()) {
                 canvas.drawColor(Color.BLUE);
                 directoryDefault.draw(canvas);

@@ -35,7 +35,6 @@ import java.util.Arrays;
  */
 
 public class PointsDirect implements Points {
-
     public static final int MIN_CAPACITY_INCREMENT = 12;
     public static final int INVALID_POINT = -1;
 
@@ -141,6 +140,14 @@ public class PointsDirect implements Points {
         }
         System.arraycopy(vars, 0, pointlist, arrayindex, arraylength);
         count += arraylength;
+        dirtybounds = true;
+    }
+
+    public void add(Points points) {
+        ensureCapacity(count + (points.size() << 1));
+        for (int i = 0, ie = points.size(); i < ie; i++) {
+            add(points.getX(i), points.getY(i), points.getData(i));
+        }
         dirtybounds = true;
     }
 

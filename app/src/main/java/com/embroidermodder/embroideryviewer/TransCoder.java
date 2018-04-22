@@ -1,17 +1,18 @@
 package com.embroidermodder.embroideryviewer;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
 import com.embroidermodder.embroideryviewer.geom.DataPoints;
 
-import static com.embroidermodder.embroideryviewer.EmbPattern.COLOR_CHANGE;
-import static com.embroidermodder.embroideryviewer.EmbPattern.COMMAND_MASK;
-import static com.embroidermodder.embroideryviewer.EmbPattern.INIT;
-import static com.embroidermodder.embroideryviewer.EmbPattern.JUMP;
-import static com.embroidermodder.embroideryviewer.EmbPattern.NO_COMMAND;
-import static com.embroidermodder.embroideryviewer.EmbPattern.STITCH;
-import static com.embroidermodder.embroideryviewer.EmbPattern.STOP;
-import static com.embroidermodder.embroideryviewer.EmbPattern.TIE_OFF;
-import static com.embroidermodder.embroideryviewer.EmbPattern.TIE_ON;
-import static com.embroidermodder.embroideryviewer.EmbPattern.TRIM;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.COLOR_CHANGE;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.COMMAND_MASK;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.INIT;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.JUMP;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.NO_COMMAND;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.STITCH;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.STOP;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.TIE_OFF;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.TIE_ON;
+import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.TRIM;
 
 
 /**
