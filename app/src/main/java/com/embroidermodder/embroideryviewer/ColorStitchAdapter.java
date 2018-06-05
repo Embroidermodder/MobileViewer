@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbThread;
 import com.embroidermodder.embroideryviewer.geom.Point;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
@@ -52,22 +54,22 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 MetaDataViewHolder mHolder = (MetaDataViewHolder) holder;
                 switch (position) {
                     case 0:
-                        mHolder.setDataPair(EmbPattern.PROP_FILENAME,pattern.filename);
+                        mHolder.setDataPair(EmbPattern.PROP_FILENAME, pattern.filename);
                         break;
                     case 1:
-                        mHolder.setDataPair(EmbPattern.PROP_NAME,pattern.name);
+                        mHolder.setDataPair(EmbPattern.PROP_NAME, pattern.name);
                         break;
                     case 2:
-                        mHolder.setDataPair(EmbPattern.PROP_AUTHOR,pattern.author);
+                        mHolder.setDataPair(EmbPattern.PROP_AUTHOR, pattern.author);
                         break;
                     case 3:
-                        mHolder.setDataPair(EmbPattern.PROP_CATEGORY,pattern.category);
+                        mHolder.setDataPair(EmbPattern.PROP_CATEGORY, pattern.category);
                         break;
                     case 4:
-                        mHolder.setDataPair(EmbPattern.PROP_KEYWORDS,pattern.keywords);
+                        mHolder.setDataPair(EmbPattern.PROP_KEYWORDS, pattern.keywords);
                         break;
                     case 5:
-                        mHolder.setDataPair(EmbPattern.PROP_COMMENTS,pattern.comments);
+                        mHolder.setDataPair(EmbPattern.PROP_COMMENTS, pattern.comments);
                 }
                 break;
             case STITCH:
@@ -77,7 +79,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 break;
             case COLOR:
                 ColorStitchColorViewHolder cHolder = (ColorStitchColorViewHolder) holder;
-                EmbThread thread = pattern.getThreadlist().get(position-6);
+                EmbThread thread = pattern.getThreadlist().get(position - 6);
                 cHolder.setThread(thread);
                 break;
         }
@@ -128,17 +130,17 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         public void setThread(EmbThread thread) {
             this.thread = thread;
-            int colorValue = thread.color;
+            int colorValue = thread.getColor();
             color.setBackgroundColor(colorValue);
 
-            String nameValue = thread.description;
+            String nameValue = thread.getDescription();
             if ((nameValue == null) || ("".equals(nameValue))) {
                 nameValue = thread.getHexColor();
             }
             name.setText(nameValue);
             //stitches.setText(itemView.getContext().getString(R.string.stitchblock_stitches, 0));
             color.setBackgroundColor(thread.getColor());
-            name.setText(thread.description);
+            name.setText(thread.getDescription());
         }
 
     }
@@ -170,10 +172,10 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     return "Stop";
                 case EmbPattern.COLOR_CHANGE:
                     return "ColorChange";
-                    case EmbPattern.NO_COMMAND:
-                        return "No Command";
-                        case EmbPattern.INIT:
-                            return "Init";
+                case EmbPattern.NO_COMMAND:
+                    return "No Command";
+                case EmbPattern.INIT:
+                    return "Init";
                 case EmbPattern.TIE_OFF:
                     return "Tie-Off";
                 case EmbPattern.TIE_ON:

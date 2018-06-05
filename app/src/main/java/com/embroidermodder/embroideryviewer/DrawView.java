@@ -11,10 +11,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+
 public class DrawView extends View implements EmbPattern.Listener, EmbPattern.Provider {
     private static final float MARGIN = 0.05f;
+    private static final float PIXELS_PER_MM = 10;
     private final EmbPattern embPattern = new EmbPattern();
-    private final EmbPatternViewer root = new EmbPatternViewer(embPattern);
+    private EmbPatternQuickView root = new EmbPatternQuickView(embPattern);
     private final Paint _paint = new Paint();
     private int _height;
     private int _width;
@@ -106,15 +109,31 @@ public class DrawView extends View implements EmbPattern.Listener, EmbPattern.Pr
         if (root != null) {
             canvas.save();
             if (viewMatrix != null) canvas.concat(viewMatrix);
-            for (StitchBlock stitchBlock : root) {
-                stitchBlock.draw(canvas, _paint);
-            }
+            root.draw(canvas);
             canvas.restore();
         }
     }
 
     public String getStatistics() {
-        return root.getStatistics(getContext());
+        Context context = getContext();
+//        RectF bounds = embPattern.calculateBoundingBox();
+        StringBuilder sb = new StringBuilder();
+//        int totalSize = embPattern.getTotalSize();
+//        int jumpCount = embPattern.getJumpCount();
+//        int colorCount = embPattern.getColorCount();
+//        sb.append(context.getString(R.string.normal_stitches)).append(totalSize).append('\n');
+//        sb.append(context.getString(R.string.jumps)).append(jumpCount).append('\n');
+//        sb.append(context.getString(R.string.colors)).append(colorCount).append('\n');
+//        sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
+        return sb.toString();
+    }
+
+    public String convert(float v) {
+        return String.format("%.1f", pixelstomm(v));
+    }
+
+    private float pixelstomm(float v) {
+        return v / PIXELS_PER_MM;
     }
 
     @Override
@@ -125,16 +144,16 @@ public class DrawView extends View implements EmbPattern.Listener, EmbPattern.Pr
     public void setPattern(EmbPattern pattern) {
         if (pattern == null) return;
         this.embPattern.setPattern(pattern);
-        this.root.refresh();
+        this.root = new EmbPatternQuickView(embPattern);
         pattern.notifyChange(EmbPattern.NOTIFY_CHANGE);
         invalidate();
     }
 
     @Override
     public void notifyChange(int id) {
-        this.root.refresh();
+        this.root = new EmbPatternQuickView(embPattern);
         if (!root.isEmpty()) {
-            viewPort = root.calculateBoundingBox();
+            viewPort = embPattern.getBounds(viewPort);
             float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
             float extraWidth = _width - (viewPort.width() * scale);
             float extraHeight = _height - (viewPort.height() * scale);

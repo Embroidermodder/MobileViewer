@@ -4,7 +4,7 @@ package com.embroidermodder.embroideryviewer.geom;
  * Indexed implementation of point.
  * With a given index and a Points implementation, it implements Point.
  *
- * This is so that classes like PointsDirect can return Point objects without
+ * This is so that classes like PointsDirect can return Point object without
  * actually containing copies the underlying class objects.
  *
  * @param <E>

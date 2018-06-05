@@ -1,21 +1,26 @@
 package com.embroidermodder.embroideryviewer.geom;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Static functions of various utility. There's a lot of reusable code and it's mostly put in here for geometry related
- * elements like distances etc.
- *
+ * Static function helper class. Embroidery does a considerable amount of 2D Geometry and extends
+ * into well understood areas that are not popular enough to be covered by Math or other such static
+ * functions.
  */
 
 public class Geometry2D {
+    public static final int DIRECTION_CCW = 0;
+    public static final int DIRECTION_CW = 1;
     public static final double TAU = Math.PI * 2;
+    public static final int INVALID_POINT = -1;
 
     static public Point towards(Point from, Point to, double amount, Point result) {
-        if (result == null) {
-            result = new PointDirect();
-        }
+        if (result == null) result = new PointDirect();
         double nx = (amount * (to.getX() - from.getX())) + from.getX();
         double ny = (amount * (to.getY() - from.getY())) + from.getY();
         result.setLocation(nx, ny);
@@ -24,9 +29,7 @@ public class Geometry2D {
     }
 
     public static Point midPoint(Point point0, Point point1, Point result) {
-        if (result == null) {
-            result = new PointDirect();
-        }
+        if (result == null) result = new PointDirect();
         result.setLocation((point1.getX() + point0.getX()) / 2, (point1.getY() + point0.getY()) / 2);
         return result;
     }
@@ -89,14 +92,89 @@ public class Geometry2D {
         return pack;
     }
 
-    public static Point polar(Point from, double degrees, double r, Point result) {
-        if (result == null) {
-            result = new PointDirect();
+    public static double deltaAngleR(double angle0, double angle1) {
+        double delta = angle0 - angle1;
+        if (delta > Math.PI) {
+            return (2 * Math.PI) - delta;
         }
-        double radians = Math.toRadians(degrees);
+        if (delta < -Math.PI) {
+            return delta + (2 * Math.PI);
+        }
+        return delta;
+    }
+
+
+    public static void sortPointsCW(List<Point> points) {
+        double xsum = 0, ysum = 0;
+        for (Point p : points) {
+            xsum += p.getX();
+            ysum += p.getY();
+        }
+        double sum = (double) points.size();
+        final double cx = xsum / sum;
+        final double cy = ysum / sum;
+        Collections.sort(points, new Comparator<Point>() {
+            @Override
+            public int compare(Point a, Point b) {
+                if ((a.getX() >= 0) && (b.getX() < 0))
+                    return 1; //if a.x >= 0 and b.x< 0 then return true
+                else if ((a.getX() == 0) && (b.getX() == 0))
+                    return (a.getY() > b.getY()) ? 1 : -1; //elseif a.x == 0 and b.x == 0 then return a.y > b.y
+
+                double det = (a.getX() - cx) * (b.getY() - cy) - (b.getX() - cx) * (a.getY() - cy);
+                if (det < 0) return 1;
+                else if (det > 0) return -1;
+
+                double d1 = (a.getX() - cx) * (a.getX() - cx) + (a.getY() - cy) * (a.getY() - cy);
+                double d2 = (b.getX() - cx) * (b.getX() - cx) + (b.getY() - cy) * (b.getY() - cy);
+                if (d1 == d2) return 0;
+                return (d1 > d2) ? 1 : -1;
+            }
+        });
+    }
+
+    public static Point oriented(Point from, Point to, double r) {
+        return oriented(from, to, r, null);
+    }
+
+    public static Point oriented(Point from, Point to, double r, Point result) {
+        if (result == null) result = new PointDirect();
+        double radians = angleR(from, to);
         result.setLocation(from.getX() + r * Math.cos(radians), from.getY() + r * Math.sin(radians));
         return result;
     }
+
+    public static Point oriented(double from_x, double from_y, double to_x, double to_y, double r) {
+        return oriented(from_x, from_y, to_x, to_y, r, null);
+    }
+
+    public static Point oriented(double from_x, double from_y, double to_x, double to_y, double r, Point result) {
+        if (result == null) result = new PointDirect();
+        double radians = angleR(from_x, from_y, to_x, to_y);
+        result.setLocation(from_x + r * Math.cos(radians), from_y + r * Math.sin(radians));
+        return result;
+    }
+
+    public static Point polar(Point from, double radians, double r) {
+        return polar(from, radians, r, null);
+    }
+
+    public static Point polar(double fx, double fy, double radians, double r) {
+        return polar(fx, fy, radians, r, null);
+    }
+
+    public static Point polar(Point from, double radians, double r, Point result) {
+        if (result == null) result = new PointDirect();
+        result.setLocation(from.getX() + r * Math.cos(radians), from.getY() + r * Math.sin(radians));
+        return result;
+    }
+
+    public static Point polar(double fx, double fy, double radians, double r, Point result) {
+        if (result == null) result = new PointDirect();
+        result.setLocation(fx + r * Math.cos(radians), fy + r * Math.sin(radians));
+        return result;
+    }
+
 
     public static double angle(Point p, Point q) {
         return Math.toDegrees(angleR(p, q));
@@ -118,16 +196,15 @@ public class Geometry2D {
         return new PointDirect(a.getX() + a.getX() - b.getX(), a.getY() + a.getY() - b.getY()); //x + x - position.x, y + y - position.y
     }
 
+
     /**
-     * Performs deCasteljau's algorithm for a bezier curve defined by the given
-     * control points.
+     * Performs deCasteljau's algorithm for a bezier curve defined by the given control points.
      * <p>
-     * A cubic for example requires four points. So it should get an array of 8
-     * values
+     * A cubic for example requires four points. So it should get an array of 8 values
      *
      * @param controlpoints (x,y) coord list of the Bezier curve.
-     * @param returnArray Array to store the solved points. (can be null)
-     * @param t Amount through the curve we are looking at.
+     * @param returnArray   Array to store the solved points. (can be null)
+     * @param t             Amount through the curve we are looking at.
      * @return returnArray
      */
     public static float[] deCasteljau(float[] controlpoints, float[] returnArray, double t) {
@@ -136,18 +213,15 @@ public class Geometry2D {
         return deCasteljau(returnArray, controlpoints.length / 2, t);
     }
 
+
     /**
-     * Performs deCasteljau's algorithm for a bezier curve defined by the given
-     * control points.
+     * Performs deCasteljau's algorithm for a bezier curve defined by the given control points.
      * <p>
-     * A cubic for example requires four points. So it should get an array of 8
-     * values
+     * A cubic for example requires four points. So it should get an array of 8 values
      *
-     * @param array (x,y) coord list of the Bezier curve, with needed
-     * interpolation space.
-     * @param length Length of curve in points. 2 = Line, 3 = Quad 4 = Cubic, 5
-     * = Quintic...
-     * @param t Amount through the curve we are looking at.
+     * @param array  (x,y) coord list of the Bezier curve, with needed interpolation space.
+     * @param length Length of curve in points. 2 = Line, 3 = Quad 4 = Cubic, 5 = Quintic...
+     * @param t      Amount through the curve we are looking at.
      * @return returnArray
      */
     public static float[] deCasteljau(float[] array, int length, double t) {
@@ -167,11 +241,58 @@ public class Geometry2D {
         return array;
     }
 
+
+    /**
+     * Given controlpoints and the order, this function returns the subdivided curve and
+     * the relevant data are the first (order + order - 1) datum. Additional space will have
+     * been created and returned as working space for making the relevant curve.
+     * <p>
+     * Given 1, 2, 3 it will build
+     * <p>
+     * 6
+     * 4 5
+     * 1 2 3
+     * <p>
+     * And reorder that to return, 1 4 6 7 3.
+     * [0, midpoint] are one curve.
+     * [midpoint,end] are another curve.
+     * <p>
+     * Both curves reuse the midpoint.
+     * <p>
+     * UNTESTED!
+     *
+     * @param controlPoints at least order control points must be valid.
+     * @param order         the cardinality of the curve.
+     * @param t             the amount through that curve.
+     * @return
+     */
+    public static float[] deCasteljauDivide(float[] controlPoints, int order, double t) {
+        controlPoints = deCasteljau(controlPoints, order, t);
+        int size = order + order - 1;
+        int midpoint = order;
+        int width = order;
+
+        for (int r = 1, w = 0; w < size; w++) {
+            if (r == midpoint) {
+                width = order - 1;
+                r = width;
+            } else {
+                r += width--;
+                controlPoints[(w << 1)] = controlPoints[(r << 1)];
+                controlPoints[(w << 1) + 1] = controlPoints[(r << 1) + 1];
+            }
+        }
+        //reverse the second half values.
+        int m = (size + midpoint) / 2;
+        for (int i = midpoint * 2, s = size * 2; i < m; i += 2, s -= 2) {
+            swapPoints(controlPoints, i, s);
+        }
+        return controlPoints;
+    }
+
     public static float[] deCasteljauEnsureCapacity(float[] array, int order) {
         int sizeRequired = order * (order + 1); //equation converts to 2-float 1-position format.
-        if (array == null) {
-            return new float[sizeRequired];
-        }
+        if (array == null) return new float[sizeRequired];
         if (sizeRequired > array.length) {
             return Arrays.copyOf(array, sizeRequired); //insure capacity
         }
@@ -179,19 +300,216 @@ public class Geometry2D {
     }
 
     public static Point relative(Point point, double x, double y) {
-        return new PointDirect(point.getX() + x, point.getY() + y, point.data());
+        return new PointDirect(point.getX() + x, point.getY() + y);
     }
 
-    /**
-     * Performs the dot product to find the amount through the segment that is closest to the point given.
-     * @param px point x
-     * @param py point y
-     * @param ax segment start x
-     * @param ay segment start y
-     * @param bx segment end x
-     * @param by segment end y
-     * @return between 0-1 the amount through the segment closest to point
-     */
+
+    public static void towardsCubic(double[] xy, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double t) {
+        double x, y;
+        x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t * x3;
+        y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t * y3;
+        xy[0] = x;
+        xy[1] = y;
+    }
+
+    public static void towardsQuad(double[] xy, double x0, double y0, double x1, double y1, double x2, double y2, double t) {
+        double x, y;
+        x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * x1 + t * t * x2;
+        y = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * y1 + t * t * y2;
+        xy[0] = x;
+        xy[1] = y;
+    }
+
+
+    public static float[] getClosestWithinCurve(float[] controlpoints, int order, double x, double y, double threshold) {
+        Queue<float[]> candidates = new ConcurrentLinkedQueue<>();
+        candidates.add(controlpoints);
+        double nearestPoint = Double.POSITIVE_INFINITY;
+        float[] best = null;
+
+        while (!candidates.isEmpty()) {
+            float[] current = candidates.poll();
+            double farPoint = Double.NEGATIVE_INFINITY;
+            double nearPoint = Double.POSITIVE_INFINITY;
+            for (int i = 0, s = order; i < s; i++) {
+                double d = distanceSq(x, y, current[i << 1], current[(i << 1) + 1]);
+                if (d > farPoint) {
+                    farPoint = d;
+                }
+                if (d < nearPoint) {
+                    nearPoint = d;
+                }
+            }
+            if (farPoint < threshold) {
+                threshold = farPoint;
+            }
+            if (nearPoint > threshold) {
+                continue;
+            }
+            if (nearPoint < nearestPoint) {
+                nearestPoint = nearPoint;
+                best = controlpoints;
+            }
+            float[] firstcurve = new float[order * 2];
+            float[] secondcurve = new float[order * 2];
+            controlpoints = deCasteljauDivide(controlpoints, order, 0.5);
+            System.arraycopy(controlpoints, 0, firstcurve, 0, firstcurve.length);
+            System.arraycopy(controlpoints, firstcurve.length - 2, secondcurve, 0, secondcurve.length);
+            candidates.add(firstcurve);
+            candidates.add(secondcurve);
+            if (threshold == 0) break;
+        }
+        return best;
+    }
+
+    public static double minDistanceSq(float[] points, double x, double y) {
+        double min = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < points.length; i += 2) {
+            double d = distanceSq(x, y, points[i], points[i + 1]);
+            if (d < min) {
+                min = d;
+            }
+        }
+        return min;
+    }
+
+    public static double getClosestWithinCurve(Curve element, double x, double y) {
+        //TODO: Replace this with the complex polygon hull subdivision algorithm.
+        Point n0, n1, n2, n3;
+        double t = 0;
+
+        switch (element.size()) {
+            case 0:
+                return -1;
+            case 1:
+                return -1;
+            case 2:
+                n0 = element.getPoint(0);
+                n1 = element.getPoint(1);
+                t = amountThroughSegment(x, y, n0.getX(), n0.getY(), n1.getX(), n1.getY());
+                return t;
+            case 3:
+                n0 = element.getPoint(0);
+                n1 = element.getPoint(1);
+                n2 = element.getPoint(2);
+                t = getClosestPointToQuadBezier(x, y, 8, 3, n0.getX(), n0.getY(), n1.getX(), n1.getY(), n2.getX(), n2.getY());
+                return t;
+            case 4:
+                n0 = element.getPoint(0);
+                n1 = element.getPoint(1);
+                n2 = element.getPoint(2);
+                n3 = element.getPoint(3);
+                t = getClosestPointToCubicBezier(x, y, 9, 3, n0.getX(), n0.getY(), n1.getX(), n1.getY(), n2.getX(), n2.getY(), n3.getX(), n3.getY());
+                return t;
+        }
+        return t;
+    }
+
+    public static Point getClosestPointWithinCurve(Curve element, double x, double y, double distance) {
+        double[] values = new double[4];
+        Point n0, n1, n2, n3;
+        double t = 0;
+        double bx = 0, by = 0;
+
+        switch (element.size()) {
+            case 0:
+                return null;
+            case 1:
+                return null;
+            case 2:
+                n0 = element.getPoint(0);
+                n1 = element.getPoint(1);
+                t = amountThroughSegment(x, y, n0.getX(), n0.getY(), n1.getX(), n1.getY());
+                bx = Geometry2D.towards(n0.getX(), n1.getX(), t);
+                by = Geometry2D.towards(n0.getY(), n1.getY(), t);
+                break;
+            case 3:
+                n0 = element.getPoint(0);
+                n1 = element.getPoint(1);
+                n2 = element.getPoint(2);
+                t = getClosestPointToQuadBezier(x, y, 8, 3, n0.getX(), n0.getY(), n1.getX(), n1.getY(), n2.getX(), n2.getY());
+                Geometry2D.towardsQuad(values, n0.getX(), n0.getY(), n1.getX(), n1.getY(), n2.getX(), n2.getY(), t);
+                bx = values[0];
+                by = values[1];
+                break;
+            case 4:
+                n0 = element.getPoint(0);
+                n1 = element.getPoint(1);
+                n2 = element.getPoint(2);
+                n3 = element.getPoint(3);
+                t = getClosestPointToCubicBezier(x, y, 9, 3, n0.getX(), n0.getY(), n1.getX(), n1.getY(), n2.getX(), n2.getY(), n3.getX(), n3.getY());
+                Geometry2D.towardsCubic(values, n0.getX(), n0.getY(), n1.getX(), n1.getY(), n2.getX(), n2.getY(), n3.getX(), n3.getY(), t);
+                bx = values[0];
+                by = values[1];
+                break;
+
+        }
+        return new PointDirect(bx, by);
+    }
+
+    public static double getClosestPointToCubicBezier(double fx, double fy, int slices, int iterations, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
+        return getClosestPointToCubicBezier(iterations, fx, fy, 0, 1d, slices, x0, y0, x1, y1, x2, y2, x3, y3);
+    }
+
+    private static double getClosestPointToCubicBezier(int iterations, double fx, double fy, double start, double end, int slices, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
+        if (iterations <= 0) return (start + end) / 2;
+        double tick = (end - start) / (double) slices;
+        double x, y, dx, dy;
+        double best = 0;
+        double bestDistance = Double.POSITIVE_INFINITY;
+        double currentDistance;
+        double t = start;
+        while (t <= end) {
+            //B(t) = (1-t)**3 p0 + 3(1 - t)**2 t P1 + 3(1-t)t**2 P2 + t**3 P3
+            x = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t * x3;
+            y = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t * y3;
+
+            //x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * x1 + t * t * x2; //quad.
+            //y = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * y1 + t * t * y2; //quad.
+            dx = x - fx;
+            dy = y - fy;
+            dx *= dx;
+            dy *= dy;
+            currentDistance = dx + dy;
+            if (currentDistance < bestDistance) {
+                bestDistance = currentDistance;
+                best = t;
+            }
+            t += tick;
+        }
+        return getClosestPointToCubicBezier(iterations - 1, fx, fy, Math.max(best - tick, 0d), Math.min(best + tick, 1d), slices, x0, y0, x1, y1, x2, y2, x3, y3);
+    }
+
+    public static double getClosestPointToQuadBezier(double fx, double fy, int slices, int iterations, double x0, double y0, double x1, double y1, double x2, double y2) {
+        return getClosestPointToQuadBezier(iterations, fx, fy, 0, 1d, slices, x0, y0, x1, y1, x2, y2);
+    }
+
+    private static double getClosestPointToQuadBezier(int iterations, double fx, double fy, double start, double end, int slices, double x0, double y0, double x1, double y1, double x2, double y2) {
+        if (iterations <= 0) return (start + end) / 2;
+        double tick = (end - start) / (double) slices;
+        double x, y, dx, dy;
+        double best = 0;
+        double bestDistance = Double.POSITIVE_INFINITY;
+        double currentDistance;
+        double t = start;
+        while (t <= end) {
+            x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * x1 + t * t * x2; //quad.
+            y = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * y1 + t * t * y2; //quad.
+            dx = x - fx;
+            dy = y - fy;
+            dx *= dx;
+            dy *= dy;
+            currentDistance = dx + dy;
+            if (currentDistance < bestDistance) {
+                bestDistance = currentDistance;
+                best = t;
+            }
+            t += tick;
+        }
+        return getClosestPointToQuadBezier(iterations - 1, fx, fy, Math.max(best - tick, 0d), Math.min(best + tick, 1d), slices, x0, y0, x1, y1, x2, y2);
+    }
+
+
     public static double amountThroughSegment(double px, double py, double ax, double ay, double bx, double by) {
         double vAPx = px - ax;
         double vAPy = py - ay;
@@ -200,12 +518,8 @@ public class Geometry2D {
         double sqDistanceAB = vABx * vABx + vABy * vABy; //a.distanceSq(b);
         double ABAPproduct = vABx * vAPx + vABy * vAPy;
         double amount = ABAPproduct / sqDistanceAB;
-        if (amount > 1) {
-            amount = 1;
-        }
-        if (amount < 0) {
-            amount = 0;
-        }
+        if (amount > 1) amount = 1;
+        if (amount < 0) amount = 0;
         return amount;
     }
 
@@ -220,32 +534,18 @@ public class Geometry2D {
         return dx + dy;
     }
 
+
     /**
      * Elliptical arc implementation based on the SVG specification notes
      * Adapted from the Batik library (Apache-2 license) by SAU
      */
     public static float[][] convertArcToCubicCurves(double x0, double y0, double x, double y, double rx, double ry,
-            double rotateAngleDegrees, boolean largeArcFlag, boolean sweepFlag) {
+                                                    double rotateAngleDegrees, boolean largeArcFlag, boolean sweepFlag) {
         return convertArcToCubicCurves(x0, y0, x, y, rx, ry, rotateAngleDegrees, largeArcFlag, sweepFlag, Math.PI / 2);
     }
 
-
-    /**
-     * Effectively approximate a curve with cubic curves.
-     * @param x0 start x of arc
-     * @param y0 start y of arc
-     * @param x end x of arc
-     * @param y end y of arc.
-     * @param rx the radius x
-     * @param ry the radius y
-     * @param rotateAngleDegrees the theta rotation of the arc.
-     * @param largeArcFlag large arc or small arc
-     * @param sweepFlag the sweep flag for the arc (see SVG documentation etc)
-     * @param sweepLimit the limit of sweep before the arc must be represented by a curve.
-     * @return array of float arrays of cubic curves (end point, control point, control point, final end point)
-     */
     public static float[][] convertArcToCubicCurves(double x0, double y0, double x, double y, double rx, double ry,
-            double rotateAngleDegrees, boolean largeArcFlag, boolean sweepFlag, double sweepLimit) {
+                                                    double rotateAngleDegrees, boolean largeArcFlag, boolean sweepFlag, double sweepLimit) {
         double dx2 = (x0 - x) / 2.0;
         double dy2 = (y0 - y) / 2.0;
         double rotateAngleRadians = Math.toRadians(rotateAngleDegrees % 360.0);
@@ -327,23 +627,8 @@ public class Geometry2D {
 
     }
 
-    /**
-     * Convert an arc to a single curve.
-     *
-     * @param curve return value array
-     * @param theta rotation of the arc.
-     * @param startAngle starting angle for the arc
-     * @param endAngle ending angel for the arc.
-     * @param x0 arc center x.
-     * @param y0 arc center y.
-     * @param rx radius x
-     * @param ry radius y.
-     * @return single cubic curve. float[8] or the curve object given with the first 8 values used.
-     */
     public static float[] convertArcToCurve(float[] curve, double theta, double startAngle, double endAngle, double x0, double y0, double rx, double ry) {
-        if ((curve == null) || (curve.length > 8)) {
-            curve = new float[8];
-        }
+        if ((curve == null) || (curve.length > 8)) curve = new float[8];
         double slice = endAngle - startAngle;
 
         double cosTheta = Math.cos(theta);
@@ -387,14 +672,13 @@ public class Geometry2D {
         return curve;
     }
 
+
     /**
      * Elliptical arc implementation based on the SVG specification notes
      * Adapted from the Batik library (Apache-2 license) by SAU
-     *
-     * Convert svg style arc object into a given number of points to best approximate it.
      */
     public static float[] convertArcToPoints(double x0, double y0, double x, double y, double rx, double ry,
-            double rotateAngleDegrees, boolean largeArcFlag, boolean sweepFlag, int interpolatedPoints) {
+                                             double rotateAngleDegrees, boolean largeArcFlag, boolean sweepFlag, int interpolatedPoints) {
         double dx2 = (x0 - x) / 2.0;
         double dy2 = (y0 - y) / 2.0;
         double rotateAngleRadians = Math.toRadians(rotateAngleDegrees % 360.0);
@@ -483,9 +767,6 @@ public class Geometry2D {
         return points;
     }
 
-    /**
-     * Convert bounding rectangle style arc object into a given number of points to best approximate it.
-     */
     public static float[] convertArcToPoints(double left, double top, double right, double bottom, double startAngle, float sweepAngle, double theta, int interpolatedPoints) {
         double slice = Math.toRadians(sweepAngle) / (double) (interpolatedPoints - 1);
         double cx = (left + right) / 2;
@@ -514,6 +795,7 @@ public class Geometry2D {
         }
         return points;
     }
+
 
     public static void swapPoints(float[] pointlist, int index0, int index1) {
         float tx, ty;
@@ -544,12 +826,52 @@ public class Geometry2D {
         return new float[]{(float) center.getX(), (float) center.getY(), x, y};
     }
 
+    public static int binarySearchX(Points points, double x) {
+        return binarySearchX(points, 0, points.size(), x);
+    }
+
+    public static int binarySearchX(Points points, int fromIndex, int toIndex, double x) {
+        int low = fromIndex;
+        int high = toIndex - 1;
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            double midVal = points.getX(mid);
+            int cmp = Double.compare(midVal, x);
+            if (cmp < 0)
+                low = mid + 1;
+            else if (cmp > 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found.
+    }
+
+    public static int binarySearchY(Points points, double y) {
+        return binarySearchY(points, 0, points.size(), y);
+    }
+
+    public static int binarySearchY(Points points, int fromIndex, int toIndex, double y) {
+        int low = fromIndex;
+        int high = toIndex - 1;
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            double midVal = points.getY(mid);
+            int cmp = Double.compare(midVal, y);
+            if (cmp < 0)
+                low = mid + 1;
+            else if (cmp > 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found.
+    }
+
     public static int shortDrop(PointsDirect points, double minDistance, int index) {
         float[] pointlist = points.pointlist;
         int count = points.count;
-        if (count <= 2) {
-            return index;
-        }
+        if (count <= 2) return index;
         double minDistanceSq = minDistance * minDistance;
         int arrayIndex = index << 1;
 
@@ -560,9 +882,7 @@ public class Geometry2D {
 
         boolean dropped = false;
         for (int positionSegmentEnd = 2, s = count; positionSegmentEnd < s; positionSegmentEnd += 2) {
-            if ((positionSegmentStart == 0) && (positionSegmentEnd == (count - 2))) {
-                break;
-            }
+            if ((positionSegmentStart == 0) && (positionSegmentEnd == (count - 2))) break;
             ex = pointlist[positionSegmentEnd];
             ey = pointlist[positionSegmentEnd + 1];
             if (Geometry2D.distanceSq(sx, sy, ex, ey) < minDistanceSq) {
@@ -578,9 +898,7 @@ public class Geometry2D {
                 positionSegmentStart = positionSegmentEnd;
             }
         }
-        if (dropped) {
-            return nanDrop(points, index);
-        }
+        if (dropped) return nanDrop(points, index);
         return index;
     }
 
@@ -593,9 +911,7 @@ public class Geometry2D {
 
         float px, py;
         for (int pos = 0; pos < count; pos += 2) {
-            if (pos == arrayIndex) {
-                returnIndex = validPosition >> 1;
-            }
+            if (pos == arrayIndex) returnIndex = validPosition >> 1;
 
             px = pointlist[pos];
             py = pointlist[pos + 1];
@@ -611,20 +927,10 @@ public class Geometry2D {
         return returnIndex;
     }
 
-    /**
-     * Iterates the points allocating new data only once while splitting the log segments.
-     *
-     * @param points PointsDirect object with points to split.
-     * @param maxDistance the distance beyond which points must be subdivided.
-     * @param index the index to be tracked while the process occurs.
-     * @return the resulting index of the tracked index after the long segments are subdivided.
-     */
     public static int longSplit(PointsDirect points, double maxDistance, int index) {
         float[] pointlist = points.pointlist;
         int count = points.count;
-        if (count <= 2) {
-            return index;
-        }
+        if (count <= 2) return index;
         double maxDistanceSq = maxDistance * maxDistance;
         double lineDistance;
         int splits = 0;
@@ -693,9 +999,7 @@ public class Geometry2D {
             ey = sy;
         }
         points.count = splitCount;
-        if (relativeIndex == 0) {
-            return 0;
-        }
+        if (relativeIndex == 0) return 0;
         return returnIndex;
     }
 
@@ -703,5 +1007,31 @@ public class Geometry2D {
         for (int i = 0, size = layer.size(); i < size; i++) {
             layer.setLocation(i, (float) Math.rint(layer.getX(i)), (float) Math.rint(layer.getY(i)));
         }
+    }
+
+    public static Point lineIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+        double denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denom == 0.0) { // Lines are parallel.
+            return null;
+        }
+        double ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+        double ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+        if (ua >= 0.0f && ua <= 1.0f && ub >= 0.0f && ub <= 1.0f) {
+            return new PointDirect((int) (x1 + ua * (x2 - x1)), (int) (y1 + ua * (y2 - y1)));
+        }
+        return null;
+    }
+
+    public static Point lineRayIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+        double denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denom == 0.0) { // Lines are parallel.
+            return null;
+        }
+        double ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+        double ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+        if (ua >= 0.0f && ua <= 1.0f && ub >= 0.0f) { //intersection within b can be beyond the bounds.
+            return new PointDirect((int) (x1 + ua * (x2 - x1)), (int) (y1 + ua * (y2 - y1)));
+        }
+        return null;
     }
 }

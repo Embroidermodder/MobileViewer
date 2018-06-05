@@ -49,7 +49,7 @@ public class PointsIndex<E extends Points> implements Points {
             @Override
             public double getY() {
                 int idx = (index_start + index);
-                return list.getX(idx);
+                return list.getY(idx);
             }
 
             @Override

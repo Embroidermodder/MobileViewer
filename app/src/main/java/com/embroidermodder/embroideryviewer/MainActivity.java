@@ -32,6 +32,13 @@ import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbReader;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbReaderEmm;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbWriter;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbWriterEmm;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
