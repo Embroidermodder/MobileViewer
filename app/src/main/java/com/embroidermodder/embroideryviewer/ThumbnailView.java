@@ -13,8 +13,8 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+import org.embroideryio.embroideryio.EmbPattern;
+import org.embroideryio.embroideryio.EmbroideryIO;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +28,7 @@ public class ThumbnailView extends View {
     public static Drawable fileDefault, directoryDefault;
     public Thread thread;
     public File file;
-    EmbPatternQuickView root;
+    EmmPatternQuickView root;
     Bitmap cache;
 
     final Paint _paint = new Paint();
@@ -65,9 +65,9 @@ public class ThumbnailView extends View {
         }
     }
 
-    public void createFromPattern(EmbPattern pattern) {
+    public void createFromPattern(EmmPattern pattern) {
         if (pattern == null) return;
-        this.root = new EmbPatternQuickView(pattern);
+        this.root = new EmmPatternQuickView(pattern);
         if (root.isEmpty()) {
             return;
         }
@@ -143,8 +143,7 @@ public class ThumbnailView extends View {
         if (file.isDirectory()) {
             return;
         }
-        final IFormat.Reader reader = IFormat.getReaderByFilename(file.getPath());
-        if (reader == null) {
+        if (EmbroideryIO.getReaderByFilename(file.getPath()) == null) {
             return;
         }
         thread = new Thread(new Runnable() {
@@ -153,8 +152,9 @@ public class ThumbnailView extends View {
                 FileInputStream fis = null;
                 try {
                     fis = new FileInputStream(file);
-                    EmbPattern pattern = new EmbPattern();
-                    reader.read(pattern, fis);
+                    EmmPattern pattern = new EmmPattern();
+                    EmbPattern read_pattern = EmbroideryIO.readStream(file.getPath(),fis);
+                    pattern.fromEmbPattern(read_pattern);
                     createFromPattern(pattern);
                 } catch (IOException e) {
                     e.printStackTrace();

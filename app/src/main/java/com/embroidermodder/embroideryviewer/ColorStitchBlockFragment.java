@@ -10,10 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
 
-
-public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Listener {
+public class ColorStitchBlockFragment extends Fragment implements EmmPattern.Listener {
     public static final String TAG = "ColorStitch";
     private ColorStitchAdapter adapter;
     private RecyclerView recyclerColorStitch;
@@ -27,7 +25,7 @@ public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Lis
         return inflater.inflate(R.layout.fragment_color_stitch_block, container, false);
     }
 
-    public void setPattern(EmbPattern pattern) {
+    public void setPattern(EmmPattern pattern) {
         if (pattern != null) {
             pattern.addListener(this);
             if (adapter == null) {
@@ -47,16 +45,16 @@ public class ColorStitchBlockFragment extends Fragment implements EmbPattern.Lis
         recyclerColorStitch = (RecyclerView) view.findViewById(R.id.recyclerColorStitch);
         Context context = view.getContext();
         recyclerColorStitch.setLayoutManager(new LinearLayoutManager(context));
-        if (getActivity() instanceof EmbPattern.Provider) {
-            setPattern(((EmbPattern.Provider) getActivity()).getPattern());
+        if (getActivity() instanceof EmmPattern.Provider) {
+            setPattern(((EmmPattern.Provider) getActivity()).getPattern());
         }
     }
 
     @Override
     public void notifyChange(int id) {
-        if (id == EmbPattern.NOTIFY_CHANGE) {
-            if (getActivity() instanceof EmbPattern.Provider) {
-                setPattern(((EmbPattern.Provider) getActivity()).getPattern());
+        if (id == EmmPattern.NOTIFY_CHANGE) {
+            if (getActivity() instanceof EmmPattern.Provider) {
+                setPattern(((EmmPattern.Provider) getActivity()).getPattern());
             }
             adapter.notifyDataSetChanged();
         } else {
