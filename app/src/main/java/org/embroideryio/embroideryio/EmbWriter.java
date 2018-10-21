@@ -36,14 +36,14 @@ public abstract class EmbWriter extends WriteHelper implements EmbroideryIO.Writ
         if (settings == null) {
             return default_value;
         }
-        return (boolean) settings.getOrDefault(key, default_value);
+        return (boolean) get(key, default_value);
     }
 
     public int getInt(String key, int default_value) {
         if (settings == null) {
             return default_value;
         }
-        return (int) settings.getOrDefault(key, default_value);
+        return (int) get(key, default_value);
     }
 
     @Override
