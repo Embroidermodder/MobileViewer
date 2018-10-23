@@ -8,7 +8,7 @@ public class XxxReader extends EmbReader {
     protected void read() throws IOException {
         skip(0x27);
         int num_of_colors = readInt16LE();
-        skip(0x100);
+        seek(0x100);
 
         while (true) {
             int b1 = readInt8();

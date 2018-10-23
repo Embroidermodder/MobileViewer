@@ -7,7 +7,7 @@ public class A10oReader extends EmbReader {
     public void read_10o_stitches() throws IOException {
         byte[] b = new byte[3];
         while (true) {
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
             int ctrl = b[0] & 0xFF;
             int y = -(b[1] & 0xFF);
             int x = b[2] & 0xFF;

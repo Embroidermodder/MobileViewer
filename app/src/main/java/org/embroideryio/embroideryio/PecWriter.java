@@ -1,6 +1,5 @@
 package org.embroideryio.embroideryio;
 
-
 import org.embroideryio.geom.DataPoints;
 
 import java.io.IOException;
@@ -25,9 +24,9 @@ public class PecWriter extends EmbWriter {
         super();
         settings.put(EmbEncoder.PROP_MAX_JUMP, 2047f);
         settings.put(EmbEncoder.PROP_MAX_STITCH, 2047f);
-        settings.put(EmbEncoder.PROP_FULL_JUMP, true);   
+        settings.put(EmbEncoder.PROP_FULL_JUMP, true);
     }
-    
+
     @Override
     public void write() throws IOException {
         write("#PEC0001");
@@ -215,8 +214,10 @@ public class PecWriter extends EmbWriter {
                         writeInt8(dx & MASK_07_BIT);
                         writeInt8(dy & MASK_07_BIT);
                     } else {
-                        writeInt16BE(encode_long_form(dx));
-                        writeInt16BE(encode_long_form(dy));
+                        dx = encode_long_form(dx);
+                        dy = encode_long_form(dy);
+                        writeInt16BE(dx);
+                        writeInt16BE(dy);
                     }
                     break;
                 case JUMP:
@@ -225,8 +226,8 @@ public class PecWriter extends EmbWriter {
                     dx = flagTrim(dx);
                     dy = encode_long_form(dy);
                     dy = flagTrim(dy);
-                    writeInt16BE(encode_long_form(dx));
-                    writeInt16BE(encode_long_form(dy));
+                    writeInt16BE(dx);
+                    writeInt16BE(dy);
                     break;
                 case COLOR_CHANGE:
                     if (jumping) {

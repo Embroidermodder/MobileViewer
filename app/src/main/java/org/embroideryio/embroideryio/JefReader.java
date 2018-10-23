@@ -10,14 +10,14 @@ public class JefReader extends EmbReader {
             if (readFully(b) != b.length) break;
             if (((b[0] & 0xFF) != 0x80)) {
                 float x = b[0];
-                float y = -b[0];
+                float y = -b[1];
                 pattern.stitch(x, y);
                 continue;
             }
             int ctrl = b[1];
             if (readFully(b) != b.length) break;
             float x = b[0];
-            float y = -b[0];
+            float y = -b[1];
             switch (ctrl) {
                 case 0x02:
                     pattern.move(x, y);

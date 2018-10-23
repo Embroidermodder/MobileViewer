@@ -7,21 +7,22 @@ public class SewReader extends EmbReader {
     void read_sew_stitches() throws IOException {
         byte[] b = new byte[2];
         while (true) {
-            if (readFully(b) == b.length) break;
-
+            if (readFully(b) != b.length) break;
             if (((b[0] & 0xFF) != 0x80)) {
                 pattern.stitch(b[0], -b[1]);
                 continue;
             }
             int control = b[1];
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
             if ((control & 0x01) != 0) {
                 pattern.color_change();
                 continue;
-            } else if ((control == 0x04) || (b[1] == 0x02)) {
+            }
+            if ((control == 0x04) || (control == 0x02)) {
                 pattern.move(signed8(b[0]), -signed8(b[1]));
                 continue;
-            } else if (control == 0x10) {
+            }
+            if (control == 0x10) {
                 pattern.stitch(signed8(b[0]), -signed8(b[1]));
                 continue;
             }

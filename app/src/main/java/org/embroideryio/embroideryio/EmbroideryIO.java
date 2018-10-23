@@ -25,7 +25,6 @@ public class EmbroideryIO {
         writer.write(out_pattern, out);
     }
 
-
     public static void writeStream(EmbPattern pattern, String path, OutputStream out, Object... settings) throws IOException {
         EmbroideryIO.Writer writer = EmbroideryIO.getWriterByFilename(path);
         if (writer != null) {
@@ -111,35 +110,127 @@ public class EmbroideryIO {
             return null;
         }
         switch (ext) {
-            case "emm":
-                return new EmmReader();
+            case "100":
+                return new A100Reader();
+            case "10o":
+                return new A10oReader();
+            case "bro":
+                return new BroReader();
             case "col":
                 return new ColReader();
-            case "inf":
-                return new InfReader();
-            case "exp":
-                return new ExpReader();
+            case "csv":
+                //return new CsvReader();
+                break;
+            case "dat":
+                return new DatReader();
+            case "dsb":
+                //return new DsbReader();
+                break;
             case "dst":
                 return new DstReader();
+            case "dsz":
+                //return new DszReader();
+                break;
+            case "emd":
+                //return new EmdReader();
+                break;
+            case "emm":
+                return new EmmReader();
+            case "exp":
+                return new ExpReader();
+            case "gt":
+                break;
+            //return new GtReader();
+            case "exy":
+            case "e00":
+            case "e01":
+                //return new ExyReader();
+                break;
+            case "fxy":
+            case "f00":
+            case "f01":
+                //return new FxyReader();
+                break;
+            case "inb":
+                //return InbReader();
+                break;
+            case "inf":
+                return new InfReader();
             case "jef":
                 return new JefReader();
+            case "jpx":
+                //return new JpxReader();
+                break;
+            case "ksm":
+                //return new KsmReader();
+                break;
+            case "max":
+                //return new MaxReader();
+                break;
+            case "mit":
+                //return new MitReader();
+                break;
+            case "new":
+                //return new NewReader();
+                break;
+            case "pcd":
+                //return new PcdReader();
+                break;
+            case "pcm":
+                //return new PcmReader();
+                break;
+            case "pcq":
+                //return new PcqReader();
+                break;
             case "pcs":
                 return new PcsReader();
             case "pec":
                 return new PecReader();
             case "pes":
                 return new PesReader();
+            case "phb":
+                //return new PhbReader();
+                break;
+            case "phc":
+                //return new PhcReader();
+                break;
+            case "pmv":
+                //return new PmvReader();
+                break;
             case "sew":
                 return new SewReader();
             case "shv":
                 return new ShvReader();
+            case "stc":
+                //return new StcReader();
+                break;
+            case "stx":
+                //return new StxReader();
+                break;
+            case "tap":
+                //return new TapReader();
+                break;
+            case "tbf":
+                //return new TbfReader();
+                break;
+            case "u01":
+                return new U01Reader();
             case "vp3":
                 return new Vp3Reader();
             case "xxx":
                 return new XxxReader();
+            case "zhs":
+                //return new ZhsReader();
+                break;
+            case "zxy":
+            case "z00":
+            case "z01":
+                //return new ZxyReader();
+                break;
             default:
                 return null;
         }
+        return null;
     }
 
     public static Reader getReaderByMime(String mime) {

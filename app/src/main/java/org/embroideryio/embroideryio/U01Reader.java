@@ -9,7 +9,7 @@ public class U01Reader extends EmbReader {
     public void read_u01_stitches() throws IOException {
         byte[] b = new byte[3];
         while (true) {
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
             int ctrl = b[0] & 0xFF;
             int dy = -(b[1] & 0xFF);
             int dx = b[2] & 0xFF;

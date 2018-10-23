@@ -7,7 +7,7 @@ public class ExpReader extends EmbReader {
     public void read_exp_stitches() throws IOException {
         byte[] b = new byte[2];
         while (true) {
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
 
             if ((b[0] & 0xFF) != 0x80) {
                 float x = (float) b[0];
@@ -16,7 +16,7 @@ public class ExpReader extends EmbReader {
                 continue;
             }
             int control = b[1] & 0xFF;
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
             float x = (float) b[0];
             float y = -(float) b[1];
 

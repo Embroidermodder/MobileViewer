@@ -41,7 +41,7 @@ public class ExpWriter extends EmbWriter {
                     stream.write((byte) 0x80);
                     stream.write((byte) 0x04);
                     stream.write((byte) deltaX);
-                    stream.write((byte) -deltaY);
+                    stream.write((byte) deltaY);
                     break;
                 }
                 case TRIM:

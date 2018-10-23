@@ -9,7 +9,7 @@ public class DatReader extends EmbReader {
     public boolean read_barudan_dat() throws IOException {
         byte[] b = new byte[3];
         while (true) {
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
             int ctrl = b[0] & 0xFF;
             int dy = -(b[1] & 0xFF);
             int dx = b[2] & 0xFF;
@@ -120,7 +120,7 @@ public class DatReader extends EmbReader {
     public void read_sunstar_dat_stitches() throws IOException {
         byte[] b = new byte[3];
         while (true) {
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) break;
             int x = b[0] & 0x7F;
             int y = b[1] & 0x7F;
             if ((b[0] & 0x80) != 0) {

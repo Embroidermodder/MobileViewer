@@ -13,6 +13,7 @@ import java.util.Map;
 import static org.embroideryio.embroideryio.EmbConstant.*;
 
 public class EmbPattern {
+
     public static final String PROP_FILENAME = "filename";
     public static final String PROP_NAME = "name";
     public static final String PROP_CATEGORY = "category";
@@ -40,7 +41,6 @@ public class EmbPattern {
 
     private float _previousX = 0;
     private float _previousY = 0;
-
 
     private DataPoints stitches = new DataPoints();
 
@@ -173,18 +173,26 @@ public class EmbPattern {
     }
 
     public EmbThread getLastThread() {
-        if (threadlist == null) return null;
-        if (threadlist.isEmpty()) return null;
+        if (threadlist == null) {
+            return null;
+        }
+        if (threadlist.isEmpty()) {
+            return null;
+        }
         return threadlist.get(threadlist.size() - 1);
     }
 
     public int getThreadCount() {
-        if (threadlist == null) return 0;
+        if (threadlist == null) {
+            return 0;
+        }
         return threadlist.size();
     }
 
     public boolean isEmpty() {
-        if (stitches == null) return true;
+        if (stitches == null) {
+            return true;
+        }
         if (stitches.isEmpty()) {
             return threadlist.isEmpty();
         }
@@ -193,12 +201,24 @@ public class EmbPattern {
 
     public HashMap<String, String> getMetadata() {
         HashMap<String, String> metadata = new HashMap<>();
-        if (filename != null) metadata.put(PROP_FILENAME, filename);
-        if (name != null) metadata.put(PROP_NAME, name);
-        if (category != null) metadata.put(PROP_CATEGORY, category);
-        if (author != null) metadata.put(PROP_AUTHOR, author);
-        if (keywords != null) metadata.put(PROP_KEYWORDS, keywords);
-        if (comments != null) metadata.put(PROP_COMMENTS, comments);
+        if (filename != null) {
+            metadata.put(PROP_FILENAME, filename);
+        }
+        if (name != null) {
+            metadata.put(PROP_NAME, name);
+        }
+        if (category != null) {
+            metadata.put(PROP_CATEGORY, category);
+        }
+        if (author != null) {
+            metadata.put(PROP_AUTHOR, author);
+        }
+        if (keywords != null) {
+            metadata.put(PROP_KEYWORDS, keywords);
+        }
+        if (comments != null) {
+            metadata.put(PROP_COMMENTS, comments);
+        }
         return metadata;
     }
 
@@ -227,7 +247,7 @@ public class EmbPattern {
             @Override
             public Iterator<EmbObject> iterator() {
                 return new Iterator<EmbObject>() {
-                    int threadIndex = 0;
+                    int threadIndex = -1;
                     EmbThread thread = null;
 
                     final PointsIndexRange<DataPoints> points = new PointsIndexRange<>(stitches, 0, 0);
@@ -235,7 +255,9 @@ public class EmbPattern {
                     final EmbObject object = new EmbObject() {
                         @Override
                         public EmbThread getThread() {
-                            if (thread != null) return thread;
+                            if (thread != null) {
+                                return thread;
+                            }
                             if (threadlist.size() <= threadIndex) {
                                 thread = getRandomThread();
                             } else {
@@ -265,12 +287,15 @@ public class EmbPattern {
                         int start = points.getStart();
                         int end = stitches.size();
                         while (start < end) {
-                            int data = stitches.getData(start);
-                            if ((data & COMMAND_MASK) == COLOR_CHANGE) {
+                            int data = stitches.getData(start) & COMMAND_MASK;
+                            if ((data == COLOR_CHANGE) || (data == NEEDLE_SET)) {
                                 threadIndex++;
                                 thread = null;
                             }
                             if ((data & COMMAND_MASK) == STITCH) {
+                                if (threadIndex == -1) {
+                                    threadIndex = 0;
+                                }
                                 points.setStart(start);
                                 return false;
                             }
@@ -310,7 +335,9 @@ public class EmbPattern {
 
                     @Override
                     public boolean hasNext() {
-                        if (mode == NOT_CALCULATED) calculate();
+                        if (mode == NOT_CALCULATED) {
+                            calculate();
+                        }
                         return mode == HAS_NEXT;
                     }
 
@@ -335,7 +362,9 @@ public class EmbPattern {
                     final EmbObject object = new EmbObject() {
                         @Override
                         public EmbThread getThread() {
-                            if (thread != null) return thread;
+                            if (thread != null) {
+                                return thread;
+                            }
                             if (threadlist.size() <= threadIndex) {
                                 thread = getRandomThread();
                             } else {
@@ -343,7 +372,7 @@ public class EmbPattern {
                             }
                             return thread;
                         }
-                        
+
                         @Override
                         public Points getPoints() {
                             return points;
@@ -398,7 +427,9 @@ public class EmbPattern {
 
                     @Override
                     public boolean hasNext() {
-                        if (mode == NOT_CALCULATED) calculate();
+                        if (mode == NOT_CALCULATED) {
+                            calculate();
+                        }
                         return mode == HAS_NEXT;
                     }
 
@@ -413,18 +444,26 @@ public class EmbPattern {
     }
 
     public void addListener(Listener listener) {
-        if (listeners == null) listeners = new ArrayList<>();
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+        }
         listeners.add(listener);
     }
 
     public void removeListener(Listener listener) {
-        if (listeners == null) return;
+        if (listeners == null) {
+            return;
+        }
         listeners.remove(listener);
-        if (listeners.isEmpty()) listeners = null;
+        if (listeners.isEmpty()) {
+            listeners = null;
+        }
     }
 
     public void notifyChange(int id) {
-        if (listeners == null) return;
+        if (listeners == null) {
+            return;
+        }
         for (Listener listener : listeners) {
             listener.notifyChange(id);
         }
@@ -466,15 +505,21 @@ public class EmbPattern {
         comments = null;
         _previousX = 0;
         _previousY = 0;
-        if(stitches != null) stitches.clear();
-        if (listeners != null)  listeners.clear();
+        if (stitches != null) {
+            stitches.clear();
+        }
+        if (listeners != null) {
+            listeners.clear();
+        }
     }
 
     public interface Listener {
+
         void notifyChange(int id);
     }
 
     public interface Provider {
+
         EmbPattern getPattern();
     }
 
@@ -484,10 +529,14 @@ public class EmbPattern {
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             int data = stitches.getData(i) & COMMAND_MASK;
             if (data == STITCH) {
-                if (starting) threadIndex++;
+                if (starting) {
+                    threadIndex++;
+                }
                 starting = false;
             } else if (data == COLOR_CHANGE) {
-                if (starting) continue;
+                if (starting) {
+                    continue;
+                }
                 threadIndex++;
             }
         }
@@ -496,7 +545,6 @@ public class EmbPattern {
         }
         notifyChange(NOTIFY_THREADS_FIX);
     }
-
 
     public void stitchAbs(float x, float y) {
         addStitchAbs(x, y, STITCH);
@@ -584,11 +632,11 @@ public class EmbPattern {
     }
 
     /**
-     * AddStitchRel adds a stitch to the pattern at the relative position (dx, dy)
-     * to the previous stitch. Units are in millimeters.
+     * AddStitchRel adds a stitch to the pattern at the relative position (dx,
+     * dy) to the previous stitch. Units are in millimeters.
      *
-     * @param dx    The change in X position.
-     * @param dy    The change in Y position. Positive value move upward.
+     * @param dx The change in X position.
+     * @param dy The change in Y position. Positive value move upward.
      * @param flags JUMP, TRIM, NORMAL or STOP
      */
     public void addStitchRel(float dx, float dy, int flags) {

@@ -7,7 +7,9 @@ public class BroReader extends EmbReader {
     public void read_bro_stitches() throws IOException {
         byte[] b = new byte[2];
         while (true) {
-            if (readFully(b) == b.length) break;
+            if (readFully(b) != b.length) {
+                break;
+            }
 
             if ((b[0] & 0xFF) != 0x80) {
                 float x = (float) b[0];
@@ -55,13 +57,12 @@ public class BroReader extends EmbReader {
                     float x = signed16(readInt16LE());
                     float y = signed16(readInt16LE());
                     pattern.move(x, -y);
-
+                    continue;
             }
             break;
         }
         pattern.end();
     }
-
 
     @Override
     public void read() throws IOException {
