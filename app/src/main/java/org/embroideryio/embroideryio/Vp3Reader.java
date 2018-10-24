@@ -19,7 +19,7 @@ public class Vp3Reader extends EmbReader {
     }
 
     private void skip_vp3_string() throws IOException {
-        int stringLength = readInt16LE();
+        int stringLength = readInt16BE();
         skip(stringLength);
     }
 
@@ -50,7 +50,7 @@ public class Vp3Reader extends EmbReader {
         int distance_to_next_block_050 = readInt32BE();
         int block_end_position = distance_to_next_block_050 + tell();
         float start_position_x = (readInt32BE() / 100f);
-        float start_position_y = (readInt32BE() / 100f);
+        float start_position_y = -(readInt32BE() / 100f);
         float abs_x = start_position_x + center_x;
         float abs_y = start_position_y + center_y;
         if ((abs_x != 0) && (abs_y != 0)) {
@@ -58,13 +58,13 @@ public class Vp3Reader extends EmbReader {
         }
         EmbThread thread = vp3_read_thread();
         pattern.add(thread);
-        seek(15);
+        skip(15);
         readFully(bytecheck);  // \x0A\xF6\x00
         int stitch_byte_length = block_end_position - tell();
         byte[] stitch_bytes = new byte[stitch_byte_length];
         if (readFully(stitch_bytes) != stitch_bytes.length) return;
         int i = 0;
-        while (i < stitch_byte_length) {
+        while (i < stitch_byte_length - 1) {
             int x = stitch_bytes[i];
             int y = stitch_bytes[i + 1];
             i += 2;

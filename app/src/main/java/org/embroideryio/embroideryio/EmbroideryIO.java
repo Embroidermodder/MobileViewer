@@ -244,23 +244,137 @@ public class EmbroideryIO {
             return null;
         }
         switch (ext) {
-            case "exp":
-                return new ExpWriter();
+            case "100":
+                //return new A100Writer();
+                break;
+            case "10o":
+                //return new A10oWriter();
+                break;
+            case "bro":
+                //return new BroWriter();
+                break;
+            case "col":
+                //return new ColWriter();
+                break;
+            case "csv":
+                //return new CsvWriter();
+                break;
+            case "dat":
+                //return new DatWriter();
+                break;
+            case "dsb":
+                //return new DsbWriter();
+                break;
             case "dst":
                 return new DstWriter();
+            case "dsz":
+                //return new DszWriter();
+                break;
+            case "emd":
+                //return new EmdWriter();
+                break;
+            case "emm":
+                return new EmmWriter();
+            case "exp":
+                return new ExpWriter();
+            case "gt":
+                break;
+            //return new GtWriter();
+            case "exy":
+            case "e00":
+            case "e01":
+                //return new ExyWriter();
+                break;
+            case "fxy":
+            case "f00":
+            case "f01":
+                //return new FxyWriter();
+                break;
+            case "inb":
+                //return InbWriter();
+                break;
+            case "inf":
+                //return new InfWriter();
+                break;
+            case "jef":
+                return new JefWriter();
+            case "jpx":
+                //return new JpxWriter();
+                break;
+            case "ksm":
+                //return new KsmWriter();
+                break;
+            case "max":
+                //return new MaxWriter();
+                break;
+            case "mit":
+                //return new MitWriter();
+                break;
+            case "new":
+                //return new NewWriter();
+                break;
+            case "pcd":
+                //return new PcdWriter();
+                break;
+            case "pcm":
+                //return new PcmWriter();
+                break;
+            case "pcq":
+                //return new PcqWriter();
+                break;
+            case "pcs":
+                return new PcsWriter();
             case "pec":
                 return new PecWriter();
             case "pes":
                 return new PesWriter();
-            case "emm":
-                return new EmmWriter();
-            case "jef":
-                return new JefWriter();
-            case "pcs":
-                return new PcsWriter();
+            case "phb":
+                //return new PhbWriter();
+                break;
+            case "phc":
+                //return new PhcWriter();
+                break;
+            case "pmv":
+                //return new PmvWriter();
+                break;
+            case "sew":
+                //return new SewWriter();
+                break;
+            case "shv":
+                //return new ShvWriter();
+                break;
+            case "stc":
+                //return new StcWriter();
+                break;
+            case "stx":
+                //return new StxWriter();
+                break;
+            case "tap":
+                //return new TapWriter();
+                break;
+            case "tbf":
+                //return new TbfWriter();
+                break;
+            case "u01":
+                return new U01Writer();
+            case "vp3":
+                //return new Vp3Writer();
+                break;
+            case "xxx":
+                //return new XxxWriter();
+                break;
+            case "zhs":
+                //return new ZhsWriter();
+                break;
+            case "zxy":
+            case "z00":
+            case "z01":
+                //return new ZxyWriter();
+                break;
             default:
                 return null;
         }
+        return null;
     }
 
     public static Writer getWriterByMime(String mime) {

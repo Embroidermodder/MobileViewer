@@ -17,8 +17,8 @@ public abstract class EmbWriter extends WriteHelper implements EmbroideryIO.Writ
 
     public EmbWriter() {
         settings.put("encode", true);
-        settings.put("max_jump", Double.POSITIVE_INFINITY);
-        settings.put("max_stitch", Double.POSITIVE_INFINITY);
+        settings.put("max_jump", Float.POSITIVE_INFINITY);
+        settings.put("max_stitch", Float.POSITIVE_INFINITY);
         settings.put("full_jump", false);
         settings.put("writes_speeds", false);
         settings.put("sequin_contingency", CONTINGENCY_SEQUIN_JUMP);

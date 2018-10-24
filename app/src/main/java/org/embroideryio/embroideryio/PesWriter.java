@@ -152,6 +152,7 @@ public class PesWriter extends PecWriter {
         Object[] color_info = write_pec(null);
         write_pes_addendum(color_info);
         writeInt16LE(0x0000); //found v6, not 5,4
+
     }
 
     public void write_pes_header_v1(int distinctBlockObjects) throws IOException {
@@ -292,6 +293,8 @@ public class PesWriter extends PecWriter {
         int flag = -1;
 
         int mode;
+        int adjust_x = (int) (left + cx);
+        int adjust_y = (int) (bottom + cy);
         DataPoints points = pattern.getStitches();
         int colorIndex = 0;
         int colorCode = 0;
@@ -304,7 +307,6 @@ public class PesWriter extends PecWriter {
         }
         float lastx = 0, lasty = 0;
         float x, y;
-        space_holder(2);
         for (int i = 0, ie = points.size(); i < ie; i++) {
             mode = points.getData(i) & COMMAND_MASK;
             if ((mode != END) && (flag != -1)) {
@@ -314,16 +316,16 @@ public class PesWriter extends PecWriter {
                 case JUMP:
                     x = lastx;
                     y = lasty;
-                    segment.add((int) (x - left));
-                    segment.add((int) (y - bottom));
+                    segment.add((int) (x - adjust_x));
+                    segment.add((int) (y - adjust_y));
                     while (i < ie && mode == (points.getData(i) & COMMAND_MASK)) {
                         i++;
                     }
                     i--;
                     x = points.getX(i);
                     y = points.getY(i);
-                    segment.add((int) (x - left));
-                    segment.add((int) (y - bottom));
+                    segment.add((int) (x - adjust_x));
+                    segment.add((int) (y - adjust_y));
                     flag = 1;
                     break;
                 case COLOR_CHANGE:
@@ -339,8 +341,8 @@ public class PesWriter extends PecWriter {
                         lasty = points.getY(i);
                         x = lastx;
                         y = lasty;
-                        segment.add((int) (x - left));
-                        segment.add((int) (y - bottom));
+                        segment.add((int) (x - adjust_x));
+                        segment.add((int) (y - adjust_y));
                         i++;
                     }
                     i--;
@@ -350,7 +352,7 @@ public class PesWriter extends PecWriter {
             if (segment.size() != 0) {
                 writeInt16LE(flag);
                 writeInt16LE((short) colorCode);
-                writeInt16LE((short) segment.size());
+                writeInt16LE((short) segment.size() / 2);
                 for (Integer v : segment) {
                     writeInt16LE(v);
                 }
@@ -358,8 +360,8 @@ public class PesWriter extends PecWriter {
             } else {
                 flag = -1;
             }
+            segment.clear();
         }
-        writeSpaceHolder16LE(section);
         int count = colorlog.size() / 2;
         writeInt16LE(count);
         for (Integer v : colorlog) {
@@ -403,14 +405,6 @@ public class PesWriter extends PecWriter {
         writeInt16LE((short) height);
         writeInt32LE(0);
         writeInt32LE(0);
-        writeInt8(0x00);
-        writeInt8(0x00);
-        writeInt8(0x00);
-        writeInt8(0x00);
-        writeInt8(0x00);
-        writeInt8(0x00);
-        writeInt8(0x00);
-        writeInt8(0x00);
         return tell();
     }
 

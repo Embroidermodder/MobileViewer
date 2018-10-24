@@ -54,10 +54,6 @@ public class PecWriter extends EmbWriter {
         for (int i = 0; i < 12; i++) {
             writeInt8(0x20);
         }
-        writeInt8(0x0D);
-        for (int i = 0; i < 12; i++) {
-            writeInt8(0x20);
-        }
         writeInt8(0xFF);
         writeInt8(0x00);
 
@@ -140,7 +136,7 @@ public class PecWriter extends EmbWriter {
         writeInt16LE((short) 0x1B0);
 
         writeInt16BE((0x9000 | -Math.round(pattern.getStitches().getMinX())));
-        writeInt16BE((0x9000 | -Math.round(pattern.getStitches().getMinX())));
+        writeInt16BE((0x9000 | -Math.round(pattern.getStitches().getMinY())));
 
         pec_encode();
 
