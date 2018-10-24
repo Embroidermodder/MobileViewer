@@ -4,13 +4,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+import org.embroideryio.embroideryio.EmbPattern;
+import org.embroideryio.embroideryio.EmbroideryIO;
 
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
@@ -26,7 +25,7 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
             @Override
             public boolean accept(File dir, String s) {
                 File file = new File(dir, s);
-                return !file.isDirectory() && (IFormat.getReaderByFilename(s) != null);
+                return !file.isDirectory() && (EmbroideryIO.getReaderByFilename(s) != null);
             }
         };
     }
@@ -71,15 +70,16 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
         ThumbnailView thumbnailView = (ThumbnailView) view;
         File file = thumbnailView.file;
         if (file == null) return;
-        IFormat.Reader reader = IFormat.getReaderByFilename(file.getName());
+        Object reader = EmbroideryIO.getReaderByFilename(file.getName());
         if (reader == null) return;
 
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(file);
             DataInputStream in = new DataInputStream(fis);
-            EmbPattern pattern = new EmbPattern();
-            reader.read(pattern, in);
+            EmmPattern pattern = new EmmPattern();
+            EmbPattern read_pattern = EmbroideryIO.readStream(file.getName(),in);
+            pattern.fromEmbPattern(read_pattern);
             activity.setPattern(pattern);
             activity.dialogDismiss();
         } catch (IOException e) {

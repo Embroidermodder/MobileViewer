@@ -1,11 +1,11 @@
-package com.embroidermodder.embroideryviewer.EmbroideryFormats;
+package org.embroideryio.embroideryio;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 
-public abstract class ReadHelper {
+public abstract class ReadHelper implements EmbroideryIO.Reader {
     private byte[] BYTE4 = new byte[4];
     private byte[] BYTE3 = new byte[3];
     private byte[] BYTE2 = new byte[2];
@@ -19,6 +19,10 @@ public abstract class ReadHelper {
 
     public ReadHelper(InputStream stream) {
         this.stream = stream;
+    }
+
+    public void close() {
+        stream = null;
     }
 
     public void setStream(InputStream stream) {
@@ -91,6 +95,30 @@ public abstract class ReadHelper {
         return (read) ? offset : -1;
     }
 
+    int signed8(int v) {
+        v &= 0xFF;
+        if (v > 0x7F) return -0x100 + v;
+        return v;
+    }
+
+    int signed16(int b0, int b1) {
+        b0 &= 0xFF;
+        b1 &= 0xFF;
+        return signed16((b0 << 8) | b1);
+    }
+
+    int signed16(int v) {
+        v &= 0xFFFF;
+        if (v > 0x7FFF) return -0x10000 + v;
+        return v;
+    }
+
+    int signed24(int v) {
+        v &= 0xFFFFFF;
+        if (v > 0x7FFFFF) return -0x1000000 + v;
+        return v;
+    }
+
     public String readString(int maxLength) throws IOException {
         String s = readString(stream, maxLength);
         readPosition += s.length();
@@ -127,7 +155,11 @@ public abstract class ReadHelper {
         s.skip(amount);
     }
 
-    public int getReadPosition() {
+    public void seek(int pos) throws IOException {
+        skip(pos - readPosition);
+    }
+
+    public int tell() {
         return readPosition;
     }
 }

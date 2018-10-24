@@ -22,8 +22,7 @@ import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+import org.embroideryio.embroideryio.EmbroideryIO;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -67,7 +66,7 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
             R.id.radioDst, R.id.radioJef, R.id.radioXxx, R.id.radioExp, R.id.radioSvg, R.id.radioPcs, R.id.radioSew, R.id.radioVp3, R.id.radioPes, R.id.radioPec, R.id.radioShv, R.id.radioHus, R.id.radioCvs, R.id.radioKsm, R.id.radioEmm
     };
 
-    private EmbPattern embPattern;
+    private EmmPattern emmPattern;
     int selected_id = SETTINGS_DEFAULT;
     Uri sharedFileUri;
 
@@ -84,7 +83,7 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof MainActivity) {
-            embPattern = ((MainActivity) context).getPattern();
+            emmPattern = ((MainActivity) context).getPattern();
         }
     }
 
@@ -144,7 +143,7 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
             if (v instanceof RadioButton) {
                 RadioButton b = (RadioButton)v;
                 CharSequence text = b.getText();
-                IFormat.Writer writer = IFormat.getWriterByFilename("test" + text.toString());
+                Object writer = EmbroideryIO.getWriterByFilename("test" + text.toString());
                 if (writer == null) {
                     v.setEnabled(false);
                 }
@@ -333,14 +332,11 @@ public class ShareFragment extends Fragment implements CompoundButton.OnCheckedC
 
 
     public File writeEmbroideryFile(File file, String filename, String name) {
-        embPattern.name = name;
-        IFormat.Writer writer = IFormat.getWriterByFilename(filename);
-        if (writer == null) return null;
+        emmPattern.name = name;
         OutputStream out = null;
         try {
-
             out = new BufferedOutputStream(new FileOutputStream(file));
-            writer.write(embPattern, out);
+            EmbroideryIO.writeStream(emmPattern.toEmbPattern(),filename,out);
             out.flush();
             out.close();
         } catch (IOException e) {

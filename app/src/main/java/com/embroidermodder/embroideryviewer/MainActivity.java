@@ -32,12 +32,13 @@ import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
 import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbReader;
 import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbReaderEmm;
 import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbWriter;
 import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbWriterEmm;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.IFormat;
+
+import org.embroideryio.embroideryio.EmbPattern;
+import org.embroideryio.embroideryio.EmbroideryIO;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -51,7 +52,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements EmbPattern.Provider {
+public class MainActivity extends AppCompatActivity implements EmmPattern.Provider {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
     final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
     final private int REQUEST_CODE_ASK_PERMISSIONS_READ = 102;
@@ -115,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         try {
             FileInputStream fis = openFileInput(filename); //if no file exists, throws error.
             EmbReader reader = new EmbReaderEmm();
-            EmbPattern pattern = new EmbPattern();
+            EmmPattern pattern = new EmmPattern();
             reader.read(pattern, fis);
             setPattern(pattern);
             fis.close();
@@ -287,17 +288,11 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             Random generator = new Random();
             n = generator.nextInt(n);
             String filename = "Image-" + n + ".jef";
-            IFormat.Writer format = IFormat.getWriterByFilename(filename);
-            if (format != null) {
-                File file = new File(root, filename);
-                if (file.exists()) {
+            File file = new File(root, filename);
+            if (file.exists()) {
                     file.delete();
-                }
-                FileOutputStream outputStream = new FileOutputStream(file);
-                format.write(drawView.getPattern(), outputStream);
-                outputStream.flush();
-                outputStream.close();
             }
+            EmbroideryIO.write(drawView.getPattern().toEmbPattern(),file.getCanonicalPath());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -372,10 +367,10 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.remove(fragmentByTag);
         transaction.commit();
-        if (fragmentByTag instanceof EmbPattern.Listener) {
-            EmbPattern pattern = getPattern();
+        if (fragmentByTag instanceof EmmPattern.Listener) {
+            EmmPattern pattern = getPattern();
             if (pattern != null) {
-                pattern.removeListener((EmbPattern.Listener) fragmentByTag);
+                pattern.removeListener((EmmPattern.Listener) fragmentByTag);
             }
         }
         return true;
@@ -402,12 +397,12 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
         builder.show();
     }
 
-    public EmbPattern getPattern() {
+    public EmmPattern getPattern() {
         if (drawView == null) return null;
         return drawView.getPattern();
     }
 
-    public void setPattern(final EmbPattern pattern) {
+    public void setPattern(final EmmPattern pattern) {
         if (!Looper.getMainLooper().equals(Looper.myLooper())) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -418,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             return;
         }
         drawView.setPattern(pattern);
-        getPattern().notifyChange(EmbPattern.NOTIFY_LOADED);
+        getPattern().notifyChange(EmmPattern.NOTIFY_LOADED);
         drawView.invalidate();
         useColorFragment();
     }
@@ -477,9 +472,8 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             }
             return;
         }
-
-        IFormat.Reader reader = null;
         String mime = intent.getType();
+        EmbroideryIO.Reader reader = EmbroideryIO.getReaderByMime(mime);
         //reader = IFormat.getReaderByMime(mime); Sometimes the intent *only* has the MIME type and does not have an extention.
 
         if (reader == null) {
@@ -489,14 +483,13 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             //Toast error message about how the extension doesn't exist and there's no way to know what the file is without mimetype or extension.
             //return;
             //}
-            reader = IFormat.getReaderByFilename(name);
+            reader = EmbroideryIO.getReaderByFilename(name);
             if (reader == null) {
                 toast(R.string.file_type_not_supported);
                 return;
             }
         }
-        //I have a reader.
-        EmbPattern pattern = null;
+        EmmPattern pattern = null;
         switch (uri.getScheme().toLowerCase()) {
             case "http":
             case "https":
@@ -514,8 +507,9 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
                     connection.getHeaderField(HttpURLConnection.HTTP_LENGTH_REQUIRED);
                     connection.setReadTimeout(1000);
                     InputStream in = new BufferedInputStream(connection.getInputStream());
-                    pattern = new EmbPattern();
-                    reader.read(pattern, in);
+                    pattern = new EmmPattern();
+                    EmbPattern read_pattern = EmbroideryIO.readEmbroidery(reader,in);
+                    pattern.fromEmbPattern(read_pattern);
                     in.close();
                     connection.disconnect();
                 } catch (IOException e) {
@@ -527,8 +521,9 @@ public class MainActivity extends AppCompatActivity implements EmbPattern.Provid
             case "file":
                 try {
                     InputStream fis = getContentResolver().openInputStream(uri);
-                    pattern = new EmbPattern();
-                    reader.read(pattern, fis);
+                    pattern = new EmmPattern();
+                    EmbPattern embPattern = EmbroideryIO.readEmbroidery(reader, fis);
+                    pattern.fromEmbPattern(embPattern);
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);
                     return;

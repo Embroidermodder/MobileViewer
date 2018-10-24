@@ -1,12 +1,18 @@
-package com.embroidermodder.embroideryviewer.EmbroideryFormats;
+package org.embroideryio.embroideryio;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EmbWriterEmm extends EmbWriter {
+public class EmmWriter extends EmbWriter {
+
     public static final int MAGIC_NUMBER = 0xE3B830DD; //EMBRMODD
     public static final int VERSION = 1;
+
+    public EmmWriter() {
+        super();
+        settings.put(EmbEncoder.PROP_ENCODE, false);
+    }
 
     @Override
     public void write() throws IOException {
@@ -20,7 +26,7 @@ public class EmbWriterEmm extends EmbWriter {
         int threadcount = pattern.getThreadCount();
         writeInt32LE(threadcount);
         if (threadcount != 0) {
-            for (EmmThread thread : pattern.getThreadlist()) {
+            for (EmbThread thread : pattern.getThreadlist()) {
                 writeThread(thread);
             }
         }
@@ -28,7 +34,7 @@ public class EmbWriterEmm extends EmbWriter {
         writeMap(metadata);
     }
 
-    public void writeThread(EmmThread thread) throws IOException {
+    public void writeThread(EmbThread thread) throws IOException {
         writeInt32(thread.color);
         HashMap<String, String> metadata = thread.getMetadata();
         writeMap(metadata);

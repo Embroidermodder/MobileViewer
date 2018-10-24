@@ -1,6 +1,7 @@
 package com.embroidermodder.embroideryviewer.EmbroideryFormats;
 
 
+import com.embroidermodder.embroideryviewer.EmmPattern;
 import com.embroidermodder.embroideryviewer.geom.DataPoints;
 import com.embroidermodder.embroideryviewer.geom.Point;
 
@@ -8,59 +9,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.COLOR_CHANGE;
-import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.END;
-import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.JUMP;
-import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.STITCH;
-import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.STOP;
-import static com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern.TRIM;
+import static com.embroidermodder.embroideryviewer.EmmPattern.COLOR_CHANGE;
+import static com.embroidermodder.embroideryviewer.EmmPattern.JUMP;
+import static com.embroidermodder.embroideryviewer.EmmPattern.STITCH;
 
 
-public abstract class EmbWriter extends WriteHelper implements IFormat.Writer {
-    protected EmbPattern pattern;
-    int settings;
+public abstract class EmbWriter extends WriteHelper {
+    protected EmmPattern pattern;
 
-    public void write(EmbPattern pattern, OutputStream stream) throws IOException {
+    public void write(EmmPattern pattern, OutputStream stream) throws IOException {
         this.stream = stream;
         this.pattern = pattern;
         write();
     }
 
     public abstract void write() throws IOException;
-
-    @Override
-    public double maxJumpDistance() {
-        return Double.POSITIVE_INFINITY;
-    }
-
-    @Override
-    public double maxStitchDistance() {
-        return Double.POSITIVE_INFINITY;
-    }
-
-    @Override
-    public boolean canEncode(int encode) {
-        switch (encode) {
-            case STOP:
-            case COLOR_CHANGE:
-            case STITCH:
-            case JUMP:
-            case TRIM:
-            case END:
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean hasColor() {
-        return true;
-    }
-
-    @Override
-    public boolean hasStitches() {
-        return true;
-    }
 
     public String getName() {
         return pattern.getName();
@@ -71,7 +34,7 @@ public abstract class EmbWriter extends WriteHelper implements IFormat.Writer {
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             int flags = stitches.getData(i);
             switch (flags) {
-                case EmbPattern.INIT:
+                case EmmPattern.INIT:
                 case STITCH:
                 case JUMP:
                     return stitches.getPoint(i);
@@ -80,10 +43,10 @@ public abstract class EmbWriter extends WriteHelper implements IFormat.Writer {
         return null;
     }
 
-    public ArrayList<EmbThread> getUniqueThreads() {
-        ArrayList<EmbThread> threads = new ArrayList<>();
+    public ArrayList<EmmThread> getUniqueThreads() {
+        ArrayList<EmmThread> threads = new ArrayList<>();
         for (EmbObject object : pattern.asStitchEmbObjects()) {
-            EmbThread thread = object.getThread();
+            EmmThread thread = object.getThread();
             threads.remove(threads);
             threads.add(thread);
         }
@@ -119,8 +82,8 @@ public abstract class EmbWriter extends WriteHelper implements IFormat.Writer {
     }
 
     public int[] getThreadUseOrder() {
-        ArrayList<EmbThread> colors = getThreads();
-        ArrayList<EmbThread> uniquelist = getUniqueThreads();
+        ArrayList<EmmThread> colors = getThreads();
+        ArrayList<EmmThread> uniquelist = getUniqueThreads();
 
         int[] useorder = new int[colors.size()];
         for (int i = 0, s = colors.size(); i < s; i++) {
@@ -129,8 +92,8 @@ public abstract class EmbWriter extends WriteHelper implements IFormat.Writer {
         return useorder;
     }
 
-    public ArrayList<EmbThread> getThreads() {
-        ArrayList<EmbThread> threads = new ArrayList<>();
+    public ArrayList<EmmThread> getThreads() {
+        ArrayList<EmmThread> threads = new ArrayList<>();
         for (EmbObject object : pattern.asStitchEmbObjects()) {
             threads.add(object.getThread());
         }
@@ -142,15 +105,5 @@ public abstract class EmbWriter extends WriteHelper implements IFormat.Writer {
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             stitches.translate(x, y);
         }
-    }
-
-    @Override
-    public int getSettings() {
-        return settings;
-    }
-
-    @Override
-    public void setSettings(int settings) {
-        this.settings = settings;
     }
 }

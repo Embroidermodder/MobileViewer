@@ -7,14 +7,13 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbPattern;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbThread;
+import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmmThread;
 import com.embroidermodder.embroideryviewer.geom.Point;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
 
 public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    EmbPattern pattern;
+    EmmPattern pattern;
     static final int METADATA = 0;
     static final int COLOR = 1;
     static final int STITCH = 2;
@@ -22,7 +21,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public ColorStitchAdapter() {
     }
 
-    public void setPattern(EmbPattern root) {
+    public void setPattern(EmmPattern root) {
         this.pattern = root;
     }
 
@@ -54,22 +53,22 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 MetaDataViewHolder mHolder = (MetaDataViewHolder) holder;
                 switch (position) {
                     case 0:
-                        mHolder.setDataPair(EmbPattern.PROP_FILENAME, pattern.filename);
+                        mHolder.setDataPair(EmmPattern.PROP_FILENAME, pattern.filename);
                         break;
                     case 1:
-                        mHolder.setDataPair(EmbPattern.PROP_NAME, pattern.name);
+                        mHolder.setDataPair(EmmPattern.PROP_NAME, pattern.name);
                         break;
                     case 2:
-                        mHolder.setDataPair(EmbPattern.PROP_AUTHOR, pattern.author);
+                        mHolder.setDataPair(EmmPattern.PROP_AUTHOR, pattern.author);
                         break;
                     case 3:
-                        mHolder.setDataPair(EmbPattern.PROP_CATEGORY, pattern.category);
+                        mHolder.setDataPair(EmmPattern.PROP_CATEGORY, pattern.category);
                         break;
                     case 4:
-                        mHolder.setDataPair(EmbPattern.PROP_KEYWORDS, pattern.keywords);
+                        mHolder.setDataPair(EmmPattern.PROP_KEYWORDS, pattern.keywords);
                         break;
                     case 5:
-                        mHolder.setDataPair(EmbPattern.PROP_COMMENTS, pattern.comments);
+                        mHolder.setDataPair(EmmPattern.PROP_COMMENTS, pattern.comments);
                 }
                 break;
             case STITCH:
@@ -79,7 +78,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 break;
             case COLOR:
                 ColorStitchColorViewHolder cHolder = (ColorStitchColorViewHolder) holder;
-                EmbThread thread = pattern.getThreadlist().get(position - 6);
+                EmmThread thread = pattern.getThreadlist().get(position - 6);
                 cHolder.setThread(thread);
                 break;
         }
@@ -98,7 +97,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public class ColorStitchColorViewHolder extends RecyclerView.ViewHolder {
         ImageButton color;
         TextView name;
-        EmbThread thread;
+        EmmThread thread;
 
         public ColorStitchColorViewHolder(View itemView) {
             super(itemView);
@@ -120,7 +119,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                         public void onOk(AmbilWarnaDialog dialog, int newColor) {
                             thread.setColor(newColor);
                             notifyItemChanged(getAdapterPosition());
-                            pattern.notifyChange(EmbPattern.NOTIFY_THREAD_COLOR);
+                            pattern.notifyChange(EmmPattern.NOTIFY_THREAD_COLOR);
                         }
                     });
                     dialog.show();
@@ -128,7 +127,7 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             });
         }
 
-        public void setThread(EmbThread thread) {
+        public void setThread(EmmThread thread) {
             this.thread = thread;
             int colorValue = thread.getColor();
             color.setBackgroundColor(colorValue);
@@ -162,25 +161,25 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         private String getStitchName(int data) {
             switch (data) {
-                case EmbPattern.STITCH:
+                case EmmPattern.STITCH:
                     return "Stitch";
-                case EmbPattern.JUMP:
+                case EmmPattern.JUMP:
                     return "Jump";
-                case EmbPattern.END:
+                case EmmPattern.END:
                     return "End";
-                case EmbPattern.STOP:
+                case EmmPattern.STOP:
                     return "Stop";
-                case EmbPattern.COLOR_CHANGE:
+                case EmmPattern.COLOR_CHANGE:
                     return "ColorChange";
-                case EmbPattern.NO_COMMAND:
+                case EmmPattern.NO_COMMAND:
                     return "No Command";
-                case EmbPattern.INIT:
+                case EmmPattern.INIT:
                     return "Init";
-                case EmbPattern.TIE_OFF:
+                case EmmPattern.TIE_OFF:
                     return "Tie-Off";
-                case EmbPattern.TIE_ON:
+                case EmmPattern.TIE_ON:
                     return "Tie-On";
-                case EmbPattern.TRIM:
+                case EmmPattern.TRIM:
                     return "Trim";
                 default:
                     return "Unknown: " + data;
