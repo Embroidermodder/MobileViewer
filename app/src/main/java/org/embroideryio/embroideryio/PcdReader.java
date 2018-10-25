@@ -2,7 +2,7 @@ package org.embroideryio.embroideryio;
 
 import java.io.IOException;
 
-public class PcsReader extends EmbReader {
+public class PcdReader extends EmbReader {
 
     private static final float PC_SIZE_CONVERSION_RATIO = 5f / 3f;
 
@@ -33,7 +33,6 @@ public class PcsReader extends EmbReader {
             }
             x *= PC_SIZE_CONVERSION_RATIO;
             y *= -PC_SIZE_CONVERSION_RATIO;
-
             if (ctrl == 0x00) {
                 pattern.stitchAbs(x, y);
                 continue;
@@ -51,7 +50,6 @@ public class PcsReader extends EmbReader {
                 // how read will fail when out of file.
                 break;
             }
-            break;
         }
         pattern.end();
     }

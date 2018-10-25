@@ -2,7 +2,7 @@ package org.embroideryio.embroideryio;
 
 import java.io.IOException;
 
-public class PcsReader extends EmbReader {
+public class PcqReader extends EmbReader {
 
     private static final float PC_SIZE_CONVERSION_RATIO = 5f / 3f;
 

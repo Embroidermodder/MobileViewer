@@ -4,10 +4,14 @@ import java.io.IOException;
 
 public class A10oReader extends EmbReader {
 
+    private final static int COMMANDSIZE = 3;
+
     public void read_10o_stitches() throws IOException {
-        byte[] b = new byte[3];
+        byte[] b = new byte[COMMANDSIZE];
         while (true) {
-            if (readFully(b) != b.length) break;
+            if (readFully(b) != b.length) {
+                break;
+            }
             int ctrl = b[0] & 0xFF;
             int y = -(b[1] & 0xFF);
             int x = b[2] & 0xFF;
@@ -45,7 +49,6 @@ public class A10oReader extends EmbReader {
         }
         pattern.end();
     }
-
 
     @Override
     public void read() throws IOException {

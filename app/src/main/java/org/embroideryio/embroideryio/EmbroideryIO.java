@@ -119,69 +119,53 @@ public class EmbroideryIO {
             case "col":
                 return new ColReader();
             case "csv":
-                //return new CsvReader();
-                break;
+                return new CsvReader();
             case "dat":
                 return new DatReader();
             case "dsb":
-                //return new DsbReader();
-                break;
+                return new DsbReader();
             case "dst":
                 return new DstReader();
             case "dsz":
-                //return new DszReader();
-                break;
+                return new DszReader();
             case "emd":
-                //return new EmdReader();
-                break;
+                return new EmdReader();
             case "emm":
                 return new EmmReader();
             case "exp":
                 return new ExpReader();
             case "gt":
-                break;
-            //return new GtReader();
+                return new GtReader();
             case "exy":
             case "e00":
             case "e01":
-                //return new ExyReader();
-                break;
+                return new ExyReader();
             case "fxy":
             case "f00":
             case "f01":
-                //return new FxyReader();
-                break;
+                return new FxyReader();
             case "inb":
-                //return InbReader();
-                break;
+                return new InbReader();
             case "inf":
                 return new InfReader();
             case "jef":
                 return new JefReader();
             case "jpx":
-                //return new JpxReader();
-                break;
+                return new JpxReader();
             case "ksm":
-                //return new KsmReader();
-                break;
+                return new KsmReader();
             case "max":
-                //return new MaxReader();
-                break;
+                return new MaxReader();
             case "mit":
-                //return new MitReader();
-                break;
+                return new MitReader();
             case "new":
-                //return new NewReader();
-                break;
+                return new NewReader();
             case "pcd":
-                //return new PcdReader();
-                break;
+                return new PcdReader();
             case "pcm":
-                //return new PcmReader();
-                break;
+                return new PcmReader();
             case "pcq":
-                //return new PcqReader();
-                break;
+                return new PcqReader();
             case "pcs":
                 return new PcsReader();
             case "pec":
@@ -189,30 +173,23 @@ public class EmbroideryIO {
             case "pes":
                 return new PesReader();
             case "phb":
-                //return new PhbReader();
-                break;
+                return new PhbReader();
             case "phc":
-                //return new PhcReader();
-                break;
+                return new PhcReader();
             case "pmv":
-                //return new PmvReader();
-                break;
+                return new PmvReader();
             case "sew":
                 return new SewReader();
             case "shv":
                 return new ShvReader();
             case "stc":
-                //return new StcReader();
-                break;
+                return new StcReader();
             case "stx":
-                //return new StxReader();
-                break;
+                return new StxReader();
             case "tap":
-                //return new TapReader();
-                break;
+                return new TapReader();
             case "tbf":
-                //return new TbfReader();
-                break;
+                return new TbfReader();
             case "u01":
                 return new U01Reader();
             case "vp3":
@@ -225,8 +202,7 @@ public class EmbroideryIO {
             case "zxy":
             case "z00":
             case "z01":
-                //return new ZxyReader();
-                break;
+                return new ZxyReader();
             default:
                 return null;
         }

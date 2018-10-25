@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-
 public abstract class ReadHelper implements EmbroideryIO.Reader {
+
     private byte[] BYTE4 = new byte[4];
     private byte[] BYTE3 = new byte[3];
     private byte[] BYTE2 = new byte[2];
@@ -33,43 +33,57 @@ public abstract class ReadHelper implements EmbroideryIO.Reader {
 
     public int readInt32LE() throws IOException {
         byte fullInt[] = BYTE4;
-        readFully(fullInt);
+        if (readFully(fullInt) != 4) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[0] & 0xFF) + ((fullInt[1] & 0xFF) << 8) + ((fullInt[2] & 0xFF) << 16) + ((fullInt[3] & 0xFF) << 24);
     }
 
     public int readInt32BE() throws IOException {
         byte fullInt[] = BYTE4;
-        readFully(fullInt);
+        if (readFully(fullInt) != 4) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[3] & 0xFF) + ((fullInt[2] & 0xFF) << 8) + ((fullInt[1] & 0xFF) << 16) + ((fullInt[0] & 0xFF) << 24);
     }
 
     public int readInt24BE() throws IOException {
         byte fullInt[] = BYTE3;
-        readFully(fullInt);
+        if (readFully(fullInt) != 3) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[2] & 0xFF) + ((fullInt[1] & 0xFF) << 8) + ((fullInt[0] & 0xFF) << 16);
     }
 
     public int readInt24LE() throws IOException {
         byte fullInt[] = BYTE3;
-        readFully(fullInt);
+        if (readFully(fullInt) != 3) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[0] & 0xFF) + ((fullInt[1] & 0xFF) << 8) + ((fullInt[2] & 0xFF) << 16);
     }
 
     public int readInt16LE() throws IOException {
         byte fullInt[] = BYTE2;
-        readFully(fullInt);
+        if (readFully(fullInt) != 2) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[0] & 0xFF) + ((fullInt[1] & 0xFF) << 8);
     }
 
     public int readInt16BE() throws IOException {
         byte fullInt[] = BYTE2;
-        readFully(fullInt);
+        if (readFully(fullInt) != 2) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[1] & 0xFF) + ((fullInt[0] & 0xFF) << 8);
     }
 
     public int readInt8() throws IOException {
         byte fullInt[] = BYTE1;
-        readFully(fullInt);
+        if (readFully(fullInt) != 1) {
+            return Integer.MIN_VALUE;
+        }
         return (fullInt[0] & 0xFF);
     }
 
@@ -95,27 +109,33 @@ public abstract class ReadHelper implements EmbroideryIO.Reader {
         return (read) ? offset : -1;
     }
 
-    int signed8(int v) {
+    public static int signed8(int v) {
         v &= 0xFF;
-        if (v > 0x7F) return -0x100 + v;
+        if (v > 0x7F) {
+            return -0x100 + v;
+        }
         return v;
     }
 
-    int signed16(int b0, int b1) {
+    public static int signed16(int b0, int b1) {
         b0 &= 0xFF;
         b1 &= 0xFF;
         return signed16((b0 << 8) | b1);
     }
 
-    int signed16(int v) {
+    public static int signed16(int v) {
         v &= 0xFFFF;
-        if (v > 0x7FFF) return -0x10000 + v;
+        if (v > 0x7FFF) {
+            return -0x10000 + v;
+        }
         return v;
     }
 
-    int signed24(int v) {
+    public static int signed24(int v) {
         v &= 0xFFFFFF;
-        if (v > 0x7FFFFF) return -0x1000000 + v;
+        if (v > 0x7FFFFF) {
+            return -0x1000000 + v;
+        }
         return v;
     }
 

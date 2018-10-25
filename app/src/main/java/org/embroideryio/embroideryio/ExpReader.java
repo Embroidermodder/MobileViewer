@@ -4,10 +4,11 @@ import java.io.IOException;
 
 public class ExpReader extends EmbReader {
 
-    public void read_exp_stitches() throws IOException {
+    public static void read_exp_stitches(EmbReader reader) throws IOException {
+        EmbPattern pattern = reader.pattern;
         byte[] b = new byte[2];
         while (true) {
-            if (readFully(b) != b.length) break;
+            if (reader.readFully(b) != b.length) break;
 
             if ((b[0] & 0xFF) != 0x80) {
                 float x = (float) b[0];
@@ -16,7 +17,7 @@ public class ExpReader extends EmbReader {
                 continue;
             }
             int control = b[1] & 0xFF;
-            if (readFully(b) != b.length) break;
+            if (reader.readFully(b) != b.length) break;
             float x = (float) b[0];
             float y = -(float) b[1];
 
@@ -45,6 +46,6 @@ public class ExpReader extends EmbReader {
 
     @Override
     public void read() throws IOException {
-        read_exp_stitches();
+        read_exp_stitches(this);
     }
 }

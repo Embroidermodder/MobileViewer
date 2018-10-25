@@ -4,10 +4,13 @@ import java.io.IOException;
 
 public class BroReader extends EmbReader {
 
-    public void read_bro_stitches() throws IOException {
-        byte[] b = new byte[2];
+    private final static int COMMANDSIZE = 2;
+
+    public static void read_bro_stitches(EmbReader reader) throws IOException {
+        EmbPattern pattern = reader.pattern;
+        byte[] b = new byte[COMMANDSIZE];
         while (true) {
-            if (readFully(b) != b.length) {
+            if (reader.readFully(b) != b.length) {
                 break;
             }
 
@@ -17,7 +20,7 @@ public class BroReader extends EmbReader {
                 pattern.stitch(x, y);
                 continue;
             }
-            int control = readInt8();
+            int control = reader.readInt8();
             switch (control) {
                 case 0x00:
                     continue;
@@ -26,14 +29,14 @@ public class BroReader extends EmbReader {
                 case 0xE0:
                     break;
                 case 0x7E: {
-                    float x = signed16(readInt16LE());
-                    float y = signed16(readInt16LE());
+                    float x = signed16(reader.readInt16LE());
+                    float y = signed16(reader.readInt16LE());
                     pattern.move(x, -y);
                     continue;
                 }
                 case 0x03: {
-                    float x = signed16(readInt16LE());
-                    float y = signed16(readInt16LE());
+                    float x = signed16(reader.readInt16LE());
+                    float y = signed16(reader.readInt16LE());
                     pattern.move(x, -y);
                     continue;
                 }
@@ -54,8 +57,8 @@ public class BroReader extends EmbReader {
                 case 0xEF:
                     int needle = control - 0xE0;
                     pattern.needle_change(needle);
-                    float x = signed16(readInt16LE());
-                    float y = signed16(readInt16LE());
+                    float x = signed16(reader.readInt16LE());
+                    float y = signed16(reader.readInt16LE());
                     pattern.move(x, -y);
                     continue;
             }
@@ -67,6 +70,6 @@ public class BroReader extends EmbReader {
     @Override
     public void read() throws IOException {
         skip(0x100);
-        read_bro_stitches();
+        read_bro_stitches(this);
     }
 }

@@ -1,5 +1,7 @@
 /*
- *
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 package org.embroideryio.embroideryio;
  /*
@@ -10,12 +12,10 @@ import java.awt.geom.NoninvertibleTransformException;
 import android.graphics.Matrix;
 
 /**
+ *
  * @author Tat
  */
-
-public class EmbMatrix extends Matrix {
-}
-/*
+ /*
 public class EmbMatrix extends AffineTransform {
 
     public void mapPoints(float[] p) {
@@ -55,3 +55,6 @@ public class EmbMatrix extends AffineTransform {
 
 }
 //*/
+
+ class EmbMatrix extends Matrix {
+}

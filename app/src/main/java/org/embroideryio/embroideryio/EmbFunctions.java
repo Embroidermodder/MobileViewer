@@ -61,7 +61,7 @@ public class EmbFunctions {
         return new Integer[]{flag, thread, needle, order};
     }
 
-    Map<String, Integer> get_command_dictionary() {
+    public static Map<String, Integer> get_command_dictionary() {
         HashMap<String, Integer> dict = new HashMap<>();
         dict.put("NO_COMMAND", NO_COMMAND);
         dict.put("STITCH", STITCH);
@@ -117,7 +117,7 @@ public class EmbFunctions {
         return dict;
     }
 
-    Map<Integer, String> get_common_name_dictionary() {
+    public static Map<Integer, String> get_common_name_dictionary() {
         HashMap<Integer, String> dict = new HashMap<>();
         dict.put(NO_COMMAND, "NO_COMMAND");
         dict.put(STITCH, "STITCH");
