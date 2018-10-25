@@ -32,11 +32,6 @@ import android.view.View;
 import android.widget.GridView;
 import android.widget.Toast;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbReader;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbReaderEmm;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbWriter;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbWriterEmm;
-
 import org.embroideryio.embroideryio.EmbPattern;
 import org.embroideryio.embroideryio.EmbroideryIO;
 
@@ -103,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
     public void saveInternalFile(String filename) {
         try {
             FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
-            EmbWriter writer = new EmbWriterEmm();
+            EmbWriterEmm writer = new EmbWriterEmm();
             writer.write(getPattern(), fos);
             fos.flush();
             fos.close();
@@ -115,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
     public void loadInternalFile(String filename) {
         try {
             FileInputStream fis = openFileInput(filename); //if no file exists, throws error.
-            EmbReader reader = new EmbReaderEmm();
+            EmbReaderEmm reader = new EmbReaderEmm();
             EmmPattern pattern = new EmmPattern();
             reader.read(pattern, fis);
             setPattern(pattern);

@@ -3,8 +3,6 @@ package com.embroidermodder.embroideryviewer;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbObject;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmmThread;
 import com.embroidermodder.embroideryviewer.geom.DataPoints;
 import com.embroidermodder.embroideryviewer.geom.Points;
 import com.embroidermodder.embroideryviewer.geom.PointsIndexRange;

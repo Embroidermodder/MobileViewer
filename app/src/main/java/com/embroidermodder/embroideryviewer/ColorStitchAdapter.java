@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmmThread;
 import com.embroidermodder.embroideryviewer.geom.Point;
 
 import yuku.ambilwarna.AmbilWarnaDialog;

@@ -5,8 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.Log;
 
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmbObject;
-import com.embroidermodder.embroideryviewer.EmbroideryFormats.EmmThread;
 import com.embroidermodder.embroideryviewer.geom.Points;
 import com.embroidermodder.embroideryviewer.geom.PointsDirect;
 
