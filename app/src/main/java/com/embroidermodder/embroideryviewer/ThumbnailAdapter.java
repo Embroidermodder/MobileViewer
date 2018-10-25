@@ -25,7 +25,8 @@ public class ThumbnailAdapter extends BaseAdapter implements View.OnClickListene
             @Override
             public boolean accept(File dir, String s) {
                 File file = new File(dir, s);
-                return !file.isDirectory() && (EmbroideryIO.getReaderByFilename(s) != null);
+                if (file.isDirectory()) return true;
+                return EmbroideryIO.getReaderByFilename(s) != null;
             }
         };
     }

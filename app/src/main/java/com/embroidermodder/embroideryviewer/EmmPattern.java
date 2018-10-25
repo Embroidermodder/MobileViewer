@@ -27,17 +27,8 @@ public class EmmPattern {
     public static final int INIT = 6;
     public static final int TIE_OFF = 0xA0;
     public static final int TIE_ON = 0xA1;
-    public static final int FRAME_OFF = 0xB0;
-    public static final int FRAME_ON = 0xB1;
-
-
-    public static final int STITCH_NEW_LOCATION = 0xF0;
-    public static final int STITCH_NEW_COLOR = 0xF1;
-    public static final int STITCH_FINAL_LOCATION = 0xF2;
-    public static final int STITCH_FINAL_COLOR = 0xF3;
 
     public static final int COMMAND_MASK = 0xFF;
-
 
     public static final String PROP_FILENAME = "filename";
     public static final String PROP_NAME = "name";
@@ -497,20 +488,27 @@ public class EmmPattern {
     }
 
     public void fromEmbPattern(EmbPattern pattern) {
-        org.embroideryio.geom.DataPoints stitches = pattern.getStitches();
-        for (int i = 0, ie = stitches.size(); i < ie; i++) {
-            this.addStitchAbs(stitches.getX(i), stitches.getY(i), stitches.getData(i),true);
-        }
+        stitches.setPack(pattern.getPointlist(),pattern.getData(),pattern.size());
         for (EmbThread t : pattern.getThreadlist()) {
             EmmThread embthread = new EmmThread(t.getColor(), t.getDescription(), t.getCatalogNumber(), t.getBrand(), t.getChart());
             addThread(embthread);
         }
-        this.setAuthor(pattern.author);
-        this.setCategory(pattern.category);
-        this.setKeywords(pattern.keywords);
-        this.setFilename(pattern.filename);
-        this.setComments(pattern.comments);
-        this.setName(pattern.name);
+        this.setAuthor(pattern.getAuthor());
+        this.setCategory(pattern.getCategory());
+        this.setKeywords(pattern.getKeywords());
+        this.setFilename(pattern.getFilename());
+        this.setComments(pattern.getComments());
+        this.setName(pattern.getName());
+    }
+
+    public int countStitchCommands(int command) {
+        int count = 0;
+        for (int i = 0, ie = stitches.size(); i < ie; i++) {
+            if ((stitches.getData(i) & COMMAND_MASK) == command) {
+                count +=1;
+            }
+        }
+        return count;
     }
 
     public interface Listener {

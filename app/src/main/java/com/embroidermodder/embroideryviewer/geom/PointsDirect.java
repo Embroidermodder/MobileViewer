@@ -410,6 +410,12 @@ public class PointsDirect implements Points {
         dirtybounds = false;
     }
 
+//ANDORID:
+//    public void transform(Matrix matrix) {
+//        matrix.mapPoints(pointlist);
+//        dirtybounds = true;
+//    }
+
     public void translate(double dx, double dy) {
         translate((float) dx, (float) dy);
     }

@@ -172,12 +172,6 @@ public class ColorStitchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     return "ColorChange";
                 case EmmPattern.NO_COMMAND:
                     return "No Command";
-                case EmmPattern.INIT:
-                    return "Init";
-                case EmmPattern.TIE_OFF:
-                    return "Tie-Off";
-                case EmmPattern.TIE_ON:
-                    return "Tie-On";
                 case EmmPattern.TRIM:
                     return "Trim";
                 default:

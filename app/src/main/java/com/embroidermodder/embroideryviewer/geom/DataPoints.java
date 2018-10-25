@@ -10,7 +10,7 @@ import java.util.Arrays;
  * Points Direct extension with integer data attached at a 1:1 connection to the points.
  */
 
-public class DataPoints extends PointsDirect {
+public class DataPoints extends PointsDirect implements DPoints {
     public int[] data;
 
     public DataPoints() {
@@ -22,26 +22,31 @@ public class DataPoints extends PointsDirect {
         data = p.datapack();
     }
 
+    @Override
     public void add(Point add) {
         super.add(add);
         setData(add.data());
     }
 
+    @Override
     public void add(float px, float py, int data) {
-        super.add(px,py);
+        super.add(px, py);
         setData(data);
     }
 
+    @Override
     public void add(int index, Point add) {
         super.add(index, add);
         setData(index, add.data());
     }
 
+    @Override
     protected void moveArray(int from, int to, int length) {
         super.moveArray(from, to, length);
         System.arraycopy(data, from / 2, data, to / 2, length / 2);
     }
 
+    @Override
     protected void changeCapacity(int newCapacity) {
         super.changeCapacity(newCapacity);
         data = Arrays.copyOf(data, newCapacity / 2);
@@ -57,10 +62,12 @@ public class DataPoints extends PointsDirect {
         }
     }
 
+    @Override
     public int getData(int index) {
         return data[index];
     }
 
+    @Override
     public void setData(int index, int v) {
         data[index] = v;
     }
@@ -113,5 +120,11 @@ public class DataPoints extends PointsDirect {
             }
         }
         return (read) ? offset : -1;
+    }
+
+    public void setPack(float[] pointlist, int[] data, int size) {
+        this.pointlist = pointlist;
+        this.data = data;
+        this.count = size * 2;
     }
 }

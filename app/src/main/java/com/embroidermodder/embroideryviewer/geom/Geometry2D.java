@@ -8,6 +8,39 @@ package com.embroidermodder.embroideryviewer.geom;
 
 public class Geometry2D {
 
+    public static double angleR(double x0, double y0, double x1, double y1) {
+        return Math.atan2(y1 - y0, x1 - x0);
+    }
+
+    public static double angleR(Point p, Point q) {
+        return Math.atan2(p.getY() - q.getY(), p.getX() - q.getX());
+    }
+
+    public static Point oriented(Point from, Point to, double r, Point result) {
+        if (result == null) result = new PointDirect();
+        double radians = angleR(from, to);
+        result.setLocation(from.getX() + r * Math.cos(radians), from.getY() + r * Math.sin(radians));
+        return result;
+    }
+
+    public static Point oriented(double from_x, double from_y, double to_x, double to_y, double r) {
+        return oriented(from_x, from_y, to_x, to_y, r, null);
+    }
+
+    public static Point oriented(double from_x, double from_y, double to_x, double to_y, double r, Point result) {
+        if (result == null) result = new PointDirect();
+        double radians = angleR(from_x, from_y, to_x, to_y);
+        result.setLocation(from_x + r * Math.cos(radians), from_y + r * Math.sin(radians));
+        return result;
+    }
+
+    static public Point towards(Point from,Point to, double amount, Point result) {
+        if (result == null) result = new PointDirect();
+        double nx = (amount * (to.getX() - from.getX())) + from.getX();
+        double ny = (amount * (to.getY() - from.getY())) + from.getY();
+        result.setLocation(nx, ny);
+        return result;
+    }
     public static double distanceSq(double x0, double y0, double x1, double y1) {
         double dx = x1 - x0;
         double dy = y1 - y0;

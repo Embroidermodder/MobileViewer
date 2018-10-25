@@ -29,8 +29,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.GridView;
 import android.widget.Toast;
+
+import com.embroidermodder.embroideryviewer.embroideryview.EmbroideryFileDirectoryFragment;
+import com.embroidermodder.embroideryviewer.embroideryview.OnListFragmentInteractionListener;
 
 import org.embroideryio.embroideryio.EmbPattern;
 import org.embroideryio.embroideryio.EmbroideryIO;
@@ -47,7 +49,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements EmmPattern.Provider {
+public class MainActivity extends AppCompatActivity implements EmmPattern.Provider, OnListFragmentInteractionListener {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 100;
     final private int REQUEST_CODE_ASK_PERMISSIONS_LOAD = 101;
     final private int REQUEST_CODE_ASK_PERMISSIONS_READ = 102;
@@ -128,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         if (tryCloseFragment(ShareFragment.TAG)) {
             return;
         }
+        if (tryCloseFragment(EmbroideryFileDirectoryFragment.TAG)) {
+            return;
+        }
         if (mainActivity.isDrawerOpen(GravityCompat.START)) {
             mainActivity.closeDrawer(GravityCompat.START);
         } else {
@@ -170,17 +175,24 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                 useShareFragment();
                 break;
             case R.id.action_load_file:
-                dialogDismiss();
-                makeDialog(R.layout.embroidery_thumbnail_view);
-                saveFileWrapper(new PermissionRequired() {
-                    @Override
-                    public void openExternalStorage(File root, String data) {
-                        loadFile(root, data);
-                    }
-                }, Environment.getExternalStorageDirectory(), "");
+                useViewerFragment();
+//                dialogDismiss();
+//                makeDialog(R.layout.embroidery_thumbnail_view);
+//                saveFileWrapper(new PermissionRequired() {
+//                    @Override
+//                    public void openExternalStorage(File root, String data) {
+//                        loadFile(root, data);
+//                    }
+//                }, Environment.getExternalStorageDirectory(), "");
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public void onListFragmentInteraction(File item) {
+        loadFile(item);
     }
 
     @Override
@@ -196,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                 break;
             case REQUEST_CODE_ASK_PERMISSIONS_LOAD:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadFile(Environment.getExternalStorageDirectory(), "");
+                    loadFile(Environment.getExternalStorageDirectory());
                 } else {
                     Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
                             .show();
@@ -225,11 +237,12 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
+
     interface PermissionRequired {
-        void openExternalStorage(File root, String data);
+        void openExternalStorage(File item);
     }
 
-    private void saveFileWrapper(PermissionRequired permissionRequired, File root, String data) {
+    private void saveFileWrapper(PermissionRequired permissionRequired, File item) {
         int hasWriteExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
             if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
@@ -247,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                     REQUEST_CODE_ASK_PERMISSIONS);
             return;
         }
-        permissionRequired.openExternalStorage(root, data);
+        permissionRequired.openExternalStorage(item);
     }
 
     private void callIfLoadIntentStreamIsUnreadableWithoutPermissions() {
@@ -270,10 +283,16 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
-    private void loadFile(File root, String data) {
-        GridView list = (GridView) dialogView.findViewById(R.id.embroideryThumbnailList);
-        File mPath = new File(root + "");
-        list.setAdapter(new ThumbnailAdapter(MainActivity.this, mPath));
+    private void loadFile(File item) {
+        try {
+            EmmPattern pattern = new EmmPattern();
+            EmbPattern pat = EmbroideryIO.read(item.getPath());
+            pattern.fromEmbPattern(pat);
+            setPattern(pattern);
+            drawView.postInvalidate();
+            tryCloseFragment(EmbroideryFileDirectoryFragment.TAG);
+        } catch (IOException e) {
+        }
     }
 
     private void saveFile(File root, String data) {
@@ -333,13 +352,21 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                 .show();
     }
 
+    public void useViewerFragment() {
+        dialogDismiss();
+        FragmentManager fragmentManager = this.getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        EmbroideryFileDirectoryFragment fragment = new EmbroideryFileDirectoryFragment();
+        transaction.add(R.id.mainContentArea, fragment, EmbroideryFileDirectoryFragment.TAG);
+        transaction.commit();
+    }
     public void useShareFragment() {
         dialogDismiss();
         FragmentManager fragmentManager = this.getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         ShareFragment fragment = new ShareFragment();
         transaction.add(R.id.mainContentArea, fragment, ShareFragment.TAG);
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
     }
 
     public void useColorFragment() {

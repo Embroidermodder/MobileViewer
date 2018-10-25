@@ -72,19 +72,6 @@ public class EmbWriterEmm {
         return pattern.getName();
     }
 
-    public Point getFirstPosition() {
-        DataPoints stitches = pattern.getStitches();
-        for (int i = 0, ie = stitches.size(); i < ie; i++) {
-            int flags = stitches.getData(i);
-            switch (flags) {
-                case EmmPattern.INIT:
-                case STITCH:
-                case JUMP:
-                    return stitches.getPoint(i);
-            }
-        }
-        return null;
-    }
 
     public ArrayList<EmmThread> getUniqueThreads() {
         ArrayList<EmmThread> threads = new ArrayList<>();

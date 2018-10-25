@@ -11,6 +11,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
+import static com.embroidermodder.embroideryviewer.EmmPattern.COLOR_CHANGE;
+import static com.embroidermodder.embroideryviewer.EmmPattern.JUMP;
+import static com.embroidermodder.embroideryviewer.EmmPattern.STITCH;
+
 public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Provider {
     private static final float MARGIN = 0.05f;
     private static final float PIXELS_PER_MM = 10;
@@ -114,15 +118,16 @@ public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Pr
 
     public String getStatistics() {
         Context context = getContext();
-//        RectF bounds = emmPattern.calculateBoundingBox();
+        RectF bounds = new RectF();
+        emmPattern.getBounds(bounds);
         StringBuilder sb = new StringBuilder();
-//        int totalSize = emmPattern.getTotalSize();
-//        int jumpCount = emmPattern.getJumpCount();
-//        int colorCount = emmPattern.getColorCount();
-//        sb.append(context.getString(R.string.normal_stitches)).append(totalSize).append('\n');
-//        sb.append(context.getString(R.string.jumps)).append(jumpCount).append('\n');
-//        sb.append(context.getString(R.string.colors)).append(colorCount).append('\n');
-//        sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
+        int totalSize = emmPattern.countStitchCommands(STITCH);
+        int jumpCount = emmPattern.countStitchCommands(JUMP);
+        int colorCount = emmPattern.countStitchCommands(COLOR_CHANGE);
+        sb.append(context.getString(R.string.normal_stitches)).append(totalSize).append('\n');
+        sb.append(context.getString(R.string.jumps)).append(jumpCount).append('\n');
+        sb.append(context.getString(R.string.colors)).append(colorCount).append('\n');
+        sb.append(context.getString(R.string.size)).append(convert(bounds.width())).append(" mm X ").append(convert(bounds.height())).append(" mm\n");
         return sb.toString();
     }
 
