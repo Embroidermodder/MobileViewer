@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -116,8 +114,8 @@ public class PecWriter extends EmbWriter {
     }
 
     void write_pec_block() throws IOException {
-        int width = (int) Math.rint(pattern.getStitches().getWidth());
-        int height = (int) Math.rint(pattern.getStitches().getHeight());
+        int width = (int) Math.rint(pattern.getWidth());
+        int height = (int) Math.rint(pattern.getHeight());
         int stitch_block_start_position = tell();
         writeInt8(0x00);
         writeInt8(0x00);
@@ -135,8 +133,9 @@ public class PecWriter extends EmbWriter {
         writeInt16LE((short) 0x1E0);
         writeInt16LE((short) 0x1B0);
 
-        writeInt16BE((0x9000 | -Math.round(pattern.getStitches().getMinX())));
-        writeInt16BE((0x9000 | -Math.round(pattern.getStitches().getMinY())));
+        
+        writeInt16BE((0x9000 | -Math.round(pattern.getMinX())));
+        writeInt16BE((0x9000 | -Math.round(pattern.getMinY())));
 
         pec_encode();
 
@@ -145,20 +144,20 @@ public class PecWriter extends EmbWriter {
     }
 
     void write_pec_graphics() throws IOException {
-        float minX = pattern.getStitches().getMinX();
-        float minY = pattern.getStitches().getMinY();
-        float maxX = pattern.getStitches().getMaxX();
-        float maxY = pattern.getStitches().getMaxY();
+        float minX = pattern.getMinX();
+        float minY = pattern.getMinY();
+        float maxX = pattern.getMaxX();
+        float maxY = pattern.getMaxY();
         PecGraphics graphics = new PecGraphics(minX, minY, maxX, maxY, PEC_ICON_WIDTH, PEC_ICON_HEIGHT);
 
-        for (EmbObject object : pattern.asStitchEmbObjects()) {
+        for (StitchBlock object : pattern.asStitchBlock()) {
             graphics.draw(object.getPoints());
         }
         write(graphics.getGraphics());
         graphics.clear();
 
         int lastcolor = 0;
-        for (EmbObject layer : pattern.asStitchEmbObjects()) {
+        for (StitchBlock layer : pattern.asStitchBlock()) {
             int currentcolor = layer.getThread().getColor();
             if ((lastcolor != 0) && (currentcolor != lastcolor)) {
                 write(graphics.getGraphics());
@@ -186,7 +185,7 @@ public class PecWriter extends EmbWriter {
 
     private void pec_encode() throws IOException {
         boolean color_two = true;
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         int dx, dy;
         boolean jumping = false;
         double xx = 0, yy = 0;

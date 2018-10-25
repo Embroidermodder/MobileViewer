@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import java.io.IOException;
 import java.util.Locale;
 
@@ -152,13 +150,10 @@ public class DstWriter extends EmbWriter {
     @Override
     public void write() throws IOException {
         boolean extended_header = getBoolean(PROP_EXTENDED_HEADER, false);
-        float minX = pattern.getStitches().getMinX();
-        float minY = pattern.getStitches().getMinY();
-        float maxX = pattern.getStitches().getMaxX();
-        float maxY = pattern.getStitches().getMaxY();
+        float[] bounds = pattern.getBounds();
 
-        float width = maxX - minX;
-        float height = maxY - minY;
+        float width = bounds[2] - bounds[0];
+        float height = bounds[3] - bounds[1];
 
         String name = getName();
         if (name == null) {
@@ -206,7 +201,7 @@ public class DstWriter extends EmbWriter {
         }
         byte[] command = new byte[COMMANDSIZE];
 
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         double xx = 0, yy = 0;
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             int data = stitches.getData(i) & COMMAND_MASK;

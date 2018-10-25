@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import static org.embroideryio.embroideryio.EmbConstant.*;
 
 import java.io.IOException;
@@ -23,7 +21,7 @@ public class JefWriter extends EmbWriter {
 
     @Override
     public void write() throws IOException {
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
 
         pattern.fixColorCount();
         int color_count = pattern.getThreadlist().size();
@@ -56,9 +54,9 @@ public class JefWriter extends EmbWriter {
             }
         }
         writeInt32(point_count);
-
-        int design_width = (int) (stitches.getWidth());
-        int design_height = (int) (stitches.getHeight());
+        float[] bounds = pattern.getBounds();
+        int design_width = (int) (bounds[2] - bounds[0]);
+        int design_height = (int) (bounds[3] - bounds[1]);
 
         writeInt32(get_jef_hoop_size(design_width, design_height));
 

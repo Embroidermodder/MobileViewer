@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,10 +78,10 @@ public class PesWriter extends PecWriter {
         chart.addAll(Arrays.asList(EmbThreadPec.getThreadSet()));
         write(PES_VERSION_1_SIGNATURE);
 
-        float pattern_left = pattern.getStitches().getMinX();
-        float pattern_top = pattern.getStitches().getMinY();
-        float pattern_right = pattern.getStitches().getMaxX();
-        float pattern_bottom = pattern.getStitches().getMaxY();
+        float pattern_left = pattern.getMinX();
+        float pattern_top = pattern.getMinY();
+        float pattern_right = pattern.getMaxX();
+        float pattern_bottom = pattern.getMaxY();
 
         float cx = ((pattern_left + pattern_right) / 2);
         float cy = ((pattern_top + pattern_bottom) / 2);
@@ -96,7 +94,7 @@ public class PesWriter extends PecWriter {
         int placeholder_pec_block = tell();
         space_holder(4);
 
-        if (pattern.getStitches().isEmpty()) {
+        if (pattern.getStitches().size() == 0) {
             write_pes_header_v1(0);
             writeInt16LE(0x0000);
             writeInt16LE(0x0000);
@@ -115,10 +113,10 @@ public class PesWriter extends PecWriter {
         ArrayList<EmbThread> chart = pattern.threadlist;
         write(PES_VERSION_6_SIGNATURE);
 
-        float pattern_left = pattern.getStitches().getMinX();
-        float pattern_top = pattern.getStitches().getMinY();
-        float pattern_right = pattern.getStitches().getMaxX();
-        float pattern_bottom = pattern.getStitches().getMaxY();
+        float pattern_left = pattern.getMinX();
+        float pattern_top = pattern.getMinY();
+        float pattern_right = pattern.getMaxX();
+        float pattern_bottom = pattern.getMaxY();
 
         float cx = ((pattern_left + pattern_right) / 2);
         float cy = ((pattern_top + pattern_bottom) / 2);
@@ -131,7 +129,7 @@ public class PesWriter extends PecWriter {
         int placeholder_pec_block = tell();
         space_holder(4);
 
-        if (pattern.getStitches().isEmpty()) {
+        if (pattern.getStitches().size() == 0) {
             write_pes_header_v6(chart, 0);
             writeInt16LE(0x0000);
             writeInt16LE(0x0000);
@@ -166,14 +164,15 @@ public class PesWriter extends PecWriter {
         writeInt8(0x30);
         writeInt8(0x32);
         String name = "untitled";
-        if ((pattern.name != null) && (pattern.name.length() > 0)) {
-            name = pattern.name;
+        String pattern_name = pattern.getName();
+        if ((pattern_name != null) && (pattern_name.length() > 0)) {
+            name = pattern_name;
         }
         writePesString8(name);
-        writePesString8(pattern.category);
-        writePesString8(pattern.author);
-        writePesString8(pattern.keywords);
-        writePesString8(pattern.comments);
+        writePesString8(pattern.getCategory());
+        writePesString8(pattern.getAuthor());
+        writePesString8(pattern.getKeywords());
+        writePesString8(pattern.getComments());
 
         writeInt16LE(0);//boolean optimizeHoopChange = (readInt16LE() == 1);
 
@@ -270,7 +269,7 @@ public class PesWriter extends PecWriter {
     }
 
     public ArrayList<Integer> write_pes_blocks(ArrayList<EmbThread> chart, float left, float top, float right, float bottom, float cx, float cy) throws IOException {
-        if (pattern.getStitches().isEmpty()) {
+        if (pattern.getStitches().size() == 0) {
             return null;
         }
         writePesString16(EMB_ONE);
@@ -295,7 +294,7 @@ public class PesWriter extends PecWriter {
         int mode;
         int adjust_x = (int) (left + cx);
         int adjust_y = (int) (bottom + cy);
-        DataPoints points = pattern.getStitches();
+        Points points = pattern.getStitches();
         int colorIndex = 0;
         int colorCode = 0;
         EmbThread currentThread;

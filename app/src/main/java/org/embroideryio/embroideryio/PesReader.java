@@ -81,19 +81,19 @@ public class PesReader extends PecReader {
     public void readDescriptions() throws IOException {
         int DesignStringLength = readInt8();
         String DesignName = readString(DesignStringLength);
-        pattern.name = DesignName;
+        pattern.setName(DesignName);
         int categoryStringLength = readInt8();
         String Category = readString(categoryStringLength);
-        pattern.category = Category;
+        pattern.setCategory(Category);
         int authorStringLength = readInt8();
         String Author = readString(authorStringLength);
-        pattern.author = Author;
+        pattern.setAuthor(Author);
         int keywordsStringLength = readInt8();
         String keywords = readString(keywordsStringLength);
-        pattern.keywords = keywords;
+        pattern.setAuthor(keywords);
         int commentsStringLength = readInt8();
         String Comments = readString(commentsStringLength);
-        pattern.comments = Comments;
+        pattern.setComments(Comments);
     }
 
     public void readPESHeaderV4() throws IOException {

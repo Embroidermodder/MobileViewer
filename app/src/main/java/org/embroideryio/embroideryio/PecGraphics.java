@@ -1,16 +1,11 @@
-
 package org.embroideryio.embroideryio;
-
-
-import org.embroideryio.geom.Point;
-import org.embroideryio.geom.PointIterator;
-import org.embroideryio.geom.Points;
 
 /**
  *
  * @author Tat
  */
 public class PecGraphics {
+
     private byte[] graphics;
     float scale = 1;
     float transx = 0;
@@ -20,26 +15,25 @@ public class PecGraphics {
         this.graphics = getEmpty();
         float diagramWidth = right - left;
         float diagramHeight = bottom - top;
-        
+
         float scalex = (float) (icon_width - 6) / diagramWidth;
         float scaley = (float) (icon_height - 6) / diagramHeight;
-        
+
         scale = Math.min(scalex, scaley);
-        
+
         float cx = (right + left) / 2;
         float cy = (bottom + top) / 2;
-        
+
         transx = -cx;
         transy = -cy;
-        
+
         transx *= scale;
         transy *= scale;
-        
+
         transx += icon_width / 2;
         transy += icon_height / 2;
     }
 
-    
     public byte[] getGraphics() {
         return graphics;
     }
@@ -50,12 +44,12 @@ public class PecGraphics {
 
     public int getY(double y) {
         return (int) ((y * scale) + transy);
-        
+
     }
 
-    public void draw(Points block) {
-        for (Point p : new PointIterator<>(block)) {
-            mark(getX(p.getX()), getY(p.getY()));
+    void draw(Points block) {
+        for (int i = 0, ie = block.size(); i < ie; i++) {
+            mark(getX(block.getX(i)), getY(block.getY(i)));
         }
     }
 
@@ -67,7 +61,6 @@ public class PecGraphics {
         graphics = getEmpty();
     }
 
-    
     static final byte[] getEmpty() {
         return new byte[]{
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
@@ -110,5 +103,4 @@ public class PecGraphics {
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
     }
 
- 
 }

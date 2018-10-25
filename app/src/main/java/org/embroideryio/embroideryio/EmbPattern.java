@@ -1,9 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-import org.embroideryio.geom.Points;
-import org.embroideryio.geom.PointsIndexRange;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -12,8 +8,7 @@ import java.util.Map;
 
 import static org.embroideryio.embroideryio.EmbConstant.*;
 
-public class EmbPattern {
-
+public class EmbPattern implements Points {
     public static final String PROP_FILENAME = "filename";
     public static final String PROP_NAME = "name";
     public static final String PROP_CATEGORY = "category";
@@ -21,30 +16,18 @@ public class EmbPattern {
     public static final String PROP_KEYWORDS = "keywords";
     public static final String PROP_COMMENTS = "comments";
 
-    public static final int NOTIFY_CORRECT_LENGTH = 1; //these are just provisional.
-    public static final int NOTIFY_ROTATED = 2;
-    public static final int NOTIFY_FLIP = 3;
-    public static final int NOTIFY_THREADS_FIX = 4;
-    public static final int NOTIFY_METADATA = 5;
-    public static final int NOTIFY_STITCH_CHANGE = 6;
-    public static final int NOTIFY_LOADED = 7;
-    public static final int NOTIFY_CHANGE = 8;
-    public static final int NOTIFY_THREAD_COLOR = 9;
-
     public ArrayList<EmbThread> threadlist;
-    public String filename;
-    public String name;
-    public String category;
-    public String author;
-    public String keywords;
-    public String comments;
+    private String filename;
+    private String name;
+    private String category;
+    private String author;
+    private String keywords;
+    private String comments;
 
     private float _previousX = 0;
     private float _previousY = 0;
 
     private DataPoints stitches = new DataPoints();
-
-    private ArrayList<Listener> listeners;
 
     public EmbPattern() {
         threadlist = new ArrayList<>();
@@ -87,7 +70,44 @@ public class EmbPattern {
         this.stitches = new DataPoints(p.stitches);
     }
 
-    public DataPoints getStitches() {
+    @Override
+    public float getX(int index) {
+        return stitches.getX(index);
+    }
+
+    @Override
+    public float getY(int index) {
+        return stitches.getY(index);
+    }
+
+    @Override
+    public void setLocation(int index, float x, float y) {
+        stitches.setLocation(index, x, y);
+    }
+
+    @Override
+    public int getData(int index) {
+        return stitches.getData(index);
+    }
+
+    @Override
+    public int size() {
+        return stitches.size();
+    }
+
+    public float[] getPointlist() {
+        return stitches.getPointlist();
+    }
+
+    public int[] getData() {
+        return stitches.getData();
+    }
+
+    public Points getPoints() {
+        return stitches;
+    }
+
+    DataPoints getStitches() {
         return stitches;
     }
 
@@ -97,7 +117,6 @@ public class EmbPattern {
 
     public void setFilename(String value) {
         filename = value;
-        notifyChange(NOTIFY_METADATA);
     }
 
     public String getName() {
@@ -106,7 +125,6 @@ public class EmbPattern {
 
     public void setName(String name) {
         this.name = name;
-        notifyChange(NOTIFY_METADATA);
     }
 
     public String getCategory() {
@@ -115,7 +133,6 @@ public class EmbPattern {
 
     public void setCategory(String category) {
         this.category = category;
-        notifyChange(NOTIFY_METADATA);
     }
 
     public String getAuthor() {
@@ -124,7 +141,6 @@ public class EmbPattern {
 
     public void setAuthor(String author) {
         this.author = author;
-        notifyChange(NOTIFY_METADATA);
     }
 
     public String getKeywords() {
@@ -133,7 +149,6 @@ public class EmbPattern {
 
     public void setKeywords(String keywords) {
         this.keywords = keywords;
-        notifyChange(NOTIFY_METADATA);
     }
 
     public String getComments() {
@@ -142,7 +157,6 @@ public class EmbPattern {
 
     public void setComments(String comments) {
         this.comments = comments;
-        notifyChange(NOTIFY_METADATA);
     }
 
     void add(EmbThread embroideryThread) {
@@ -193,7 +207,7 @@ public class EmbPattern {
         if (stitches == null) {
             return true;
         }
-        if (stitches.isEmpty()) {
+        if (stitches.size() == 0) {
             return threadlist.isEmpty();
         }
         return false;
@@ -242,17 +256,17 @@ public class EmbPattern {
         comments = map.get(PROP_COMMENTS);
     }
 
-    public Iterable<EmbObject> asStitchEmbObjects() {
-        return new Iterable<EmbObject>() {
+    public Iterable<StitchBlock> asStitchBlock() {
+        return new Iterable<StitchBlock>() {
             @Override
-            public Iterator<EmbObject> iterator() {
-                return new Iterator<EmbObject>() {
+            public Iterator<StitchBlock> iterator() {
+                return new Iterator<StitchBlock>() {
                     int threadIndex = -1;
                     EmbThread thread = null;
 
                     final PointsIndexRange<DataPoints> points = new PointsIndexRange<>(stitches, 0, 0);
 
-                    final EmbObject object = new EmbObject() {
+                    final StitchBlock object = new StitchBlock() {
                         @Override
                         public EmbThread getThread() {
                             if (thread != null) {
@@ -342,7 +356,7 @@ public class EmbPattern {
                     }
 
                     @Override
-                    public EmbObject next() {
+                    public StitchBlock next() {
                         mode = NOT_CALCULATED;
                         return object;
                     }
@@ -351,15 +365,15 @@ public class EmbPattern {
         };
     }
 
-    public Iterable<EmbObject> asColorEmbObjects() {
-        return new Iterable<EmbObject>() {
+    public Iterable<StitchBlock> asColorBlock() {
+        return new Iterable<StitchBlock>() {
             @Override
-            public Iterator<EmbObject> iterator() {
-                return new Iterator<EmbObject>() {
+            public Iterator<StitchBlock> iterator() {
+                return new Iterator<StitchBlock>() {
                     int threadIndex = -1;
                     EmbThread thread = null;
                     final PointsIndexRange<DataPoints> points = new PointsIndexRange<>(stitches, 0, 0);
-                    final EmbObject object = new EmbObject() {
+                    final StitchBlock object = new StitchBlock() {
                         @Override
                         public EmbThread getThread() {
                             if (thread != null) {
@@ -404,7 +418,7 @@ public class EmbPattern {
                     }
 
                     private void calculate() {
-                        if (stitches.isEmpty()) {
+                        if (stitches.size() == 0) {
                             mode = ENDED;
                             return;
                         }
@@ -434,39 +448,13 @@ public class EmbPattern {
                     }
 
                     @Override
-                    public EmbObject next() {
+                    public StitchBlock next() {
                         mode = NOT_CALCULATED;
                         return object;
                     }
                 };
             }
         };
-    }
-
-    public void addListener(Listener listener) {
-        if (listeners == null) {
-            listeners = new ArrayList<>();
-        }
-        listeners.add(listener);
-    }
-
-    public void removeListener(Listener listener) {
-        if (listeners == null) {
-            return;
-        }
-        listeners.remove(listener);
-        if (listeners.isEmpty()) {
-            listeners = null;
-        }
-    }
-
-    public void notifyChange(int id) {
-        if (listeners == null) {
-            return;
-        }
-        for (Listener listener : listeners) {
-            listener.notifyChange(id);
-        }
     }
 
     public List<EmbThread> getUniqueThreadList() {
@@ -508,19 +496,38 @@ public class EmbPattern {
         if (stitches != null) {
             stitches.clear();
         }
-        if (listeners != null) {
-            listeners.clear();
-        }
     }
 
-    public interface Listener {
-
-        void notifyChange(int id);
+    public float[] getBounds() {
+        float minX = stitches.getMinX();
+        float minY = stitches.getMinY();
+        float maxX = stitches.getMaxX();
+        float maxY = stitches.getMaxY();
+        return new float[]{minX, minY, maxX, maxY};
     }
 
-    public interface Provider {
+    public float getWidth() {
+        return stitches.getWidth();
+    }
 
-        EmbPattern getPattern();
+    public float getHeight() {
+        return stitches.getHeight();
+    }
+
+    public float getMinX() {
+        return stitches.getMinX();
+    }
+
+    public float getMaxX() {
+        return stitches.getMaxX();
+    }
+
+    public float getMinY() {
+        return stitches.getMinY();
+    }
+
+    public float getMaxY() {
+        return stitches.getMaxY();
     }
 
     public void fixColorCount() {
@@ -533,7 +540,7 @@ public class EmbPattern {
                     threadIndex++;
                 }
                 starting = false;
-            } else if (data == COLOR_CHANGE) {
+            } else if ((data == COLOR_CHANGE) || (data == NEEDLE_SET)) {
                 if (starting) {
                     continue;
                 }
@@ -543,7 +550,6 @@ public class EmbPattern {
         while (threadlist.size() < threadIndex) {
             addThread(getThreadOrFiller(threadlist.size()));
         }
-        notifyChange(NOTIFY_THREADS_FIX);
     }
 
     public void stitchAbs(float x, float y) {
@@ -628,7 +634,6 @@ public class EmbPattern {
         stitches.add(x, y, command);
         _previousX = x;
         _previousY = y;
-        notifyChange(NOTIFY_STITCH_CHANGE);
     }
 
     /**

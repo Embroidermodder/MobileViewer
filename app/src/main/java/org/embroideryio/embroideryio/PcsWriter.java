@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import java.io.IOException;
 
 import static org.embroideryio.embroideryio.EmbConstant.*;
@@ -53,7 +51,7 @@ public class PcsWriter extends EmbWriter {
             writeInt32(0);/* write remaining colors to reach 16 */
         }
         /* write stitches */
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         double xx = 0.0, yy = 0.0;
         writeInt16LE(stitches.size());
         for (int i = 0, ie = stitches.size(); i < ie; i++) {

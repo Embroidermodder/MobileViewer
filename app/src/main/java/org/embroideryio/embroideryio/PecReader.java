@@ -76,7 +76,8 @@ public class PecReader extends EmbReader {
         int color_index = 0;
         EmbThreadPec[] threadSet = EmbThreadPec.getThreadSet();
         for (int i = 0; i < color_count; i++) {
-            int index = (color_bytes[color_index++] % 65);
+            int c = color_bytes[color_index++] & 0xFF;
+            int index = (c % threadSet.length);
             pattern.threadlist.add(threadSet[index]);
         }
     }
@@ -88,7 +89,8 @@ public class PecReader extends EmbReader {
         EmbThread[] threadMap = new EmbThread[threadSet.length];
         ArrayList<EmbThread> queue = new ArrayList<>();
         for (int i = 0; i < color_count; i++) {
-            int index = (color_bytes[color_index++] % 65);
+            int c = color_bytes[color_index++] & 0xFF;
+            int index = (c % threadSet.length);
             EmbThread value = threadMap[index];
             if (value == null) {
                 if (!pattern.threadlist.isEmpty()) {

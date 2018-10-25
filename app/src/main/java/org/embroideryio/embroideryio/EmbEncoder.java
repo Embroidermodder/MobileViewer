@@ -1,16 +1,12 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-import org.embroideryio.geom.Point;
 
 import java.util.ArrayList;
 
 import static org.embroideryio.embroideryio.EmbConstant.*;
-import static org.embroideryio.geom.Geometry2D.distance;
-import static org.embroideryio.geom.Geometry2D.oriented;
-import static org.embroideryio.geom.Geometry2D.towards;
 
 public class EmbEncoder {
+
     public static final String PROP_ENCODE = "encode";
     public static final String PROP_MAX_STITCH = "max_stitch";
     public static final String PROP_MAX_JUMP = "max_jump";
@@ -23,7 +19,7 @@ public class EmbEncoder {
     public static final String PROP_TIE_ON = "tie_on";
     public static final String PROP_TIE_OFF = "tie_off";
     public static final String PROP_LONG_STITCH = "long_stitch";
-    
+
     public boolean encode = true;
     public float max_stitch = Float.POSITIVE_INFINITY;
     public float max_jump = Float.POSITIVE_INFINITY;
@@ -55,8 +51,7 @@ public class EmbEncoder {
     public EmbEncoder() {
     }
 
-
-    void setDefaultIO(EmbroideryIO.BaseIO io) {
+    public void setDefaultIO(EmbroideryIO.BaseIO io) {
         this.encode = (boolean) io.get(PROP_ENCODE, encode);
         this.max_stitch = (float) io.get(PROP_MAX_STITCH, max_stitch);
         this.max_jump = (float) io.get(PROP_MAX_JUMP, max_jump);
@@ -79,6 +74,7 @@ public class EmbEncoder {
         dest = transcode(source_pattern, dest);
         return dest;
     }
+
     public EmbPattern transcode(EmbPattern source_pattern, EmbPattern destination_pattern) {
         if (!encode) {
             return source_pattern;
@@ -95,7 +91,7 @@ public class EmbEncoder {
 
     ArrayList<Integer[]> get_as_thread_change_sequence_events() {
         ArrayList<Integer[]> results = new ArrayList<>();
-        DataPoints source = source_pattern.getStitches();
+        Points source = source_pattern.getStitches();
         int current_index = 0;
         for (int i = 0, ie = source.size(); i < ie; i++) {
             Integer[] change = EmbFunctions.decode_embroidery_command(source.getData(i));
@@ -212,7 +208,7 @@ public class EmbEncoder {
     }
 
     void transcode_main() {
-        DataPoints source = source_pattern.getStitches();
+        Points source = source_pattern.getStitches();
         state_trimmed = true;
         needle_x = 0;
         needle_y = 0;
@@ -456,7 +452,7 @@ public class EmbEncoder {
     }
 
     boolean lookahead_stitch() {
-        DataPoints source = source_pattern.getStitches();
+        Points source = source_pattern.getStitches();
         for (int i = position, ie = source.size(); i < ie; i++) {
             int flags = source.getData(i) & COMMAND_MASK;
             switch (flags) {
@@ -515,7 +511,7 @@ public class EmbEncoder {
     void tie_off() {
         switch (tie_off_contingency) {
             case CONTINGENCY_TIE_OFF_THREE_SMALL:
-                DataPoints points = source_pattern.getStitches();
+                Points points = source_pattern.getStitches();
                 int pos = position - 1;
                 try {
                     float[] b = new float[2];
@@ -541,7 +537,7 @@ public class EmbEncoder {
     public void tie_on() {
         switch (tie_on_contingency) {
             case CONTINGENCY_TIE_ON_THREE_SMALL:
-                DataPoints points = source_pattern.getStitches();
+                Points points = source_pattern.getStitches();
                 int pos = position + 1;
                 try {
                     float[] b = new float[2];
@@ -729,7 +725,7 @@ public class EmbEncoder {
     }
 
     void interpolate_gap_stitches(float x0, float y0, float x1, float y1, float max_length, int data) {
-        DataPoints transcode = destination_pattern.getStitches();
+        Points transcode = destination_pattern.getStitches();
         double distance_x = x1 - x0;
         double distance_y = y1 - y0;
         if ((Math.abs(distance_x) > max_length) || (Math.abs(distance_y) > max_length)) {
@@ -754,7 +750,7 @@ public class EmbEncoder {
                 qy += step_size_y;
                 float x = Math.round(qx);
                 float y = Math.round(qy);
-                transcode.add(x, y, data);
+                add(data, x, y);
                 update_needle_position(x, y);
             }
         }
@@ -765,16 +761,32 @@ public class EmbEncoder {
     }
 
     void lock_stitch(float x, float y, float anchor_x, float anchor_y, double max_length) {
-        DataPoints transcode = destination_pattern.getStitches();
         double length = distance(x, y, anchor_x, anchor_y);
         if (length > max_length) {
-            Point p = oriented(x, y, anchor_x, anchor_y, max_length);
-            anchor_x = (float) p.getX();
-            anchor_y = (float) p.getY();
+            double radians = Math.atan2(anchor_y - y, anchor_x - x);
+            anchor_x = (float)(x + max_length * Math.cos(radians));
+            anchor_y = (float)(y + max_length * Math.sin(radians));
         }
         float[] amounts = new float[]{0.33f, 0.66f, 0.33f, 0};
         for (float amount : amounts) {
-            transcode.add(STITCH, towards(x, anchor_x, amount), towards(y, anchor_y, amount));
+            add(STITCH, (float)towards(x, anchor_x, amount), (float)towards(y, anchor_y, amount));
         }
     }
+    
+    
+
+    public static double towards(double a, double b, double amount) {
+        return (amount * (b - a)) + a;
+    }
+
+
+    public static double distance(double x0, double y0, double x1, double y1) {
+        double dx = x1 - x0;
+        double dy = y1 - y0;
+        dx *= dx;
+        dy *= dy;
+        return Math.sqrt(dx + dy);
+    }
+
+
 }

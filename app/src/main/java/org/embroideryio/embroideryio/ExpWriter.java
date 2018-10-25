@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import static org.embroideryio.embroideryio.EmbConstant.*;
 
 import java.io.IOException;
@@ -17,7 +15,7 @@ public class ExpWriter extends EmbWriter {
 
     @Override
     public void write() throws IOException {
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         double xx = 0, yy = 0;
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             int data = stitches.getData(i) & COMMAND_MASK;

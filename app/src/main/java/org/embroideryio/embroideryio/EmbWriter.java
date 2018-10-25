@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-import org.embroideryio.geom.Point;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -80,22 +78,9 @@ public abstract class EmbWriter extends WriteHelper implements EmbroideryIO.Writ
         return pattern.getName();
     }
 
-    public Point getFirstPosition() {
-        DataPoints stitches = pattern.getStitches();
-        for (int i = 0, ie = stitches.size(); i < ie; i++) {
-            int flags = stitches.getData(i);
-            switch (flags) {
-                case STITCH:
-                case JUMP:
-                    return stitches.getPoint(i);
-            }
-        }
-        return null;
-    }
-
     public ArrayList<EmbThread> getUniqueThreads() {
         ArrayList<EmbThread> threads = new ArrayList<>();
-        for (EmbObject object : pattern.asStitchEmbObjects()) {
+        for (StitchBlock object : pattern.asStitchBlock()) {
             EmbThread thread = object.getThread();
             threads.remove(threads);
             threads.add(thread);
@@ -105,7 +90,7 @@ public abstract class EmbWriter extends WriteHelper implements EmbroideryIO.Writ
 
     public int getColorChanges() {
         int count = 0;
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             int flags = stitches.getData(i);
             switch (flags & COMMAND_MASK) {
@@ -118,7 +103,7 @@ public abstract class EmbWriter extends WriteHelper implements EmbroideryIO.Writ
 
     public int getStitchJumpCount() {
         int count = 0;
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         for (int i = 0, ie = stitches.size(); i < ie; i++) {
             int flags = stitches.getData(i);
             switch (flags) {
@@ -143,16 +128,10 @@ public abstract class EmbWriter extends WriteHelper implements EmbroideryIO.Writ
 
     public ArrayList<EmbThread> getThreads() {
         ArrayList<EmbThread> threads = new ArrayList<>();
-        for (EmbObject object : pattern.asStitchEmbObjects()) {
+        for (StitchBlock object : pattern.asStitchBlock()) {
             threads.add(object.getThread());
         }
         return threads;
     }
 
-    public void translate(float x, float y) {
-        DataPoints stitches = pattern.getStitches();
-        for (int i = 0, ie = stitches.size(); i < ie; i++) {
-            stitches.translate(x, y);
-        }
-    }
 }

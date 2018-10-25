@@ -1,7 +1,5 @@
 package org.embroideryio.embroideryio;
 
-import org.embroideryio.geom.DataPoints;
-
 import java.io.IOException;
 
 import static org.embroideryio.embroideryio.EmbConstant.*;
@@ -25,7 +23,7 @@ public class U01Writer extends EmbWriter {
 
     @Override
     public void write() throws IOException {
-        DataPoints stitches = pattern.getStitches();
+        Points stitches = pattern.getStitches();
         int stitch_count = stitches.size();
         for (int i = 0, ie = 0x80; i < ie; i++) {
             writeInt8(0);
@@ -33,10 +31,10 @@ public class U01Writer extends EmbWriter {
         if (stitch_count == 0) {
             return;
         }
-        writeInt16LE((int) stitches.getMinX());
-        writeInt16LE(-(int) stitches.getMaxY());
-        writeInt16LE((int) stitches.getMaxX());
-        writeInt16LE(-(int) stitches.getMinY());
+        writeInt16LE((int) pattern.getMinX());
+        writeInt16LE(-(int) pattern.getMaxY());
+        writeInt16LE((int) pattern.getMaxX());
+        writeInt16LE(-(int) pattern.getMinY());
         writeInt32LE(0);
 
         writeInt32LE(stitch_count + 1);
