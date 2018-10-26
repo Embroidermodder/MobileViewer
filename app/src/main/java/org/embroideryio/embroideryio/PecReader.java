@@ -129,11 +129,11 @@ public class PecReader extends EmbReader {
         int x, y;
         while (true) {
             val1 = readInt8();
-            if (val1 == -1) {
+            if (val1 == Integer.MIN_VALUE) {
                 break;
             }
             val2 = readInt8();
-            if (val2 == -1) {
+            if (val2 == Integer.MIN_VALUE) {
                 break;
             }
 
@@ -160,7 +160,7 @@ public class PecReader extends EmbReader {
                 x = (code << 20) >> 20;
 
                 val2 = readInt8();
-                if (val2 == -1) {
+                if (val2 == Integer.MIN_VALUE) {
                     break;
                 }
             } else {
@@ -175,7 +175,7 @@ public class PecReader extends EmbReader {
                 }
 
                 int val3 = readInt8();
-                if (val3 == -1) {
+                if (val3 == Integer.MIN_VALUE) {
                     break;
                 }
                 code = (val2 << 8) | val3;
