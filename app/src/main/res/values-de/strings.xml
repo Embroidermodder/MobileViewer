@@ -6,7 +6,7 @@
     <string name="action_show_statistics">Statistiken</string>
     <string name="action_share">Teilen</string>
     <string name="stitchblock_stitches">"%d Naht"</string>
-    <string name="external_storage_justification">Dateien können nicht ohne Zugriff auf Speicher gespeichert werden</string>
+    <string name="external_storage_justification_write">Dateien können nicht ohne Zugriff auf Speicher gespeichert werden</string>
     <string name="write_permissions_denied">Schreibberechtigungen verweigert</string>
     <string name="read_permissions_denied">Leseberechtigungen verweigert</string>
     <string name="ok">OK</string>
@@ -23,5 +23,5 @@
     <string name="colors">  Farbwechsel: </string>
     <string name="size">Größe: </string>
     <string name="total_length">Gesamtlänge: </string>
-    <string name="action_load_file">Lade Datei</string>
+    <string name="action_load_files">Lade Datei</string>
 </resources>

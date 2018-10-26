@@ -6,7 +6,7 @@
     <string name="action_show_statistics">Estatisticas</string>
     <string name="action_share">Distribuir</string>
     <string name="stitchblock_stitches">"%d Pontos"</string>
-    <string name="external_storage_justification">Os arquivos não podem ser salvos sem acesso ao armazenamento</string>
+    <string name="external_storage_justification_write">Os arquivos não podem ser salvos sem acesso ao armazenamento</string>
     <string name="write_permissions_denied">Permissões de gravação negado</string>
     <string name="read_permissions_denied">permissões de leitura negado</string>
     <string name="ok">Está bem</string>
@@ -23,5 +23,5 @@
     <string name="colors">  As alterações de cor: </string>
     <string name="size">Tamanho: </string>
     <string name="total_length">Comprimento total: </string>
-    <string name="action_load_file">Carregar arquivo</string>
+    <string name="action_load_files">Carregar arquivo</string>
 </resources>

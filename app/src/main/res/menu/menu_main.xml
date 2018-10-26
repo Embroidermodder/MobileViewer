@@ -18,8 +18,8 @@
         android:title="@string/action_share"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_load_file"
+        android:id="@+id/action_folders"
         android:orderInCategory="105"
-        android:title="@string/action_load_file"
+        android:title="@string/action_folders"
         app:showAsAction="never" />
 </menu>
