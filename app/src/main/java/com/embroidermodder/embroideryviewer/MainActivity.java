@@ -1,6 +1,5 @@
 package com.embroidermodder.embroideryviewer;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
@@ -14,11 +13,9 @@ import android.os.Environment;
 import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -81,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         toggle.syncState();
     }
 
+    /**
+     * The pause method calls the internal save routine to write an EMM file to local storage.
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -89,6 +89,10 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
+    /**
+     * The resume method calls the internal save routine to read an EMM file from local storage.
+     * This will allow long term non-memory versions of the file to persist through rotation changes and other alterations.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -122,6 +126,14 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
+    /**
+     * The backpressed method checks if there's a dialog and closes it, if not
+     * it closes the share fragment, if not
+     * it closes the emboridery file directory fragment, if not
+     * it closes the drawer, if not
+     * app closes.
+     *
+     */
     @Override
     public void onBackPressed() {
         if (dialogDismiss()) {
@@ -140,26 +152,37 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
+    /**
+     * @param intent
+     * requires single instance mode, else this does nothing.
+     */
     @Override
-    protected void onNewIntent(Intent intent) { //requires single instance mode, else this does nothing.
+    protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         threadLoadIntent(intent);
     }
 
+    /**
+     * @param menu
+     * Inflate the menu; this adds items to the action bar if it is present.
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
+    /**
+     * @param item
+     * Handle action bar item clicks here. The action bar will
+     * automatically handle clicks on the Home/Up button, so long
+     * as you specify a parent activity in AndroidManifest.xml.
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_open_file:
@@ -174,27 +197,34 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
             case R.id.action_share:
                 useShareFragment();
                 break;
-            case R.id.action_load_file:
+            case R.id.action_folders:
                 useViewerFragment();
-//                dialogDismiss();
-//                makeDialog(R.layout.embroidery_thumbnail_view);
-//                saveFileWrapper(new PermissionRequired() {
-//                    @Override
-//                    public void openExternalStorage(File root, String data) {
-//                        loadFile(root, data);
-//                    }
-//                }, Environment.getExternalStorageDirectory(), "");
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
 
+    /**
+     * @param item File selected
+     *  Fragment communcation interface to get fragment response to selected file.
+     */
     @Override
     public void onListFragmentInteraction(File item) {
         loadFile(item);
     }
 
+    /**
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     * Request_code_ask_permission is the permission to save. This was used by now unused code that saved a .jef file in the root directory.
+     *
+     * Request_code_ask_permission_load is the permission requested by the embroidery_folders
+     *
+     * Request_code_ask_permission_read is the permission requested by an intent loading a file.
+     * This is either launched with that file, or requested by the  load file to recent.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -210,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadFile(Environment.getExternalStorageDirectory());
                 } else {
-                    Toast.makeText(MainActivity.this, R.string.write_permissions_denied, Toast.LENGTH_SHORT)
+                    Toast.makeText(MainActivity.this, R.string.read_permissions_denied, Toast.LENGTH_SHORT)
                             .show();
                 }
                 break;
@@ -227,6 +257,14 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
+    /**
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     *
+     * Response from intent for response. Should be the Open File request
+     * Made from Open Recent File.
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -237,52 +275,10 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
-
-    interface PermissionRequired {
-        void openExternalStorage(File item);
-    }
-
-    private void saveFileWrapper(PermissionRequired permissionRequired, File item) {
-        int hasWriteExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (hasWriteExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                showMessageOKCancel(getString(R.string.external_storage_justification),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                        REQUEST_CODE_ASK_PERMISSIONS);
-                            }
-                        });
-                return;
-            }
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_CODE_ASK_PERMISSIONS);
-            return;
-        }
-        permissionRequired.openExternalStorage(item);
-    }
-
-    private void callIfLoadIntentStreamIsUnreadableWithoutPermissions() {
-        int hasReadExternalStoragePermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE);
-        if (hasReadExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                showMessageOKCancel(getString(R.string.external_storage_justification_read),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                        REQUEST_CODE_ASK_PERMISSIONS_READ);
-                            }
-                        });
-                return;
-            }
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_CODE_ASK_PERMISSIONS_READ);
-            return;
-        }
-    }
-
+    /**
+     * @param item
+     * Loads given file, switches out the pattern.
+     */
     private void loadFile(File item) {
         try {
             EmmPattern pattern = new EmmPattern();
@@ -295,6 +291,12 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         }
     }
 
+    /**
+     * @param root
+     * @param data
+     *
+     * Unused code. Exports now run through share. This however save the file to the local device.
+     */
     private void saveFile(File root, String data) {
         //todo: this really only save one jef to the root directory. Decide what needs to be done.
         try {
@@ -316,7 +318,6 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
 
     Dialog dialog;
     View dialogView;
-
     public boolean dialogDismiss() {
         if ((dialog != null) && (dialog.isShowing())) {
             dialog.dismiss();
@@ -352,6 +353,9 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                 .show();
     }
 
+    /**
+     * Adds the folders fragment to the main area.
+     */
     public void useViewerFragment() {
         dialogDismiss();
         FragmentManager fragmentManager = this.getSupportFragmentManager();
@@ -360,6 +364,10 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         transaction.add(R.id.mainContentArea, fragment, EmbroideryFileDirectoryFragment.TAG);
         transaction.commit();
     }
+
+    /**
+     * Adds the sharing fragment to the main area.
+     */
     public void useShareFragment() {
         dialogDismiss();
         FragmentManager fragmentManager = this.getSupportFragmentManager();
@@ -369,6 +377,11 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         transaction.commit();
     }
 
+    /**
+     * Adds the colorstitch fragment to the drawer.
+     *
+     * Other fragments can be switched into the drawer, and used instead of this one.
+     */
     public void useColorFragment() {
         if (drawerFragmentTag != null) {
             tryCloseFragment(drawerFragmentTag);
@@ -381,6 +394,11 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         transaction.commit();
     }
 
+    /**
+     * @param tag tag of the fragment to close.
+     * @return true if fragment was closed.
+     * Attempt to close the fragment by the tag, if such a fragment exists closes (true)
+     */
     public boolean tryCloseFragment(String tag) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragmentByTag;
@@ -398,6 +416,12 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         return true;
     }
 
+
+    /**
+     * @param stringResource
+     *
+     * toast helper to make sure the toast is called from the UI thread as is required.
+     */
     public void toast(final int stringResource) {
         if (!Looper.getMainLooper().equals(Looper.myLooper())) {
             runOnUiThread(new Runnable() {
@@ -413,17 +437,30 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         toast.show();
     }
 
+    /**
+     * Show the statistics dialog.
+     */
     public void showStatistics() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(drawView.getStatistics());
         builder.show();
     }
 
+
+    /**
+     * @return pattern, of the drawview
+     * get the drawview pattern.
+     */
     public EmmPattern getPattern() {
         if (drawView == null) return null;
         return drawView.getPattern();
     }
 
+    /**
+     * @param pattern
+     * Ensure we are using UI thread.
+     * set the pattern on the drawview and invalidate, the views.
+     */
     public void setPattern(final EmmPattern pattern) {
         if (!Looper.getMainLooper().equals(Looper.myLooper())) {
             runOnUiThread(new Runnable() {
@@ -441,6 +478,10 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
     }
 
 
+    /**
+     * @param intent
+     * Load the intent, in a different thread.
+     */
     public void threadLoadIntent(final Intent intent) {
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -452,6 +493,13 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
     }
 
 
+    /**
+     * @param intent
+     * @return Uri gotten from the intent.
+     *
+     * Get the Uri from the intent.
+     * There are several different ways apps put that data into an intent so several have to be tried.
+     */
     public Uri getUriFromIntent(Intent intent) {
         Uri uri = intent.getData();
         if (uri != null) return uri;
@@ -466,6 +514,13 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         return null;
     }
 
+    /**
+     * @param uri
+     * @return displayname
+     *
+     * Tries to get the display name by the Uri, sometimes the Uri isn't a strict filename but
+     * the type of file is needed for the reader.
+     */
     protected String getDisplayNameByUri(Uri uri) {
         String filename = null;
         if (uri.getScheme().equalsIgnoreCase("content")) {
@@ -481,6 +536,11 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
         return filename;
     }
 
+    /**
+     * @param intent
+     * Flag the intent if it's been loaded to stop reloading on rotate.
+     * Gets the URI, ensures the action is accepted and loads the file.
+     */
     protected void loadFromIntent(Intent intent) {
         if (intent == null) return;
         if (intent.hasExtra("done")) return;

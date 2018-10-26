@@ -72,6 +72,7 @@ public class ThumbnailLoader implements Runnable {
                         request.setBitmap(bitmap);
                     }
                 } catch (IOException ignored) {
+                } catch (OutOfMemoryError ignored) {
                 } finally {
                     if (inputStream != null) try {
                         inputStream.close();
