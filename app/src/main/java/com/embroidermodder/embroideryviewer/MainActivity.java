@@ -281,12 +281,13 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
      */
     private void loadFile(File item) {
         try {
+            tryCloseFragment(EmbroideryFileDirectoryFragment.TAG);
             EmmPattern pattern = new EmmPattern();
             EmbPattern pat = EmbroideryIO.read(item.getPath());
             pattern.fromEmbPattern(pat);
+            pattern.fixColorCount();
             setPattern(pattern);
             drawView.postInvalidate();
-            tryCloseFragment(EmbroideryFileDirectoryFragment.TAG);
         } catch (IOException e) {
         }
     }
@@ -592,6 +593,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                     pattern = new EmmPattern();
                     EmbPattern read_pattern = EmbroideryIO.readEmbroidery(reader,in);
                     pattern.fromEmbPattern(read_pattern);
+                    pattern.fixColorCount();
                     in.close();
                     connection.disconnect();
                 } catch (IOException e) {
@@ -606,6 +608,7 @@ public class MainActivity extends AppCompatActivity implements EmmPattern.Provid
                     pattern = new EmmPattern();
                     EmbPattern embPattern = EmbroideryIO.readEmbroidery(reader, fis);
                     pattern.fromEmbPattern(embPattern);
+                    pattern.fixColorCount();
                 } catch (FileNotFoundException e) {
                     toast(R.string.error_file_not_found);
                     return;
