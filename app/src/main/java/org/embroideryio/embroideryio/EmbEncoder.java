@@ -1,6 +1,5 @@
 package org.embroideryio.embroideryio;
 
-
 import java.util.ArrayList;
 
 import static org.embroideryio.embroideryio.EmbConstant.*;
@@ -68,7 +67,7 @@ public class EmbEncoder {
 
     public EmbPattern transcode(EmbPattern source_pattern) {
         if (!encode) {
-            return source_pattern;
+            return new EmbPattern(source_pattern);
         }
         EmbPattern dest = new EmbPattern();
         dest = transcode(source_pattern, dest);
@@ -77,7 +76,8 @@ public class EmbEncoder {
 
     public EmbPattern transcode(EmbPattern source_pattern, EmbPattern destination_pattern) {
         if (!encode) {
-            return source_pattern;
+            destination_pattern.setPattern(source_pattern);
+            return destination_pattern;
         }
         if (source_pattern == destination_pattern) {
             source_pattern = new EmbPattern(destination_pattern);
@@ -764,21 +764,18 @@ public class EmbEncoder {
         double length = distance(x, y, anchor_x, anchor_y);
         if (length > max_length) {
             double radians = Math.atan2(anchor_y - y, anchor_x - x);
-            anchor_x = (float)(x + max_length * Math.cos(radians));
-            anchor_y = (float)(y + max_length * Math.sin(radians));
+            anchor_x = (float) (x + max_length * Math.cos(radians));
+            anchor_y = (float) (y + max_length * Math.sin(radians));
         }
         float[] amounts = new float[]{0.33f, 0.66f, 0.33f, 0};
         for (float amount : amounts) {
-            add(STITCH, (float)towards(x, anchor_x, amount), (float)towards(y, anchor_y, amount));
+            add(STITCH, (float) towards(x, anchor_x, amount), (float) towards(y, anchor_y, amount));
         }
     }
-    
-    
 
     public static double towards(double a, double b, double amount) {
         return (amount * (b - a)) + a;
     }
-
 
     public static double distance(double x0, double y0, double x1, double y1) {
         double dx = x1 - x0;
@@ -787,6 +784,5 @@ public class EmbEncoder {
         dy *= dy;
         return Math.sqrt(dx + dy);
     }
-
 
 }

@@ -302,7 +302,7 @@ public class EmbPattern implements Points {
                         int end = stitches.size();
                         while (start < end) {
                             int data = stitches.getData(start) & COMMAND_MASK;
-                            if ((data == COLOR_CHANGE) || (data == NEEDLE_SET)) {
+                            if ((data == COLOR_CHANGE) || (data == NEEDLE_SET) || (data == COLOR_BREAK)) {
                                 threadIndex++;
                                 thread = null;
                             }

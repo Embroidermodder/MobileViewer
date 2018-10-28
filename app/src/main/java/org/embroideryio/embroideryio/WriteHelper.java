@@ -38,6 +38,15 @@ public class WriteHelper {
     }
 
 
+    public void writeSpaceHolder32BE(int value) throws IOException {
+        ByteArrayOutputStream baos = pop();
+        stream.write((value >> 24) & 0xFF);
+        stream.write((value >> 16) & 0xFF);
+        stream.write((value >> 8) & 0xFF);
+        stream.write(value & 0xFF);
+        stream.write(baos.toByteArray());
+    }
+    
     public void writeSpaceHolder32LE(int value) throws IOException {
         ByteArrayOutputStream baos = pop();
         stream.write(value & 0xFF);

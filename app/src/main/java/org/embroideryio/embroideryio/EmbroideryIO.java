@@ -233,8 +233,7 @@ public class EmbroideryIO {
                 //return new ColWriter();
                 break;
             case "csv":
-                //return new CsvWriter();
-                break;
+                return new CsvWriter();
             case "dat":
                 //return new DatWriter();
                 break;
@@ -311,8 +310,7 @@ public class EmbroideryIO {
                 //return new PhcWriter();
                 break;
             case "pmv":
-                //return new PmvWriter();
-                break;
+                return new PmvWriter();
             case "sew":
                 //return new SewWriter();
                 break;
@@ -334,8 +332,7 @@ public class EmbroideryIO {
             case "u01":
                 return new U01Writer();
             case "vp3":
-                //return new Vp3Writer();
-                break;
+                return new Vp3Writer();
             case "xxx":
                 //return new XxxWriter();
                 break;
