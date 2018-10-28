@@ -5,7 +5,7 @@ import java.io.IOException;
 public class MitReader extends EmbReader {
 
     private final static int COMMANDSIZE = 2;
-    private final static double MIT_SIZE_CONVERSION_RATIO = 2.0 / 1.0;
+    private final static double MIT_SIZE_CONVERSION_RATIO = 5.0 / 2.0;
 
     @Override
     public void read() throws IOException {

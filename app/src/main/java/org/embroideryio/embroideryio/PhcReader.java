@@ -22,7 +22,7 @@ public class PhcReader extends PecReader {
                 pec_graphic_byte_stride,
                 color_count
         );
-        seek(0x2b);
+        seek(0x2b); //TODO: Read this in correct order, not using -skip.
         int pec_add = readInt8();
         skip(4);
         int pec_offset = readInt16LE();
