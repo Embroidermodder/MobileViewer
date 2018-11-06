@@ -18,6 +18,7 @@ public class U01Writer extends EmbWriter {
         settings.put(EmbEncoder.PROP_SEQUIN_CONTINGENCY, CONTINGENCY_SEQUIN_JUMP);
         settings.put(EmbEncoder.PROP_WRITES_SPEED, true);
         settings.put(EmbEncoder.PROP_FULL_JUMP, false);
+        settings.put(EmbEncoder.PROP_ROUND, true);
         settings.put(EmbEncoder.PROP_THREAD_CHANGE_COMMAND, NEEDLE_SET);
     }
 

@@ -21,6 +21,7 @@ public class DstWriter extends EmbWriter {
         super();
         settings.put(EmbEncoder.PROP_MAX_JUMP, (float) MAXPJ);
         settings.put(EmbEncoder.PROP_MAX_STITCH, (float) MAXPJ);
+        settings.put(EmbEncoder.PROP_ROUND, true);
         settings.put(EmbEncoder.PROP_SEQUIN_CONTINGENCY, CONTINGENCY_SEQUIN_UTILIZE);
     }
 

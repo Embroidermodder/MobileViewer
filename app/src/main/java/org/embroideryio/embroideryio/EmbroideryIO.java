@@ -334,8 +334,7 @@ public class EmbroideryIO {
             case "vp3":
                 return new Vp3Writer();
             case "xxx":
-                //return new XxxWriter();
-                break;
+                return new XxxWriter();
             case "zhs":
                 //return new ZhsWriter();
                 break;

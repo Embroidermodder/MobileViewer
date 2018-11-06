@@ -11,6 +11,7 @@ public class Vp3Writer extends EmbWriter {
         settings.put(EmbEncoder.PROP_MAX_JUMP, 3200f);
         settings.put(EmbEncoder.PROP_MAX_STITCH, 255f);
         settings.put(EmbEncoder.PROP_FULL_JUMP, false);
+        settings.put(EmbEncoder.PROP_ROUND, true);
     }
 
     private void vp3_write_string_8(String string) throws IOException {

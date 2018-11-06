@@ -11,6 +11,7 @@ public class JefWriter extends EmbWriter {
         settings.put(EmbEncoder.PROP_MAX_JUMP, 127f);
         settings.put(EmbEncoder.PROP_MAX_STITCH, 127f);
         settings.put(EmbEncoder.PROP_FULL_JUMP, true);
+        settings.put(EmbEncoder.PROP_ROUND, true);
     }
 
     public static final int HOOP_110X110 = 0;
@@ -42,7 +43,7 @@ public class JefWriter extends EmbWriter {
             switch (data) {
                 case STITCH:
                     point_count += 1;
-                    break;
+                    continue;
                 case JUMP:
                     point_count += 2;
                     break;
@@ -111,6 +112,7 @@ public class JefWriter extends EmbWriter {
                     writeInt8(dx);
                     writeInt8(-dy);
                     continue;
+                case STOP:
                 case COLOR_CHANGE:
                     writeInt8(0x80);
                     writeInt8(0x01);
@@ -122,6 +124,8 @@ public class JefWriter extends EmbWriter {
                     writeInt8(0x02);
                     writeInt8(dx);
                     writeInt8(-dy);
+                    continue;
+                case TRIM:
                     continue;
                 case END:
                     break;

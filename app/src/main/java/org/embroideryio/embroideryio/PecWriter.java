@@ -23,6 +23,7 @@ public class PecWriter extends EmbWriter {
         settings.put(EmbEncoder.PROP_MAX_JUMP, 2047f);
         settings.put(EmbEncoder.PROP_MAX_STITCH, 2047f);
         settings.put(EmbEncoder.PROP_FULL_JUMP, true);
+        settings.put(EmbEncoder.PROP_ROUND, true);
     }
 
     @Override
@@ -76,12 +77,10 @@ public class PecWriter extends EmbWriter {
 
         ArrayList<Integer> color_index_list = new ArrayList<>();
         ArrayList<Integer> rgb_list = new ArrayList<>();
-
-        for (EmbThread thread : threads) {
-            color_index_list.add(thread.findNearestIndex(thread.color, chart));
+        for (EmbThread thread : pattern.threadlist) {
+            color_index_list.add(EmbThread.findNearestIndex(thread.color, chart));
             rgb_list.add(thread.color);
         }
-
         int current_thread_count = color_index_list.size();
         if (current_thread_count != 0) {
             for (int i = 0; i < 12; i++) {
@@ -133,7 +132,6 @@ public class PecWriter extends EmbWriter {
         writeInt16LE((short) 0x1E0);
         writeInt16LE((short) 0x1B0);
 
-        
         writeInt16BE((0x9000 | -Math.round(pattern.getMinX())));
         writeInt16BE((0x9000 | -Math.round(pattern.getMinY())));
 
@@ -197,7 +195,6 @@ public class PecWriter extends EmbWriter {
             dy = (int) Math.rint(y - yy);
             xx += dx;
             yy += dy;
-
             switch (data) {
                 case STITCH:
                     if ((jumping) && (dx != 0) && (dy != 0)) {
@@ -214,7 +211,7 @@ public class PecWriter extends EmbWriter {
                         writeInt16BE(dx);
                         writeInt16BE(dy);
                     }
-                    break;
+                    continue;
                 case JUMP:
                     jumping = true;
                     dx = encode_long_form(dx);
@@ -223,7 +220,7 @@ public class PecWriter extends EmbWriter {
                     dy = flagTrim(dy);
                     writeInt16BE(dx);
                     writeInt16BE(dy);
-                    break;
+                    continue;
                 case COLOR_CHANGE:
                     if (jumping) {
                         writeInt8((byte) 0x00);
@@ -234,18 +231,16 @@ public class PecWriter extends EmbWriter {
                     writeInt8(0xb0);
                     writeInt8((color_two) ? 2 : 1);
                     color_two = !color_two;
-                    break;
+                    continue;
+                case TRIM:
+                    continue;
                 case STOP:
-                    break;
+                    continue;
                 case END:
-                    if (jumping) {
-                        writeInt8((byte) 0x00);
-                        writeInt8((byte) 0x00);
-                        jumping = false;
-                    }
                     writeInt8(0xff);
                     break;
             }
+            break;
         }
     }
 }

@@ -9,6 +9,7 @@ import java.util.Map;
 import static org.embroideryio.embroideryio.EmbConstant.*;
 
 public class EmbPattern implements Points {
+
     public static final String PROP_FILENAME = "filename";
     public static final String PROP_NAME = "name";
     public static final String PROP_CATEGORY = "category";
@@ -638,7 +639,7 @@ public class EmbPattern implements Points {
 
     /**
      * AddStitchRel adds a stitch to the pattern at the relative position (dx,
-     * dy) to the previous stitch. Units are in millimeters.
+     * dy) to the previous stitch. Units are in 1/10 millimeters.
      *
      * @param dx The change in X position.
      * @param dy The change in Y position. Positive value move upward.
@@ -649,4 +650,33 @@ public class EmbPattern implements Points {
         float y = _previousY + dy;
         this.addStitchAbs(x, y, flags);
     }
+
+    public int count_commands(int... commands) {
+        int count = 0;
+        for (int i = 0, ie = stitches.size(); i < ie; i++) {
+            int data = stitches.getData(i) & COMMAND_MASK;
+            for (int cmd : commands) {
+                if (cmd == data) {
+                    count += 1;
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+
+    public void addBlock(String textColor, float... values) {
+
+        stitches.add(values);
+        if (textColor != null) {
+            addStitchRel(0, 0, SEQUENCE_BREAK);
+        }
+        if (textColor != null) {
+            EmbThread thread = new EmbThread();
+            thread.setStringColor(textColor);
+            threadlist.add(thread);
+            addStitchRel(0, 0, COLOR_BREAK);
+        }
+    }
+
 }

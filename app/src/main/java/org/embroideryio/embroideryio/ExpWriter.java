@@ -11,6 +11,7 @@ public class ExpWriter extends EmbWriter {
         settings.put(EmbEncoder.PROP_MAX_JUMP, 127f);
         settings.put(EmbEncoder.PROP_MAX_STITCH, 127f);
         settings.put(EmbEncoder.PROP_FULL_JUMP, true);
+        settings.put(EmbEncoder.PROP_ROUND, true);
     }
 
     @Override

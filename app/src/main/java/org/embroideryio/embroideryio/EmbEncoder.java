@@ -10,6 +10,7 @@ public class EmbEncoder {
     public static final String PROP_MAX_STITCH = "max_stitch";
     public static final String PROP_MAX_JUMP = "max_jump";
     public static final String PROP_FULL_JUMP = "full_jump";
+    public static final String PROP_ROUND = "round";
     public static final String PROP_NEEDLE_COUNT = "needle_count";
     public static final String PROP_THREAD_CHANGE_COMMAND = "thread_change_command";
     public static final String PROP_SEQUIN_CONTINGENCY = "sequin_contingency";
@@ -23,6 +24,7 @@ public class EmbEncoder {
     public float max_stitch = Float.POSITIVE_INFINITY;
     public float max_jump = Float.POSITIVE_INFINITY;
     public boolean full_jump = false;
+    public boolean round = false;
     public int needle_count = 5;
     public int thread_change_command = COLOR_CHANGE;
     public int sequin_contingency = CONTINGENCY_SEQUIN_JUMP;
@@ -55,6 +57,7 @@ public class EmbEncoder {
         this.max_stitch = (float) io.get(PROP_MAX_STITCH, max_stitch);
         this.max_jump = (float) io.get(PROP_MAX_JUMP, max_jump);
         this.full_jump = (boolean) io.get(PROP_FULL_JUMP, full_jump);
+        this.round = (boolean) io.get(PROP_ROUND, round);
         this.needle_count = (int) io.get(PROP_NEEDLE_COUNT, needle_count);
         this.thread_change_command = (int) io.get(PROP_THREAD_CHANGE_COMMAND, thread_change_command);
         this.sequin_contingency = (int) io.get(PROP_SEQUIN_CONTINGENCY, sequin_contingency);
@@ -216,16 +219,10 @@ public class EmbEncoder {
         order_index = -1;
         this.destination_pattern.setMetadata(this.source_pattern);
         change_sequence = build_thread_change_sequence();
-        ArrayList<EmbThread> threadlist = destination_pattern.getThreadlist();
-        for (ThreadSequence entry : change_sequence) {
-            if (entry == null) {
-                continue;
-            }
-            threadlist.add(entry.embThread);
-        }
+        
         float[] p = new float[2];
         float x, y;
-        int data, flags;
+        int data, flags = NO_COMMAND;
         for (int i = 0, ie = source.size(); i < ie; i++) {
             position = i;
             stitch_x = source.getX(i);
@@ -235,6 +232,10 @@ public class EmbEncoder {
             matrix.mapPoints(p);
             x = p[0];
             y = p[1];
+            if (this.round) {
+                x = (float) Math.rint(x);
+                y = (float) Math.rint(y);
+            }
             data = source.getData(i);
             flags = data & COMMAND_MASK;
             switch (flags) {
@@ -414,6 +415,9 @@ public class EmbEncoder {
                 case MATRIX_RESET:
                     break;
             }
+        }
+        if (flags != END) {
+            this.end_here();
         }
     }
 
@@ -687,6 +691,8 @@ public class EmbEncoder {
     void next_change_sequence() {
         order_index += 1;
         ThreadSequence change = change_sequence.get(order_index);
+        ArrayList<EmbThread> threadlist = destination_pattern.getThreadlist();
+        threadlist.add(change.embThread);
         switch (thread_change_command) {
             case COLOR_CHANGE:
                 if (order_index != 0) {

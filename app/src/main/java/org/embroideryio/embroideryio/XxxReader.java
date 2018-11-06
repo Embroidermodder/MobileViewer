@@ -29,6 +29,12 @@ public class XxxReader extends EmbReader {
                 case 0x01:
                     pattern.move(signed8(b3), -signed8(b4));
                     continue;
+                case 0x03:
+                    int x = signed8(b3);
+                    int y = -signed8(b4);
+                    if ((x != 0) || (y != 0)) pattern.move(x, y);
+                    pattern.trim();
+                    continue;
                 case 0x08:
                     pattern.color_change();
                     continue;
@@ -39,7 +45,7 @@ public class XxxReader extends EmbReader {
         }
         pattern.end();
         skip(2);
-        for (int i = 0, ie = num_of_colors + 1; i < ie; i++) {
+        for (int i = 0, ie = num_of_colors; i < ie; i++) {
             EmbThread thread = new EmbThread();
             thread.color = readInt32BE();
             pattern.add(thread);
