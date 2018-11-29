@@ -153,9 +153,6 @@ public class DstWriter extends EmbWriter {
         boolean extended_header = getBoolean(PROP_EXTENDED_HEADER, false);
         float[] bounds = pattern.getBounds();
 
-        float width = bounds[2] - bounds[0];
-        float height = bounds[3] - bounds[1];
-
         String name = getName();
         if (name == null) {
             name = "Untitled";
@@ -170,14 +167,27 @@ public class DstWriter extends EmbWriter {
         stream.write(String.format(Locale.ENGLISH, "ST:%7d\r", pointsize).getBytes());
         stream.write(String.format(Locale.ENGLISH, "CO:%3d\r", colorchanges).getBytes());
         /* number of color changes, not number of colors! */
-        int x_extend = (int) Math.ceil((PPMM * width) / 2);
-        int y_extend = (int) Math.ceil((PPMM * height) / 2);
-        stream.write(String.format(Locale.ENGLISH, "+X:%5d\r", x_extend).getBytes());
-        stream.write(String.format(Locale.ENGLISH, "-X:%5d\r", x_extend).getBytes());
-        stream.write(String.format(Locale.ENGLISH, "+Y:%5d\r", y_extend).getBytes());
-        stream.write(String.format(Locale.ENGLISH, "-Y:%5d\r", y_extend).getBytes());
-        stream.write(String.format(Locale.ENGLISH, "AX:+%5d\r", 0).getBytes());
-        stream.write(String.format(Locale.ENGLISH, "AY:+%5d\r", 0).getBytes());
+        stream.write(String.format(Locale.ENGLISH, "+X:%5d\r", (int) Math.abs(bounds[2])).getBytes());
+        stream.write(String.format(Locale.ENGLISH, "-X:%5d\r", (int) Math.abs(bounds[0])).getBytes());
+        stream.write(String.format(Locale.ENGLISH, "+Y:%5d\r", (int) Math.abs(bounds[3])).getBytes());
+        stream.write(String.format(Locale.ENGLISH, "-Y:%5d\r", (int) Math.abs(bounds[1])).getBytes());
+        int ax = 0;
+        int ay = 0;
+        if (pattern.size() > 0) {
+            int last = pattern.size() - 1;
+            ax = (int) (pattern.getX(last));
+            ay = (int) (pattern.getY(last));
+        }
+        if (ax >= 0) {
+            stream.write(String.format(Locale.ENGLISH, "AX:+%5d\r", ax).getBytes());
+        } else {
+            stream.write(String.format(Locale.ENGLISH, "AX:-%5d\r", Math.abs(ax)).getBytes());
+        }
+        if (ay >= 0) {
+            stream.write(String.format(Locale.ENGLISH, "AY:+%5d\r", ay).getBytes());
+        } else {
+            stream.write(String.format(Locale.ENGLISH, "AY:-%5d\r", Math.abs(ay)).getBytes());
+        }
         stream.write(String.format(Locale.ENGLISH, "MX:+%5d\r", 0).getBytes());
         stream.write(String.format(Locale.ENGLISH, "MY:+%5d\r", 0).getBytes());
         stream.write(String.format(Locale.ENGLISH, "PD:%6s\r", "******").getBytes());
