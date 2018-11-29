@@ -176,7 +176,7 @@ public class DstWriter extends EmbWriter {
         if (pattern.size() > 0) {
             int last = pattern.size() - 1;
             ax = (int) (pattern.getX(last));
-            ay = (int) (pattern.getY(last));
+            ay = -(int) (pattern.getY(last));
         }
         if (ax >= 0) {
             stream.write(String.format(Locale.ENGLISH, "AX:+%5d\r", ax).getBytes());
