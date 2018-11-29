@@ -2,7 +2,7 @@
 package org.embroideryio.embroideryio;
 
 //the below starts with two slashes for oracle java. 1 for android.
-//*//
+/*//
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 
