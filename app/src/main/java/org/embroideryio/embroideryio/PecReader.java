@@ -27,6 +27,7 @@ public class PecReader extends EmbReader {
         int pec_graphic_icon_height = readInt8();
         skip(0x0C);
         int colorChanges = readInt8();
+        if (colorChanges == Integer.MIN_VALUE) return;
         byte[] color_bytes = new byte[colorChanges + 1];
         readFully(color_bytes);
         map_pec_colors(color_bytes);
