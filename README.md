@@ -1,10 +1,21 @@
-# Mobile Embroidery Viewer
+# Embroidermodder Mobile
 View and tweak machine embroidery files on your Android device
+
+The main emphasis on this project, currently is to serve as a cursory app for hacking and working with Android and embroidery.
+This has lead to some spin-off functionality and utilities like EmbroideryIO which also shares parentage with `EmbroiderPy/pyembroidery` and `Embroidermodder/libembroidery`.
 
 Current features
 ----------------
- Ability to view .DST,.EXP, .JEF, .PCS, .PEC, .PES, .SEW, and .XXX designs.
- 
+
+Loading and saving is possible between many different formats. This functionality is part of the EmbroideryIO project which is a sister project to this one.
+
+https://github.com/EmbroidePy/EmbroideryIO
+
+Currently we have the ability to view .DST,.EXP, .JEF, .PCS, .PEC, .PES, .SEW, .XXX, etc designs.
+
+The EmbroideryIO project includes 40+ formats for reading and 10+ for writing.
+
+
 Enhancements (no particular order)
 -------------------------------------------------
 - Thumbnail directory viewer (generate and cache thumbnail view)
