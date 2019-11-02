@@ -19,7 +19,7 @@ public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Pr
     private static final float MARGIN = 0.05f;
     private static final float PIXELS_PER_MM = 10;
     private final EmmPattern emmPattern = new EmmPattern();
-    private EmmPatternQuickView root = new EmmPatternQuickView(emmPattern);
+    private EmmPatternFancyView root = new EmmPatternFancyView(emmPattern);
     private final Paint _paint = new Paint();
     private int _height;
     private int _width;
@@ -147,14 +147,14 @@ public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Pr
     public void setPattern(EmmPattern pattern) {
         if (pattern == null) return;
         this.emmPattern.setPattern(pattern);
-        this.root = new EmmPatternQuickView(emmPattern);
+        this.root = new EmmPatternFancyView(emmPattern);
         pattern.notifyChange(EmmPattern.NOTIFY_CHANGE);
         invalidate();
     }
 
     @Override
     public void notifyChange(int id) {
-        this.root = new EmmPatternQuickView(emmPattern);
+        this.root = new EmmPatternFancyView(emmPattern);
         if (!root.isEmpty()) {
             viewPort = emmPattern.getBounds(viewPort);
             float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());

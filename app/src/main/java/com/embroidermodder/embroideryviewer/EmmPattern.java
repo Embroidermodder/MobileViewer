@@ -1,5 +1,6 @@
 package com.embroidermodder.embroideryviewer;
 
+import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 
@@ -454,6 +455,16 @@ public class EmmPattern {
     public void translate(float dx, float dy) {
         stitches.translate(dx, dy);
     }
+
+
+    public void rotate(float degrees) {
+        float x = stitches.getCenterX();
+        float y = stitches.getCenterY();
+        Matrix m = new Matrix();
+        m.postRotate(degrees, x, y);
+        m.mapPoints(stitches.pointlist);
+    }
+
 
     public RectF getBounds(RectF bounds) {
         if (bounds == null) bounds = new RectF();
