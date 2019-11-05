@@ -11,18 +11,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
+
 import static com.embroidermodder.embroideryviewer.EmmPattern.COLOR_CHANGE;
 import static com.embroidermodder.embroideryviewer.EmmPattern.JUMP;
 import static com.embroidermodder.embroideryviewer.EmmPattern.STITCH;
 
 public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Provider {
+    private static final int DRAWMODE_QUICK = 0;
+    private static final int DRAWMODE_FANCY = 1;
     private static final float MARGIN = 0.05f;
     private static final float PIXELS_PER_MM = 10;
     private final EmmPattern emmPattern = new EmmPattern();
-    private EmmPatternFancyView root = new EmmPatternFancyView(emmPattern);
+    private EmmPatternFancyView fancyView = new EmmPatternFancyView(emmPattern);
+    private EmmPatternQuickView quickView = new EmmPatternQuickView(emmPattern);
     private final Paint _paint = new Paint();
     private int _height;
     private int _width;
+    int drawMode = DRAWMODE_FANCY;
 
     Tool tool = new ToolPan();
     Matrix viewMatrix;
@@ -99,6 +104,12 @@ public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Pr
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getActionMasked() != MotionEvent.ACTION_UP) {
+            drawMode = DRAWMODE_QUICK;
+        } else {
+            drawMode = DRAWMODE_FANCY;
+            postInvalidate();
+        }
         //anything happening with event here is the X Y of the raw screen event, relative to the view.
         if (tool.rawTouch(this, event)) return true;
         if (invertMatrix != null) event.transform(invertMatrix);
@@ -108,12 +119,16 @@ public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Pr
 
     @Override
     public void onDraw(Canvas canvas) {
-        if (root != null) {
-            canvas.save();
-            if (viewMatrix != null) canvas.concat(viewMatrix);
-            root.draw(canvas);
-            canvas.restore();
+        canvas.save();
+        if (viewMatrix != null) canvas.concat(viewMatrix);
+        if ((drawMode == DRAWMODE_QUICK) || (fancyView == null)) {
+            if (quickView != null){
+                quickView.draw(canvas);
+            }
+        } else {
+            fancyView.draw(canvas);
         }
+        canvas.restore();
     }
 
     public String getStatistics() {
@@ -147,15 +162,17 @@ public class DrawView extends View implements EmmPattern.Listener, EmmPattern.Pr
     public void setPattern(EmmPattern pattern) {
         if (pattern == null) return;
         this.emmPattern.setPattern(pattern);
-        this.root = new EmmPatternFancyView(emmPattern);
+        this.quickView = new EmmPatternQuickView(emmPattern);
+        this.fancyView = new EmmPatternFancyView(emmPattern);
         pattern.notifyChange(EmmPattern.NOTIFY_CHANGE);
         invalidate();
     }
 
     @Override
     public void notifyChange(int id) {
-        this.root = new EmmPatternFancyView(emmPattern);
-        if (!root.isEmpty()) {
+        this.fancyView = new EmmPatternFancyView(emmPattern);
+        this.quickView = new EmmPatternQuickView(emmPattern);
+        if (!fancyView.isEmpty()) {
             viewPort = emmPattern.getBounds(viewPort);
             float scale = Math.min(_height / viewPort.height(), _width / viewPort.width());
             float extraWidth = _width - (viewPort.width() * scale);

@@ -17,6 +17,7 @@ import java.util.ArrayList;
  */
 
 public class EmmPatternFancyView {
+    public Paint paint = new Paint();
     EmmPattern pattern;
     ArrayList<FancyLineDraw> drawers = new ArrayList<>();
     float minX = Float.POSITIVE_INFINITY;
@@ -27,6 +28,7 @@ public class EmmPatternFancyView {
     public EmmPatternFancyView(EmmPattern pattern) {
         this.pattern = pattern;
         FancyLineDraw draw;
+        this.paint.setStrokeWidth(3);
 
         for (EmbObject sb : pattern.asStitchEmbObjects()) {
             EmmThread currentThread = sb.getThread();
@@ -46,7 +48,8 @@ public class EmmPatternFancyView {
 
     public void draw(Canvas canvas) {
         for (FancyLineDraw f : drawers) {
-            canvas.drawLine(f.x0, f.y0, f.x1, f.y1, f.paint);
+            f.setPaint(this.paint);
+            canvas.drawLine(f.x0, f.y0, f.x1, f.y1, this.paint);
         }
     }
 
@@ -77,12 +80,11 @@ public class EmmPatternFancyView {
 
 
     private class FancyLineDraw {
+        LinearGradient shader;
         float x0, y0, x1, y1;
-        public Paint paint = new Paint();
 
         public FancyLineDraw(float x0, float y0, float x1, float y1, int color) {
-            this.paint.setStrokeWidth(3);
-            this.paint.setColor(color);
+
             this.x0 = x0;
             this.y0 = y0;
             this.x1 = x1;
@@ -91,9 +93,11 @@ public class EmmPatternFancyView {
             int dark = adjust(color, -60);
             float[] positions = new float[] { 0, 0.05f, 0.5f, 0.9f, 1.0f };
             int[] colors = new int[] { dark, color, dark, color, dark };
-            LinearGradient shader = new LinearGradient(x0, y0, x1, y1, colors, positions, Shader.TileMode.MIRROR);
-            this.paint.setShader(shader);
+            shader = new LinearGradient(x0, y0, x1, y1, colors, positions, Shader.TileMode.MIRROR);
+        }
 
+        public void setPaint(Paint paint) {
+            paint.setShader(shader);
         }
 
         private int adjust(int color, int amount) {
