@@ -90,7 +90,7 @@ public class EmmPatternFancyView {
             this.x1 = x1;
             this.y1 = y1;
             color = 0xFF000000 | color;
-            int dark = adjust(color, -60);
+            int dark = adjust(color, -120);
             float[] positions = new float[] { 0, 0.05f, 0.5f, 0.9f, 1.0f };
             int[] colors = new int[] { dark, color, dark, color, dark };
             shader = new LinearGradient(x0, y0, x1, y1, colors, positions, Shader.TileMode.MIRROR);
