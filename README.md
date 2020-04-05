@@ -1,6 +1,13 @@
 # Embroidermodder Mobile
 View and tweak machine embroidery files on your Android device
 
+# Installation
+Install from Google Play. Offical release is located:
+
+https://play.google.com/store/apps/details?id=com.embroidermodder.android
+
+# Overview
+----------------
 The main emphasis on this project, currently is to serve as a cursory app for hacking and working with Android and embroidery.
 This has lead to some spin-off functionality and utilities like EmbroideryIO which also shares parentage with `EmbroiderPy/pyembroidery` and `Embroidermodder/libembroidery`.
 
